@@ -8,7 +8,7 @@ import "@/styles/globals.css";
 import AuthProvider from "@/providers/auth.provider";
 import { PropsWithChildren } from "react";
 
-const AppMainLayout = ({ children }: PropsWithChildren<{}>) => {
+const AppMainLayout = ({ children }: PropsWithChildren) => {
   return (
     <AuthProvider>
       <AppLayout>{children}</AppLayout>
