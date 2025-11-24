@@ -150,7 +150,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
 
                   return (
                     <li key={order.id}>
-                      {order.product.url ? (
+                      {order.product?.url ? (
                         <a
                           target="_blank"
                           href={order.product.url}

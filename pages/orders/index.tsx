@@ -450,6 +450,7 @@ const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
         <DataTable
           columns={columns}
           data={orders}
+          getRowId={(row) => row.id}
           pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}

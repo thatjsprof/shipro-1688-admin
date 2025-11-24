@@ -70,6 +70,7 @@ interface DataTableProps<TData, TValue> {
   setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   cellStyles?: Record<string, string>;
   enableRowSelection?: boolean;
+  getRowId?: (originalRow: TData, index: number) => string;
 }
 
 export function DataTable<TData, TValue>({
@@ -101,6 +102,7 @@ export function DataTable<TData, TValue>({
   manualPagination = false,
   cellStyles = {},
   enableRowSelection = false,
+  getRowId,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -154,6 +156,7 @@ export function DataTable<TData, TValue>({
     data,
     columns: allColumns,
     pageCount,
+    getRowId,
     state: {
       sorting,
       columnVisibility,
