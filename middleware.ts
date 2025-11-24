@@ -10,7 +10,9 @@ export async function middleware(req: NextRequest) {
       .map((c) => c.split("="))
       .filter((pair): pair is [string, string] => pair.length === 2)
   );
-  const accessToken = cookies.get("better-auth.session_token");
+  const accessToken =
+    cookies.get("better-auth.session_token") ||
+    cookies.get("__Secure-better-auth.session_token");
   const role = cookies.get("user-role");
   if (!accessToken || !role) {
     return NextResponse.redirect(new URL("/login", req.url));
