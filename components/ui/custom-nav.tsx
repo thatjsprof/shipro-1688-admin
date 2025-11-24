@@ -85,13 +85,6 @@ export const CustomNavigation: React.FC<CustomNavigationProps> = ({
       ? Array.from({ length: 101 }, (_, i) => currentYear - i)
       : Array.from({ length: 101 }, (_, i) => currentYear + i);
 
-  console.log(
-    disabledDays,
-    disabledDays?.before,
-    month.getMonth() === today.getMonth() &&
-      month.getFullYear() === today.getFullYear()
-  );
-
   return (
     <div className="flex items-center justify-between gap-2 py-2 pt-4 px-2 w-full relative z-[60]">
       <Button

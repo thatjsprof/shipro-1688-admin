@@ -26,3 +26,8 @@ export const formatNum = (value?: number | string): string => {
   }
   return numToReturn(num.toFixed(2));
 };
+
+export const upperCaseFirst = (str: string) => {
+  if (!str) return "";
+  return `${str[0].toUpperCase()}${str.slice(1)}`;
+};

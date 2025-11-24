@@ -29,7 +29,7 @@ const Layout = ({ children }: PropsWithChildren) => {
   return <>{children}</>;
 };
 
-const APP_ROUTES = ["/dashboard", "/orders", "/settings"];
+const APP_ROUTES = ["/dashboard", "/orders", "/settings", "/products"];
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

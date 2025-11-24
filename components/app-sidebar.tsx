@@ -1,5 +1,14 @@
 import * as React from "react";
-import { ChevronRight, Home, ShoppingBag, User } from "lucide-react";
+import {
+  CalendarArrowUp,
+  ChevronRight,
+  Home,
+  PackageSearch,
+  Settings,
+  ShoppingBag,
+  Truck,
+  User,
+} from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -43,26 +52,31 @@ const data: {
       Icon: <Home className="!size-5" strokeWidth={2.5} />,
     },
     {
+      title: "Products",
+      url: "/products",
+      Icon: <PackageSearch className="!size-5" strokeWidth={2.5} />,
+    },
+    {
       title: "Orders",
       url: "#",
-      Icon: <ShoppingBag className="!size-5" strokeWidth={2.5} />,
+      Icon: <CalendarArrowUp className="!size-5" strokeWidth={2.5} />,
       items: [
         {
-          title: "1688 Orders",
+          title: "All Orders",
           url: "/orders",
           Icon: <ShoppingBag className="!size-5" strokeWidth={2.5} />,
         },
         {
-          title: "Sourcing Orders",
-          url: "/sourcing-orders",
-          Icon: <ShoppingBag className="!size-5" strokeWidth={2.5} />,
+          title: "Shipments",
+          url: "/shipments",
+          Icon: <Truck className="!size-5" strokeWidth={2.5} />,
         },
       ],
     },
     {
-      title: "Profile",
-      url: "/profile",
-      Icon: <User className="!size-5" strokeWidth={2.5} />,
+      title: "Settings",
+      url: "/settings",
+      Icon: <Settings className="!size-5" strokeWidth={2.5} />,
     },
   ],
 };

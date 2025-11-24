@@ -18,7 +18,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -27,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DataTablePagination } from "@/components/ui/table/data-table-pagination";
 import { cn } from "@/lib/utils";
@@ -44,12 +44,15 @@ interface DataTableProps<TData, TValue> {
   manualFiltering?: boolean;
   showSelected?: boolean;
   rowClick?: (row: Row<TData>) => void;
+  rowClickSelectsCheckbox?: boolean;
+  onSelectedRowsChange?: (selectedRows: TData[]) => void;
   loading?: boolean;
   DataToolbar?: ({
     table,
     ExtraComponent,
   }: DataTableToolbarProps<TData>) => React.JSX.Element;
   className?: string;
+  wrapperCls?: string;
   headerClassname?: string;
   headerSubClassname?: string;
   headerRowClassname?: string;
@@ -66,6 +69,7 @@ interface DataTableProps<TData, TValue> {
   customEmpty?: string;
   setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   cellStyles?: Record<string, string>;
+  enableRowSelection?: boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -73,6 +77,7 @@ export function DataTable<TData, TValue>({
   data,
   pageCount,
   prefetch,
+  wrapperCls,
   className,
   headerClassname,
   headerSubClassname,
@@ -83,6 +88,8 @@ export function DataTable<TData, TValue>({
   setRowSelection,
   setColumnFilters,
   rowClick,
+  rowClickSelectsCheckbox = false,
+  onSelectedRowsChange,
   customEmpty = "No results.",
   pagination,
   loading = false,
@@ -93,6 +100,7 @@ export function DataTable<TData, TValue>({
   DataToolbar = () => <></>,
   manualPagination = false,
   cellStyles = {},
+  enableRowSelection = false,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -103,16 +111,55 @@ export function DataTable<TData, TValue>({
   const [columnFiltersInternal, setColumnFiltersInternal] =
     React.useState<ColumnFiltersState>([]);
 
+  const allColumns = React.useMemo(() => {
+    if (!enableRowSelection) return columns;
+
+    const selectColumn: ColumnDef<TData, TValue> = {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center -ml-2">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() ? "indeterminate" : false)
+            }
+            onCheckedChange={(value) => {
+              table.toggleAllPageRowsSelected(!!value);
+            }}
+            aria-label="Select all"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="px-2 pl-0 flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => {
+              row.toggleSelected(!!value);
+            }}
+            aria-label="Select row"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    };
+
+    return [selectColumn, ...columns];
+  }, [columns, enableRowSelection]);
+
   const table = useReactTable({
     data,
-    columns,
+    columns: allColumns,
     pageCount,
     state: {
       sorting,
       columnVisibility,
       pagination,
-      rowSelection: rowSelection || rowSelectionInternal,
-      columnFilters: columnFilters || columnFiltersInternal,
+      rowSelection: setRowSelection ? rowSelection : rowSelectionInternal,
+      columnFilters: setColumnFilters ? columnFilters : columnFiltersInternal,
     },
     onPaginationChange: setPagination,
     enableRowSelection: true,
@@ -132,8 +179,21 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
+  React.useEffect(() => {
+    if (onSelectedRowsChange) {
+      const selectedRows = table
+        .getFilteredSelectedRowModel()
+        .rows.map((row) => row.original);
+      onSelectedRowsChange(selectedRows);
+    }
+  }, [
+    setRowSelection ? rowSelection : rowSelectionInternal,
+    onSelectedRowsChange,
+    table,
+  ]);
+
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", wrapperCls)}>
       <DataToolbar table={table} ExtraComponent={ExtraComponent} />
       <div className={cn("rounded-md border", className)}>
         <Table>
@@ -166,7 +226,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <TableRow key={index}>
                       {Array.from(
-                        { length: columns.length },
+                        { length: allColumns.length },
                         (_, i) => i + 1
                       ).map((index) => {
                         return (
@@ -186,22 +246,43 @@ export function DataTable<TData, TValue>({
                     return (
                       <TableRow
                         key={row.id}
-                        style={{
-                          cursor: "pointer",
-                        }}
                         className="hover:bg-gray-100"
                         data-state={row.getIsSelected() && "selected"}
                       >
                         {row.getVisibleCells().map((cell) => {
+                          const handleClick = () => {
+                            if (
+                              cell.column.id === "select" ||
+                              cell.column.id === "actions"
+                            ) {
+                              return;
+                            }
+
+                            if (rowClickSelectsCheckbox) {
+                              row.toggleSelected();
+                            }
+
+                            if (rowClick) {
+                              rowClick(row);
+                            }
+                          };
+
                           return (
                             <TableCell
                               key={cell.id}
                               onClick={
                                 cell.column.id !== "select" &&
                                 cell.column.id !== "actions"
-                                  ? () => rowClick && rowClick(row)
-                                  : () => null
+                                  ? handleClick
+                                  : undefined
                               }
+                              style={{
+                                cursor:
+                                  cell.column.id !== "select" &&
+                                  cell.column.id !== "actions"
+                                    ? "pointer"
+                                    : "default",
+                              }}
                               className={cellStyles[cell.column.id]}
                             >
                               {flexRender(
@@ -217,7 +298,7 @@ export function DataTable<TData, TValue>({
                 ) : (
                   <TableRow className="hover:bg-gray-600">
                     <TableCell
-                      colSpan={columns.length}
+                      colSpan={allColumns.length}
                       className="h-20 text-center"
                     >
                       {customEmpty}

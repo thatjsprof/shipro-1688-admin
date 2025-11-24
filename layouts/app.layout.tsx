@@ -21,7 +21,7 @@ const AppLayout = ({ children }: PropsWithChildren) => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="bg-background sticky top-0 flex h-[5rem] shrink-0 items-center gap-4 border-b px-10">
+        <header className="bg-white z-[50] sticky top-0 flex h-[5rem] shrink-0 items-center gap-4 border-b px-10">
           <SidebarTrigger className="-ml-1" />
           <p className="text-[1.05rem] font-semibold">{routes[currentPath]}</p>
         </header>

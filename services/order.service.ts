@@ -1,17 +1,17 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
-import { IOrder } from "@/interfaces/order.interface";
+import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 
 const baseUrl = "/admin/order";
 
 export const orderApi = createApi({
   reducerPath: "rtk:order",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetOrders", "GetOrder"],
+  tagTypes: ["GetOrderItems", "GetOrder"],
   endpoints: (builder) => {
     return {
-      getOrders: builder.query<
-        ApiResponse<PaginatedResult<IOrder[]>>,
+      getOrderItems: builder.query<
+        ApiResponse<PaginatedResult<IOrderItem[]>>,
         {
           limit?: number;
           page?: number;
@@ -21,15 +21,46 @@ export const orderApi = createApi({
       >({
         query: (body) => {
           return {
-            url: `${baseUrl}/all`,
+            url: `${baseUrl}/items/all`,
             method: "POST",
             body,
           };
         },
-        providesTags: ["GetOrders"],
+        providesTags: ["GetOrderItems"],
+      }),
+      updateItems: builder.mutation<
+        ApiResponse<IOrderItem[]>,
+        Partial<{
+          items: string[];
+          data: {
+            status?: OrderStatus;
+            timeArrivedInWarehouse?: Date;
+            trackingNumber?: string;
+            images?: {
+              filename: string;
+              key: string;
+              url: string;
+            }[];
+            packageWeight?: number;
+            sendEmail?: boolean;
+          };
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/items`,
+            method: "POST",
+            body: data,
+          };
+        },
+        invalidatesTags: ["GetOrderItems"],
       }),
     };
   },
 });
 
-export const { useGetOrdersQuery } = orderApi;
+export const {
+  useGetOrderItemsQuery,
+  useLazyGetOrderItemsQuery,
+  useUpdateItemsMutation,
+} = orderApi;

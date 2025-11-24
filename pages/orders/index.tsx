@@ -2,55 +2,164 @@ import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
-import { IOrder, IOrderItem, OrderStatus } from "@/interfaces/order.interface";
+import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import useCopy, { ICopy } from "@/lib/copy";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { Copy, Search } from "lucide-react";
 import { useCallback, ChangeEvent, useMemo, useState } from "react";
 import debounce from "lodash.debounce";
-import { useGetOrdersQuery } from "@/services/order.service";
-import { Tabs, TabsContent, TabsTrigger, TabsList } from "@/components/ui/tabs";
 import { formatNum } from "@/lib/utils";
 import { orderStatusInfo } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { useRouter } from "next/router";
+import { useGetOrderItemsQuery } from "@/services/order.service";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Button } from "@/components/ui/button";
+import { PaymentDialog } from "@/components/pages/order/payment-dialog";
+import { PaymentFormData } from "@/schemas/payment";
+import { notify } from "@/lib/toast";
+import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import OrderDialog from "@/components/pages/order/order-dialog";
+import OrderSheet from "@/components/pages/order/order-sheet";
+import { Icons } from "@/components/shared/icons";
 type LucideIconName = keyof typeof LucideIcons;
 
-const getBaseColumns = (
-  copyToClipboard: ({ id, text, message, style }: ICopy) => void
-): Record<string, ColumnDef<IOrder>> => {
-  return {
-    orderNumber: {
-      accessorKey: "orderNumber",
+// id: string;
+//   // product: IProduct;
+//   variants: Record<string, any>;
+//   quantity: number;
+//   trackingNumber: string;
+//   tags: string[];
+//   packageWeight: number;
+//   totalWeight: number;
+//   orderAmount: number;
+//   arrivedWarehouse: Date;
+//   order: IOrder;
+//   name: string;
+//   images: string[];
+//   category: string;
+//   timeArrivedInWarehouse: Date;
+//   note: string;
+//   items: {
+//     type: "picture" | "link";
+//     quantity: number;
+//     pictures?: {
+//       filename: string;
+//       key: string;
+//       url: string;
+//     }[];
+//     link?: string;
+//     note?: string;
+//   }[];
+//   shipmentOrder: IOrder;
+//   payments: IPayment[];
+//   status: OrderStatus;
+
+const getColumns = (
+  copyToClipboard: ({ id, text, message, style }: ICopy) => void,
+  onPaymentClick: (orderItem: IOrderItem) => void,
+  onViewClick: (item: IOrderItem) => void,
+  onUpdateClick: (item: IOrderItem) => void
+): ColumnDef<IOrderItem>[] => {
+  return [
+    {
+      accessorKey: "trackingNumber",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Order Number"
+          title="Tracking Number"
           className="-mb-[1.8px] px-2"
         />
       ),
       cell: ({ row }) => {
-        const orderNumber = row.getValue<string>("orderNumber");
-        return (
+        const trackingNumber = row.getValue<string>("trackingNumber");
+        return trackingNumber ? (
           <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
             <Copy
               className="size-4"
               onClick={() =>
                 copyToClipboard({
-                  id: "copy-order-number",
-                  text: orderNumber,
-                  message: "Order number copied to clipboard",
+                  id: "copy-tracking-number",
+                  text: trackingNumber,
+                  message: "Tracking number copied to clipboard",
                 })
               }
             />
-            <p>{orderNumber}</p>
+            <p>{trackingNumber}</p>
           </div>
+        ) : (
+          <p>---</p>
         );
       },
       enableSorting: false,
       enableHiding: false,
     },
-    orderAmount: {
+    {
+      accessorKey: "name",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Name"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const name = row.original.name ?? row.original.product.description;
+        return name ? (
+          <div className="text-nowrap h-8 w-64">
+            <div className="flex items-center gap-[0.6rem] h-full">
+              <p
+                className="truncate hover:text-secondary duration-200 transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onViewClick(row.original);
+                }}
+              >
+                <LucideIcons.Eye className="size-4 flex-shrink-0 inline-block -mt-[3px] mr-2" />
+                <span>{name}</span>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "quantity",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Quantity"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const itemsQuantity = row.original.items.reduce((acc, cur) => {
+          return (acc += cur.quantity);
+        }, 0);
+        const quantity = itemsQuantity || row.original.quantity;
+        return quantity > 0 ? (
+          <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
+            <p className="truncate">{quantity}</p>
+          </div>
+        ) : (
+          <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "orderAmount",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -61,77 +170,82 @@ const getBaseColumns = (
       ),
       cell: ({ row }) => {
         const orderAmount = row.getValue<string>("orderAmount");
-        return (
+        return parseFloat(orderAmount) > 0 ? (
           <div className="flex items-center gap-[0.6rem] text-nowrap">
             ₦{formatNum(orderAmount)}
           </div>
+        ) : (
+          <p>---</p>
         );
       },
       enableSorting: false,
       enableHiding: false,
     },
-    items: {
-      accessorKey: "items",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Items"
-          className="-mb-[1.8px] px-2"
-        />
-      ),
-      cell: ({ row }) => {
-        const items = row.getValue<IOrderItem[]>("items");
-        console.log(items);
-        return (
-          <div className="flex items-center gap-[0.6rem] text-nowrap">
-            {items.length} Item(s)
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
-    totalWeight: {
-      accessorKey: "totalWeight",
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          column={column}
-          title="Order Amount"
-          className="-mb-[1.8px] px-2"
-        />
-      ),
-      cell: ({ row }) => {
-        const totalWeight = row.getValue<string>("totalWeight");
-        return (
-          <div className="flex items-center gap-[0.6rem] text-nowrap">
-            {formatNum(totalWeight)}g
-          </div>
-        );
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
-    actualWeight: {
+    {
       accessorKey: "packageWeight",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Actual Weight"
+          title="Package Weight"
           className="-mb-[1.8px] px-2"
         />
       ),
       cell: ({ row }) => {
         const packageWeight = row.getValue<string>("packageWeight");
+        return packageWeight ? (
+          <div className="flex items-center gap-[0.6rem] text-nowrap">
+            {formatNum(packageWeight)}g
+          </div>
+        ) : (
+          <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "user",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Owner"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const user = row.original.order.user.name;
         return (
           <div className="flex items-center gap-[0.6rem] text-nowrap">
-            {packageWeight ? formatNum(packageWeight) : "N/A"}
+            {user}
           </div>
         );
       },
       enableSorting: false,
       enableHiding: false,
     },
-    status: {
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <DataTableColumnHeader
+            column={column}
+            title="Date Ordered"
+            className="-mb-[1.8px] px-2"
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const createdAt = row.getValue<Date>("createdAt");
+        return (
+          <div className="flex items-center gap-[0.9rem] text-nowrap">
+            {createdAt ? format(createdAt, "dd MMM, yyy, h:mm a") : "---"}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "status",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -163,85 +277,100 @@ const getBaseColumns = (
       enableSorting: false,
       enableHiding: false,
     },
-  };
-};
-
-const getColumns = (
-  copyToClipboard: ({ id, text, message, style }: ICopy) => void
-): Record<string, ColumnDef<IOrder>[]> => {
-  const allBaseColumns = Object.values(getBaseColumns(copyToClipboard));
-  return {
-    placed: [...allBaseColumns],
-    shipped: [
-      ...allBaseColumns,
-      {
-        accessorKey: "trackingNumber",
-        header: ({ column }) => (
-          <DataTableColumnHeader
-            column={column}
-            title="Tracking Number"
-            className="-mb-[1.8px] px-2"
-          />
-        ),
-        cell: ({ row }) => {
-          const tracking = row.getValue<string>("trackingNumber");
-          return <div className="text-nowrap">{tracking || "---"}</div>;
-        },
-        enableSorting: false,
-        enableHiding: false,
+    {
+      accessorKey: "actions",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title=""
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center gap-[0.6rem] text-nowrap">
+            <Button
+              variant="outline"
+              className="shadow-none"
+              onClick={() => {
+                onUpdateClick(row.original);
+              }}
+            >
+              <LucideIcons.Pencil className="size-4" />
+            </Button>
+            <Button
+              className="bg-secondary hover:bg-secondary"
+              onClick={() => onPaymentClick(row.original)}
+            >
+              <LucideIcons.BanknoteArrowUp className="size-5" />
+            </Button>
+          </div>
+        );
       },
-    ],
-  };
+      enableSorting: false,
+      enableHiding: false,
+    },
+  ];
 };
-
-interface TabConfig {
-  value: string;
-  label: string;
-  status: OrderStatus;
-  columns?: ColumnDef<IOrder>[];
-}
-
-const tabConfigs: TabConfig[] = [
-  {
-    value: "placed",
-    label: "Placed",
-    status: OrderStatus.PLACED,
-  },
-  {
-    value: "processing",
-    label: "Processing",
-    status: OrderStatus.PROCESSING,
-  },
-  {
-    value: "shipped",
-    label: "Shipped",
-    status: OrderStatus.SHIPPED,
-  },
-  {
-    value: "out_for_delivery",
-    label: "Out For Delivery",
-    status: OrderStatus.OUT_FOR_DELIVERY,
-  },
-  {
-    value: "delivered",
-    label: "Delivered",
-    status: OrderStatus.DELIVERED,
-  },
-];
 
 interface OrdersTableProps {
-  status: OrderStatus;
   searchValue: string;
-  columns: ColumnDef<IOrder>[];
+  statuses: {
+    value: OrderStatus;
+    label: string;
+  }[];
 }
 
-const OrdersTable = ({ status, searchValue, columns }: OrdersTableProps) => {
+const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
   const router = useRouter();
+  const { copyToClipboard } = useCopy();
+  const [order, setOrder] = useState<IOrderItem | null>(null);
+  const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
+  const [openSheet, setOpenSheet] = useState<boolean>(false);
+  const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
+  const [openUpdate, setOpenUpdate] = useState<boolean>(false);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
     pageSize: 10,
   });
+  const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
+    null
+  );
+  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
+  const handlePaymentClick = (orderItem: IOrderItem) => {
+    setSelectedOrderItem(orderItem);
+    setIsPaymentDialogOpen(true);
+  };
+
+  const columns = getColumns(
+    copyToClipboard,
+    handlePaymentClick,
+    (item: IOrderItem) => {
+      setOpenSheet(true);
+      setOrder(item);
+    },
+    (item: IOrderItem) => {
+      setOpenUpdate(true);
+      setOrderUpdate([item]);
+    }
+  );
+
+  const handlePaymentSubmit = async (data: PaymentFormData) => {
+    if (!selectedOrderItem) return;
+
+    setIsSubmittingPayment(true);
+    try {
+      notify("Payment created successfully", "success");
+      setIsPaymentDialogOpen(false);
+      setSelectedOrderItem(null);
+    } catch (error: any) {
+      notify(error?.message || "Failed to create payment", "error");
+    } finally {
+      setIsSubmittingPayment(false);
+    }
+  };
   const pagination = useMemo(
     () => ({
       pageIndex,
@@ -249,50 +378,103 @@ const OrdersTable = ({ status, searchValue, columns }: OrdersTableProps) => {
     }),
     [pageIndex, pageSize]
   );
-
   const {
-    data: res,
+    data: orderItems,
     isLoading,
     isFetching,
-  } = useGetOrdersQuery({
-    statuses: [status],
+    refetch,
+  } = useGetOrderItemsQuery({
     search: searchValue,
     page: pageIndex - 1,
     limit: pageSize,
+    statuses: statuses.map((s) => s.value),
   });
 
-  const data = res?.data;
-  const orders = data?.data ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  const handleRefresh = async () => {
+    setPagination({
+      pageIndex: 1,
+      pageSize: 10,
+    });
+    await refetch().unwrap();
+  };
+
+  const orders = orderItems?.data.data ?? [];
+  const totalPages = orderItems?.data.totalPages ?? 0;
+  const hasSelected = rowSelection.length > 0;
 
   return (
-    <>
-      <DataTable
-        columns={columns}
-        data={orders}
-        pageCount={totalPages}
-        manualPagination={true}
-        manualFiltering={true}
-        loading={isLoading || isFetching}
-        pagination={pagination}
-        showSelected={false}
-        setPagination={setPagination}
-        showPagination={false}
-        headerRowClassname="hover:bg-transparent"
-        headerSubClassname="!px-0"
-        customEmpty="No orders Found"
-        className="border-none rounded-none"
-        cellStyles={{
-          orderNumber: "w-[13rem]",
-        }}
-        rowClick={(item) => {
-          router.push(`/orders/${item.original.id}`);
-        }}
-      />
+    <div>
+      <div className="flex justify-end gap-2 mt-4 mb-5">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="shadow-none">
+              <LucideIcons.Settings />
+              Actions
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuItem
+              disabled={!hasSelected}
+              onClick={() => {
+                setOpenUpdate(true);
+                setOrderUpdate(rowSelection);
+              }}
+            >
+              Update
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={!hasSelected}
+              className="text-destructive"
+            >
+              Delete
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={!hasSelected}>
+              Send Email
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          className="shadow-none w-12"
+          disabled={isFetching}
+        >
+          {isFetching ? (
+            <Icons.spinner className="h-5 w-5 animate-spin" />
+          ) : (
+            <LucideIcons.RefreshCcw className="size-5" />
+          )}
+        </Button>
+      </div>
+      <div className="grid grid-cols-12">
+        <DataTable
+          columns={columns}
+          data={orders}
+          pageCount={totalPages}
+          manualPagination={true}
+          manualFiltering={true}
+          loading={isLoading || isFetching}
+          pagination={pagination}
+          showSelected={false}
+          setPagination={setPagination}
+          showPagination={false}
+          enableRowSelection
+          onSelectedRowsChange={setRowSelection}
+          headerRowClassname="hover:bg-transparent"
+          headerSubClassname="!px-0"
+          customEmpty="No orders Found"
+          wrapperCls="col-span-12 w-full"
+          className="border-none rounded-none"
+          cellStyles={{
+            orderNumber: "w-[13rem]",
+          }}
+          rowClickSelectsCheckbox
+        />
+      </div>
       <div className="mt-7">
         <AdvancedPagination
           initialPage={pagination.pageIndex}
-          isLoading={isLoading || isFetching}
+          isLoading={false}
           totalPages={totalPages}
           onPageChange={(page) => {
             setPagination((prev) => ({
@@ -302,15 +484,28 @@ const OrdersTable = ({ status, searchValue, columns }: OrdersTableProps) => {
           }}
         />
       </div>
-    </>
+      <OrderDialog
+        open={openUpdate}
+        onOpenChange={setOpenUpdate}
+        orders={orderUpdate!}
+      />
+      <OrderSheet open={openSheet} onOpenChange={setOpenSheet} item={order!} />
+      <PaymentDialog
+        open={isPaymentDialogOpen}
+        onOpenChange={setIsPaymentDialogOpen}
+        onSubmit={handlePaymentSubmit}
+        isLoading={isSubmittingPayment}
+      />
+    </div>
   );
 };
 
 const Orders = () => {
-  const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
-  const [activeTab, setActiveTab] = useState("placed");
+  const [statuses, setStatuses] = useState<
+    { value: OrderStatus; label: string }[]
+  >([]);
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -325,11 +520,6 @@ const Orders = () => {
     debouncedChangeHandler(value);
   };
 
-  const getColumnsForTab = (tabValue: string) => {
-    const columns = getColumns(copyToClipboard);
-    return columns[tabValue] || [];
-  };
-
   return (
     <div className="flex flex-col gap-8 mt-7">
       <div className="flex items-center gap-2 mb-0">
@@ -337,28 +527,21 @@ const Orders = () => {
           value={searchValue}
           onChange={handleChange}
           className="h-11 pl-[3rem] !text-[1rem] placeholder:text-[.95rem]"
-          placeholder="Search order(s)"
+          placeholder="Search order item(s)"
           StartIcon={<Search className="ml-2 text-gray-400 size-4" />}
         />
+        <MultiSelect<OrderStatus>
+          options={Object.values(OrderStatus).map((status) => ({
+            value: status,
+            label: orderStatusInfo[status]?.text ?? "",
+          }))}
+          selected={statuses}
+          onChange={setStatuses}
+          className="h-11"
+          placeholder="Select order statuses"
+        />
       </div>
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          {tabConfigs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {tabConfigs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value} className="pt-3">
-            <OrdersTable
-              status={tab.status}
-              searchValue={debouncedValue}
-              columns={getColumnsForTab(tab.value)}
-            />
-          </TabsContent>
-        ))}
-      </Tabs>
+      <OrdersTable searchValue={debouncedValue} statuses={statuses} />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { ISteps, OrderStatus } from "@/interfaces/order.interface";
+import { OrderStatus } from "@/interfaces/order.interface";
 
 export const orderStatusInfo: Partial<
   Record<
@@ -14,61 +14,91 @@ export const orderStatusInfo: Partial<
   [OrderStatus.DRAFT]: {
     icon: "PencilLine",
     bgColor: "#F59E0B",
-    color: "",
+    color: "#fff",
     text: "Draft",
+  },
+  [OrderStatus.IN_TRANSIT_TO_WAREHOUSE]: {
+    icon: "PackagePlus",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "In Transit to Warehouse",
   },
   [OrderStatus.PLACED]: {
     icon: "PackagePlus",
     bgColor: "#F59E0B",
-    color: "",
+    color: "#fff",
     text: "Placed",
   },
   [OrderStatus.PROCESSING]: {
     icon: "ClockArrowUp",
     bgColor: "#F59E0B",
-    color: "",
+    color: "#fff",
     text: "Processing",
   },
-  [OrderStatus.PAYMENT_MADE]: {
+  [OrderStatus.SOURCING]: {
+    icon: "ClockArrowUp",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "Sourcing",
+  },
+  [OrderStatus.PENDING_TRANSIT]: {
+    icon: "PackagePlus",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "Pending Transit",
+  },
+  [OrderStatus.IN_TRANSIT]: {
+    icon: "ClockArrowUp",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "In Transit",
+  },
+  [OrderStatus.IN_NIGERIA]: {
     icon: "Wallet",
     bgColor: "#6366F1",
     color: "",
-    text: "Payment Made",
+    text: "In Nigeria",
   },
   [OrderStatus.SHIPPED]: {
     icon: "Truck",
     bgColor: "#06B6D4",
-    color: "",
+    color: "#fff",
     text: "Shipped",
+  },
+  [OrderStatus.AT_WAREHOUSE]: {
+    icon: "Truck",
+    bgColor: "#06B6D4",
+    color: "#fff",
+    text: "In Warehouse",
   },
   [OrderStatus.OUT_FOR_DELIVERY]: {
     icon: "CircleDot",
     bgColor: "#10B981",
-    color: "",
-    text: "out for delivery",
+    color: "#fff",
+    text: "Out for Delivery",
   },
   [OrderStatus.DELIVERED]: {
     icon: "Package",
     bgColor: "#10B981",
-    color: "",
+    color: "#fff",
     text: "Delivered",
   },
   [OrderStatus.CANCELLED]: {
     icon: "CircleX",
     bgColor: "#EF4444",
-    color: "",
+    color: "#fff",
     text: "Cancelled",
   },
 };
 
-type Step = {
-  id: ISteps;
-  label: string;
-};
+// type Step = {
+//   id: ISteps;
+//   label: string;
+// };
 
-export const steps: Step[] = [
-  { id: ISteps.SENDER, label: "Item details" },
-  { id: ISteps.RECEIVER, label: "Receiver Details" },
-  { id: ISteps.ITEMS, label: "Item Description" },
-  { id: ISteps.SUMMARY, label: "Order Summary" },
-];
+// export const steps: Step[] = [
+//   { id: ISteps.SENDER, label: "Item details" },
+//   { id: ISteps.RECEIVER, label: "Receiver Details" },
+//   { id: ISteps.ITEMS, label: "Item Description" },
+//   { id: ISteps.SUMMARY, label: "Order Summary" },
+// ];

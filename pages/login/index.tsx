@@ -19,7 +19,6 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
-import { GoogleLoginButton } from "@/components/ui/google-login-button";
 
 const Login = () => {
   const [show, setShow] = useState<boolean>(false);
@@ -54,22 +53,12 @@ const Login = () => {
     }
   };
 
-  const handleGoogleClick = async () => {
-    const { url } = await oauth({
-      provider: "google",
-      callbackURL: "http://localhost:3000/dashboard",
-    }).unwrap();
-    if (url) {
-      window.location.replace(url);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6 h-screen items-center justify-center">
       <Link href="/" className="flex justify-center mb-10">
         <img src="/logo-2.png" className="w-[10rem] h-auto" />
       </Link>
-      <div className="p-0 max-w-md mx-auto w-full">
+      <div className="p-0 max-w-sm mx-auto w-full">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="flex flex-col gap-6">
@@ -104,12 +93,6 @@ const Login = () => {
                       <FormItem>
                         <div className="flex items-center">
                           <FormLabel htmlFor="password">Password</FormLabel>
-                          <Link
-                            href="/forgot-password"
-                            className="ml-auto text-muted-foreground text-xs underline-offset-2 hover:underline"
-                          >
-                            Forgot your password?
-                          </Link>
                         </div>
                         <div className="flex flex-col space-y-1">
                           <FormControl>

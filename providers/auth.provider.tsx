@@ -1,3 +1,4 @@
+import { Spinner } from "@/components/ui/spinner";
 import { IUserRole } from "@/interfaces/user.interface";
 import { useLazyGetProfileQuery } from "@/services/user.service";
 import { useAppDispatch } from "@/store/hooks";
@@ -43,8 +44,11 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        Loading...
+      <div className="flex flex-col items-center justify-center h-screen space-y-6">
+        <img alt="Shipro png" src="/logo-2.png" className="w-[7rem]" />
+        <div className="flex items-center space-x-3 text-gray-400">
+          <Spinner className="size-7" />
+        </div>
       </div>
     );
   }

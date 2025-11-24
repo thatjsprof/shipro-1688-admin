@@ -32,7 +32,7 @@ const Input = React.forwardRef<
         <input
           type={type}
           className={cn(
-            "w-full border-zinc-300 shadow-none focus-visible:border-primary focus-visible:outline-gray-300 focus-visible:outline-offset-0 hover:border-zinc-400 placeholder:text-gray-400 flex h-11 rounded-md border bg-white px-3 py-1 text-base transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-[.92rem]",
+            "w-full border-zinc-300 shadow-none focus-visible:border-primary focus-visible:outline-gray-300 focus-visible:outline-offset-0 hover:border-zinc-400 placeholder:text-gray-400 flex h-11 rounded-md border bg-white px-3 py-1 transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 !text-sm",
             error && "border-destructive",
             EndIcon && "pr-[2.5rem]",
             StartIcon && "pl-[2.2rem]",
@@ -53,7 +53,7 @@ const Input = React.forwardRef<
         <input
           type={type}
           className={cn(
-            "w-full border-zinc-300 shadow-none focus-visible:border-primary focus-visible:outline-gray-300 focus-visible:outline-offset-0 hover:border-zinc-400 placeholder:text-gray-400 flex h-11 rounded-md border bg-white px-3 py-1 text-[1.1rem] transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-[.92rem]",
+            "w-full border-zinc-300 shadow-none focus-visible:border-primary focus-visible:outline-gray-300 focus-visible:outline-offset-0 hover:border-zinc-400 placeholder:text-gray-400 flex h-11 rounded-md border bg-white px-3 py-1 transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-sm",
             error && "border-destructive",
             EndIcon && "pr-[2.5rem]",
             StartIcon && "pl-[2.6rem]",

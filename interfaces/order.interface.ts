@@ -1,26 +1,92 @@
+import { IPayment } from "./payment.interface";
+import { IProduct } from "./product.interface";
+import { IUser } from "./user.interface";
+
+export enum OrderType {
+  PURCHASE = "PURCHASE",
+  SHIPMENT = "SHIPMENT",
+}
+
+export enum ShippingType {
+  AIR = "AIR",
+  SEA = "SEA",
+}
+export enum AirLocation {
+  HK = "HK",
+  GZ = "GZ",
+}
+
+export enum OrderOrigin {
+  NORMAL = "NORMAL",
+  SOURCING = "SOURCING",
+}
+
+export enum TabsName {
+  Draft = "Draft",
+  Placed = "placed",
+  In_Warehouse = "in_warehouse",
+  Shipments = "shipments",
+}
+
 export interface IOrder {
   id: string;
   items: IOrderItem[];
+  shipmentItems: IOrderItem[];
   trackingNumber: string;
   packageWeight: number;
   orderNumber: string;
   estimatedDelivery: Date;
+  deliveredAt: Date;
   orderAmount: number;
   shippingFeeWithinChina: number;
   serviceCharge: number;
   subTotal: number;
+  paidShippingFee: boolean;
+  shippingFee: number;
   createdAt: Date;
+  type: OrderType;
+  origin: OrderOrigin;
   status: OrderStatus;
+  payments: IPayment[];
+  user: IUser;
   trackingUpdates: IOrderTracking[];
 }
 
 export interface IOrderItem {
-  product: any;
+  id: string;
+  product: IProduct;
   variants: Record<string, any>;
   quantity: number;
   trackingNumber: string;
+  tags: string[];
+  packageWeight: number;
   totalWeight: number;
   orderAmount: number;
+  order: IOrder;
+  name: string;
+  images: {
+    filename: string;
+    key: string;
+    url: string;
+  }[];
+  emailsSent: Record<OrderStatus, string[]>;
+  category: string;
+  timeArrivedInWarehouse: Date;
+  note: string;
+  items: {
+    type: "picture" | "link";
+    quantity: number;
+    pictures?: {
+      filename: string;
+      key: string;
+      url: string;
+    }[];
+    link?: string;
+    note?: string;
+  }[];
+  shipmentOrder: IOrder;
+  payments: IPayment[];
+  status: OrderStatus;
 }
 
 export interface IOrderTracking {
@@ -41,18 +107,15 @@ export enum TrackingStage {
 export enum OrderStatus {
   DRAFT = "DRAFT",
   PLACED = "PLACED",
-  PAYMENT_MADE = "PAYMENT_MADE",
   PROCESSING = "PROCESSING",
   SHIPPED = "SHIPPED",
+  SOURCING = "SOURCING",
+  IN_TRANSIT_TO_WAREHOUSE = "IN_TRANSIT_TO_WAREHOUSE",
+  AT_WAREHOUSE = "AT_WAREHOUSE",
+  PENDING_TRANSIT = "PENDING_TRANSIT",
+  IN_TRANSIT = "IN_TRANSIT",
+  IN_NIGERIA = "IN_NIGERIA",
   OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
-}
-
-export enum ISteps {
-  SENDER = "SENDER",
-  RECEIVER = "RECEIVER",
-  ITEMS = "ITEMS",
-  DELIVERY = "DELIVERY",
-  SUMMARY = "SUMMARY",
 }

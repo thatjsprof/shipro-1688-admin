@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Info } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Button } from "./button";
+import { cn } from "@/lib/utils";
 
 export type MultiSelectOption<T extends string | number> = {
   label: string;
@@ -14,11 +15,13 @@ type MultiSelectProps<T extends string | number> = {
   selected: MultiSelectOption<T>[];
   onChange: (values: MultiSelectOption<T>[]) => void;
   placeholder?: string;
+  className?: string;
 };
 
 export function MultiSelect<T extends string | number>({
   options,
   selected,
+  className,
   onChange,
   placeholder = "Select options",
 }: MultiSelectProps<T>) {
@@ -36,7 +39,10 @@ export function MultiSelect<T extends string | number>({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className="h-12 w-fit shadow-none justify-between text-gray-700 border-zinc-300 cursor-pointer !bg-transparent !text-[1rem] data-[state=open]:border-secondary"
+          className={cn(
+            "h-12 w-fit shadow-none justify-between cursor-pointer hover:border-zinc-400 !bg-transparent !text-[1rem] data-[state=open]:border-primary",
+            className
+          )}
         >
           <p className="flex items-center gap-2 mr-3">
             <Info className="size-4" />
