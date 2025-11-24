@@ -413,33 +413,34 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                     />
                   </div>
                 </div>
-                {orders.length === 1 && (
-                  <div>
-                    <p className="text-sm mb-2 font-semibold mt-2">
-                      Email Statuses
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      {Object.entries(orders[0].emailsSent).map(
-                        ([key, value]) => {
-                          return (
-                            <div key={key} className="text-[.8rem]">
-                              <span className="font-semibold">
-                                {orderStatusInfo[key as OrderStatus]?.text}
-                              </span>
-                              :{" "}
-                              {value.map((v, i) => (
-                                <span key={i}>
-                                  {format(v, "MM/dd/yyy h:mm a")}
-                                  {i < value.length - 1 && ", "}
+                {orders.length === 1 &&
+                  Object.entries(orders[0].emailsSent).length > 0 && (
+                    <div>
+                      <p className="text-sm mb-2 font-semibold mt-2">
+                        Email Statuses
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        {Object.entries(orders[0].emailsSent).map(
+                          ([key, value]) => {
+                            return (
+                              <div key={key} className="text-[.8rem]">
+                                <span className="font-semibold">
+                                  {orderStatusInfo[key as OrderStatus]?.text}
                                 </span>
-                              ))}
-                            </div>
-                          );
-                        }
-                      )}
+                                :{" "}
+                                {value.map((v, i) => (
+                                  <span key={i}>
+                                    {format(v, "MM/dd/yyy h:mm a")}
+                                    {i < value.length - 1 && ", "}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 <DialogFooter className="mt-6">
                   <Button
                     type="button"
