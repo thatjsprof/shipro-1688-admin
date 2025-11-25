@@ -211,7 +211,13 @@ export function DataTable<TData, TValue>({
     });
 
     onSelectedRowsChange([...allSelectedRowsRef.current.values()]);
-  }, [rowSelection, rowSelectionInternal, data, getRowId]);
+  }, [
+    rowSelection,
+    rowSelectionInternal,
+    data,
+    getRowId,
+    onSelectedRowsChange,
+  ]);
 
   return (
     <div className={cn("space-y-4", wrapperCls)}>

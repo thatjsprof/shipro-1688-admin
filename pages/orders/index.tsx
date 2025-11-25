@@ -341,6 +341,7 @@ const OrdersTable = ({
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
+  const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
   const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
 
@@ -414,55 +415,66 @@ const OrdersTable = ({
   const hasSelected = rowSelection.length > 0;
 
   const getRowId = useCallback((row: IOrderItem) => {
-    console.log(row);
     return row.id.toString();
   }, []);
 
-  console.log(rowSelection);
-
   return (
     <div>
-      <div className="flex justify-end gap-2 mt-4 mb-5">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="shadow-none">
-              <LucideIcons.Settings />
-              Actions
+      <div className="flex items-center justify-between gap-3">
+        {hasSelected && (
+          <div className="flex items-center gap-2">
+            <p className="text-sm">{rowSelection.length} items selected</p>
+            <Button
+              className="shadow-none"
+              variant="outline"
+              onClick={() => setRowSelect({})}
+            >
+              Clear Selcted
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end">
-            <DropdownMenuItem
-              disabled={!hasSelected}
-              onClick={() => {
-                setOpenUpdate(true);
-                setOrderUpdate(rowSelection);
-              }}
-            >
-              Update
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={!hasSelected}
-              className="text-destructive"
-            >
-              Delete
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={!hasSelected}>
-              Send Email
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button
-          onClick={handleRefresh}
-          variant="outline"
-          className="shadow-none w-12"
-          disabled={isFetching}
-        >
-          {isFetching ? (
-            <Icons.spinner className="h-5 w-5 animate-spin" />
-          ) : (
-            <LucideIcons.RefreshCcw className="size-5" />
-          )}
-        </Button>
+          </div>
+        )}
+        <div className="flex justify-end gap-2 mt-4 mb-5 items-end ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="shadow-none">
+                <LucideIcons.Settings />
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuItem
+                disabled={!hasSelected}
+                onClick={() => {
+                  setOpenUpdate(true);
+                  setOrderUpdate(rowSelection);
+                }}
+              >
+                Update
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!hasSelected}
+                className="text-destructive"
+              >
+                Delete
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!hasSelected}>
+                Send Email
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="shadow-none w-12"
+            disabled={isFetching}
+          >
+            {isFetching ? (
+              <Icons.spinner className="h-5 w-5 animate-spin" />
+            ) : (
+              <LucideIcons.RefreshCcw className="size-5" />
+            )}
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-12">
         <DataTable
@@ -475,6 +487,8 @@ const OrdersTable = ({
           loading={isLoading || isFetching}
           pagination={pagination}
           showSelected={false}
+          rowSelection={rowSelect}
+          setRowSelection={setRowSelect}
           setPagination={setPagination}
           showPagination={false}
           enableRowSelection
