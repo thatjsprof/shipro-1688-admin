@@ -18,22 +18,26 @@ import storage from "redux-persist/lib/storage";
 import appSlice from "./app";
 import userSlice from "./user";
 import { orderApi } from "@/services/order.service";
+import { rateApi } from "@/services/rate.service";
+import { settingApi } from "@/services/management.service";
 
 const rootPersistConfig = {
-  key: "root",
+  key: "admin:root",
   storage,
   whitelist: [],
 };
 
 const appPersistConfig = {
-  key: "app",
+  key: "admin:app",
   storage,
   blacklist: [],
 };
 
 const allReducers = combineReducers({
   [userApi.reducerPath]: userApi.reducer,
+  [rateApi.reducerPath]: rateApi.reducer,
   [orderApi.reducerPath]: orderApi.reducer,
+  [settingApi.reducerPath]: settingApi.reducer,
   [userSlice.name]: userSlice.reducer,
   [appSlice.name]: persistReducer(appPersistConfig, appSlice.reducer),
 });
@@ -59,6 +63,8 @@ const store = () =>
         },
       })
         .concat(userApi.middleware)
+        .concat(rateApi.middleware)
+        .concat(settingApi.middleware)
         .concat(orderApi.middleware),
     devTools: process.env.ENVIRONMENT !== "production",
   });

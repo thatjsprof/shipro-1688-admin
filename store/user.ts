@@ -22,21 +22,23 @@ const userSlice = createSlice({
         authenticated?: boolean;
       } | null>
     ) => {
-      if (!action.payload) {
+      if (action.payload === null) {
         state.authenticated = false;
         state.user = null;
         return;
       }
-      if (action.payload.user)
+      const { user, authenticated } = action.payload;
+      if (user === null) {
+        state.user = null;
+      } else if (user !== undefined) {
         state.user = {
           ...state.user,
-          ...(action.payload.user as IUser),
+          ...(user as IUser),
         };
-      if (
-        action.payload.authenticated !== undefined &&
-        action.payload.authenticated !== null
-      )
-        state.authenticated = action.payload.authenticated;
+      }
+      if (authenticated !== undefined && authenticated !== null) {
+        state.authenticated = authenticated;
+      }
     },
     setLogout: (state) => {
       state.user = null;

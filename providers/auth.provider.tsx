@@ -1,7 +1,13 @@
 import { Spinner } from "@/components/ui/spinner";
 import { IUserRole } from "@/interfaces/user.interface";
+import { useLazyGetSettingsQuery } from "@/services/management.service";
+import {
+  useGetRatesQuery,
+  useLazyGetRatesQuery,
+} from "@/services/rate.service";
 import { useLazyGetProfileQuery } from "@/services/user.service";
-import { useAppDispatch } from "@/store/hooks";
+import { setRates, setSetting } from "@/store/app";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setAuthenticationState } from "@/store/user";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -10,7 +16,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [getUser] = useLazyGetProfileQuery();
+  const [getRates] = useLazyGetRatesQuery();
+  const [getSettings] = useLazyGetSettingsQuery();
   const [loading, setLoading] = useState(true);
+  const id = useAppSelector((state) => state.user.user?.id);
 
   async function fetchUser() {
     try {
@@ -38,9 +47,25 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
+  async function fetchAdminSettings() {
+    const response = await getRates().unwrap();
+    if (response.status === 200) {
+      dispatch(setRates(response.data));
+    }
+    const responseSetting = await getSettings().unwrap();
+    if (responseSetting.status === 200) {
+      dispatch(setSetting(responseSetting.data));
+    }
+  }
+
   useEffect(() => {
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchAdminSettings();
+  }, [id]);
 
   if (loading) {
     return (

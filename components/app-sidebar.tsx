@@ -115,78 +115,94 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <Link href="/">
-        <SidebarHeader className="bg-primary border-b border-gray-500/40 h-[5rem] flex items-center justify-center">
-          <Link href="/" className="flex justify-center">
-            <img src="/logo.png" className="w-[8rem] h-auto" />
-          </Link>
-        </SidebarHeader>
-      </Link>
+      <SidebarHeader className="bg-primary border-b border-gray-500/40 h-[5rem] flex items-center justify-center">
+        <Link href="/" className="flex justify-center">
+          <img src="/logo.png" className="w-[8rem] h-auto" />
+        </Link>
+      </SidebarHeader>
       <SidebarContent className="gap-0 text-white bg-primary pt-[3rem] px-3">
         {data.navMain.map(({ items = [], title, url, Icon }) => {
           const isActive = isRouteMatch(currentPath, url);
           const hasItems = items.length > 0;
           const isOpen = openCollapsibles.includes(title);
 
-          return (
-            <Link href={url ?? "#"} key={title}>
-              <Collapsible
-                title={title}
-                open={isOpen}
-                onOpenChange={() => handleNavClick(title, hasItems)}
-                className="group/collapsible"
-              >
-                <SidebarGroup>
-                  <SidebarGroupLabel
-                    asChild
-                    className={cn(
-                      "group/label cursor-pointer text-white !text-[1rem] font-semibold",
-                      isActive && "bg-sidebar-accent !text-primary",
-                      items.length === 0 &&
-                        "hover:bg-sidebar-accent hover:text-primary"
-                    )}
-                  >
-                    <CollapsibleTrigger className="flex items-center gap-2 px-4 h-11">
-                      {Icon}
-                      {title}{" "}
-                      {items.length > 0 && (
-                        <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                      )}
-                    </CollapsibleTrigger>
-                  </SidebarGroupLabel>
-                  {items.length > 0 && (
-                    <CollapsibleContent className="mx-3">
-                      <SidebarGroupContent>
-                        <SidebarMenu className="pt-4 flex flex-col gap-3">
-                          {items.map((item) => {
-                            const isActive = isRouteMatch(
-                              currentPath,
-                              item.url
-                            );
-                            return (
-                              <SidebarMenuItem key={item.title}>
-                                <Link href={item.url ?? "#"} key={title}>
-                                  <SidebarMenuButton
-                                    className={cn(
-                                      "h-11 flex items-center gap-2 px-4 !text-[.95rem] font-semibold cursor-pointer",
-                                      isActive &&
-                                        "bg-sidebar-accent !text-primary"
-                                    )}
-                                  >
-                                    {item.Icon}
-                                    {item.title}
-                                  </SidebarMenuButton>
-                                </Link>
-                              </SidebarMenuItem>
-                            );
-                          })}
-                        </SidebarMenu>
-                      </SidebarGroupContent>
-                    </CollapsibleContent>
+          if (!hasItems) {
+            return (
+              <SidebarGroup key={title}>
+                <SidebarGroupLabel
+                  asChild
+                  className={cn(
+                    "group/label cursor-pointer text-white !text-[1rem] font-semibold",
+                    isActive && "bg-sidebar-accent !text-primary",
+                    "hover:bg-sidebar-accent hover:text-primary"
                   )}
-                </SidebarGroup>
-              </Collapsible>
-            </Link>
+                >
+                  <Link
+                    href={url ?? "#"}
+                    className="flex items-center gap-2 px-4 h-11"
+                    onClick={() => handleNavClick(title, hasItems)}
+                  >
+                    {Icon}
+                    {title}
+                  </Link>
+                </SidebarGroupLabel>
+              </SidebarGroup>
+            );
+          }
+
+          return (
+            <Collapsible
+              title={title}
+              open={isOpen}
+              onOpenChange={() => handleNavClick(title, hasItems)}
+              className="group/collapsible"
+              key={title}
+            >
+              <SidebarGroup>
+                <SidebarGroupLabel
+                  asChild
+                  className={cn(
+                    "group/label cursor-pointer text-white !text-[1rem] font-semibold",
+                    isActive && "bg-sidebar-accent !text-primary"
+                  )}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 px-4 h-11">
+                    {Icon}
+                    {title}{" "}
+                    <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                  </CollapsibleTrigger>
+                </SidebarGroupLabel>
+                <CollapsibleContent className="mx-3">
+                  <SidebarGroupContent>
+                    <SidebarMenu className="pt-4 flex flex-col gap-3">
+                      {items.map((item) => {
+                        const isItemActive = isRouteMatch(
+                          currentPath,
+                          item.url
+                        );
+                        return (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                              asChild
+                              className={cn(
+                                "h-11 flex items-center gap-2 px-4 !text-[.95rem] font-semibold cursor-pointer",
+                                isItemActive &&
+                                  "bg-sidebar-accent !text-primary"
+                              )}
+                            >
+                              <Link href={item.url ?? "#"}>
+                                {item.Icon}
+                                {item.title}
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </SidebarGroup>
+            </Collapsible>
           );
         })}
       </SidebarContent>
