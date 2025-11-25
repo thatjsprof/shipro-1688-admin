@@ -6,7 +6,14 @@ import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import useCopy, { ICopy } from "@/lib/copy";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { Copy, Search } from "lucide-react";
-import { useCallback, ChangeEvent, useMemo, useState } from "react";
+import {
+  useCallback,
+  ChangeEvent,
+  useMemo,
+  useState,
+  SetStateAction,
+  Dispatch,
+} from "react";
 import debounce from "lodash.debounce";
 import { formatNum } from "@/lib/utils";
 import { orderStatusInfo } from "@/lib/constants";
@@ -319,9 +326,16 @@ interface OrdersTableProps {
     value: OrderStatus;
     label: string;
   }[];
+  setPagination: Dispatch<SetStateAction<PaginationState>>;
+  pagination: PaginationState;
 }
 
-const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
+const OrdersTable = ({
+  searchValue,
+  statuses,
+  pagination: { pageIndex, pageSize },
+  setPagination,
+}: OrdersTableProps) => {
   const router = useRouter();
   const { copyToClipboard } = useCopy();
   const [order, setOrder] = useState<IOrderItem | null>(null);
@@ -329,10 +343,7 @@ const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
   const [openSheet, setOpenSheet] = useState<boolean>(false);
   const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 1,
-    pageSize: 10,
-  });
+
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
   );
@@ -514,6 +525,10 @@ const Orders = () => {
   const [statuses, setStatuses] = useState<
     { value: OrderStatus; label: string }[]
   >([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 1,
+    pageSize: 10,
+  });
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -562,7 +577,12 @@ const Orders = () => {
           placeholder="Select order statuses"
         />
       </div>
-      <OrdersTable searchValue={debouncedValue} statuses={statuses} />
+      <OrdersTable
+        searchValue={debouncedValue}
+        statuses={statuses}
+        pagination={pagination}
+        setPagination={setPagination}
+      />
     </div>
   );
 };
