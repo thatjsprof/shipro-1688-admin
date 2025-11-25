@@ -328,6 +328,8 @@ interface OrdersTableProps {
   }[];
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   pagination: PaginationState;
+  setRowSelect: Dispatch<SetStateAction<Record<string, boolean>>>;
+  rowSelect: Record<string, boolean>;
 }
 
 const OrdersTable = ({
@@ -335,16 +337,16 @@ const OrdersTable = ({
   statuses,
   pagination: { pageIndex, pageSize },
   setPagination,
+  setRowSelect,
+  rowSelect,
 }: OrdersTableProps) => {
   const router = useRouter();
   const { copyToClipboard } = useCopy();
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
-  const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
   const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
-
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
   );
@@ -543,10 +545,12 @@ const Orders = () => {
     pageIndex: 1,
     pageSize: 10,
   });
+  const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
       setDebouncedValue(value);
+      setRowSelect({});
     }, 300),
     []
   );
@@ -592,6 +596,8 @@ const Orders = () => {
         />
       </div>
       <OrdersTable
+        rowSelect={rowSelect}
+        setRowSelect={setRowSelect}
         searchValue={debouncedValue}
         statuses={statuses}
         pagination={pagination}
