@@ -407,6 +407,8 @@ const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
     return row.id.toString();
   }, []);
 
+  console.log(rowSelection);
+
   return (
     <div>
       <div className="flex justify-end gap-2 mt-4 mb-5">
