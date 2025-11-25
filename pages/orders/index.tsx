@@ -402,6 +402,11 @@ const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
   const totalPages = orderItems?.data.totalPages ?? 0;
   const hasSelected = rowSelection.length > 0;
 
+  const getRowId = useCallback((row: IOrderItem) => {
+    console.log(row);
+    return row.id.toString();
+  }, []);
+
   return (
     <div>
       <div className="flex justify-end gap-2 mt-4 mb-5">
@@ -450,7 +455,7 @@ const OrdersTable = ({ searchValue, statuses }: OrdersTableProps) => {
         <DataTable
           columns={columns}
           data={orders}
-          getRowId={(row) => row.id}
+          getRowId={getRowId}
           pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}
@@ -515,6 +520,11 @@ const Orders = () => {
     []
   );
 
+  const handleClearSearch = () => {
+    setSearchValue("");
+    setDebouncedValue("");
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setSearchValue(value);
@@ -530,6 +540,14 @@ const Orders = () => {
           className="h-11 pl-[3rem] !text-[1rem] placeholder:text-[.95rem]"
           placeholder="Search order item(s)"
           StartIcon={<Search className="ml-2 text-gray-400 size-4" />}
+          EndIcon={
+            searchValue ? (
+              <LucideIcons.X
+                className="text-gray-400 -mr-[.1rem] h-4 w-4 cursor-pointer"
+                onClick={handleClearSearch}
+              />
+            ) : null
+          }
         />
         <MultiSelect<OrderStatus>
           options={Object.values(OrderStatus).map((status) => ({

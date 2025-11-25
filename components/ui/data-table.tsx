@@ -165,7 +165,7 @@ export function DataTable<TData, TValue>({
       columnFilters: setColumnFilters ? columnFilters : columnFiltersInternal,
     },
     onPaginationChange: setPagination,
-    enableRowSelection: true,
+    enableRowSelection: enableRowSelection, // ✅ Use the prop value, not hardcoded true
     onRowSelectionChange: setRowSelection || setRowSelectionInternal,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters || setColumnFiltersInternal,
