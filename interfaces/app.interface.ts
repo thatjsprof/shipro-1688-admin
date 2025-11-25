@@ -12,4 +12,6 @@ export interface IRate {
 export interface ISetting {
   hkPrice: number;
   gzPrice: number;
+  cbmPrice: number;
+  clearanceFee: number;
 }

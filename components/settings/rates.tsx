@@ -9,9 +9,11 @@ import { Icons } from "../shared/icons";
 import { useUpdateSettingMutation } from "@/services/management.service";
 import { ISetting } from "@/interfaces/app.interface";
 
-const names: Record<string, string> = {
+const names: Record<keyof ISetting, string> = {
   hkPrice: "HK Price",
   gzPrice: "GZ Price",
+  cbmPrice: "CBM Price",
+  clearanceFee: "Clearance Fee",
 };
 
 const Rates = () => {
@@ -56,6 +58,8 @@ const Rates = () => {
       const response = await updateSetting({
         hkPrice: +(setting.hkPrice ?? 0),
         gzPrice: +(setting.gzPrice ?? 0),
+        cbmPrice: +(setting.cbmPrice ?? 0),
+        clearanceFee: +(setting.clearanceFee ?? 0),
       }).unwrap();
       if (response.status === 200) {
         notify(response.message);
@@ -75,8 +79,10 @@ const Rates = () => {
 
   useEffect(() => {
     const setting = {
-      hkPrice: settings?.hkPrice.toString() ?? "",
-      gzPrice: settings?.gzPrice.toString() ?? "",
+      hkPrice: settings?.hkPrice?.toString() ?? "",
+      gzPrice: settings?.gzPrice?.toString() ?? "",
+      cbmPrice: settings?.cbmPrice?.toString() ?? "",
+      clearanceFee: settings?.clearanceFee?.toString() ?? "",
     };
     const toSave = Object.entries(setting).reduce((acc, [key, value]) => {
       acc[key] = value;
@@ -138,13 +144,13 @@ const Rates = () => {
             return (
               <div className="flex items-center gap-2" key={key}>
                 <div className="flex items-center gap-4 flex-1">
-                  <p className="text-nowrap">{names[key]}</p>
+                  <p className="text-nowrap">{names[keyToUse]}</p>
                   <NumericFormat
                     type="text"
                     name="packageWeight"
                     autoCapitalize="none"
                     autoCorrect="off"
-                    placeholder="Base to Converted"
+                    placeholder={names[keyToUse]}
                     displayType="input"
                     decimalSeparator="."
                     allowNegative={false}

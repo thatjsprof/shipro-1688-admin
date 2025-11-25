@@ -28,6 +28,7 @@ export const rateApi = createApi({
             body: rest,
           };
         },
+        invalidatesTags: ["GetRates"],
       }),
     };
   },
