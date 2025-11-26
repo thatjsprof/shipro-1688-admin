@@ -13,6 +13,7 @@ import {
   useState,
   SetStateAction,
   Dispatch,
+  useEffect,
 } from "react";
 import debounce from "lodash.debounce";
 import { formatNum } from "@/lib/utils";
@@ -35,38 +36,14 @@ import {
 import OrderDialog from "@/components/pages/order/order-dialog";
 import OrderSheet from "@/components/pages/order/order-sheet";
 import { Icons } from "@/components/shared/icons";
+import MultiKeywordInput from "@/components/ui/multi-keyword";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 type LucideIconName = keyof typeof LucideIcons;
-
-// id: string;
-//   // product: IProduct;
-//   variants: Record<string, any>;
-//   quantity: number;
-//   trackingNumber: string;
-//   tags: string[];
-//   packageWeight: number;
-//   totalWeight: number;
-//   orderAmount: number;
-//   arrivedWarehouse: Date;
-//   order: IOrder;
-//   name: string;
-//   images: string[];
-//   category: string;
-//   timeArrivedInWarehouse: Date;
-//   note: string;
-//   items: {
-//     type: "picture" | "link";
-//     quantity: number;
-//     pictures?: {
-//       filename: string;
-//       key: string;
-//       url: string;
-//     }[];
-//     link?: string;
-//     note?: string;
-//   }[];
-//   shipmentOrder: IOrder;
-//   payments: IPayment[];
-//   status: OrderStatus;
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
@@ -90,13 +67,15 @@ const getColumns = (
           <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
             <Copy
               className="size-4"
-              onClick={() =>
+              onClick={(e) => {
                 copyToClipboard({
                   id: "copy-tracking-number",
                   text: trackingNumber,
                   message: "Tracking number copied to clipboard",
-                })
-              }
+                });
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             />
             <p>{trackingNumber}</p>
           </div>
@@ -326,6 +305,7 @@ interface OrdersTableProps {
     value: OrderStatus;
     label: string;
   }[];
+  keywords: string[];
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   pagination: PaginationState;
   setRowSelect: Dispatch<SetStateAction<Record<string, boolean>>>;
@@ -339,6 +319,7 @@ const OrdersTable = ({
   setPagination,
   setRowSelect,
   rowSelect,
+  keywords,
 }: OrdersTableProps) => {
   const router = useRouter();
   const { copyToClipboard } = useCopy();
@@ -398,7 +379,7 @@ const OrdersTable = ({
     isFetching,
     refetch,
   } = useGetOrderItemsQuery({
-    search: searchValue,
+    search: (searchValue ? [searchValue] : keywords) ?? [],
     page: pageIndex - 1,
     limit: pageSize,
     statuses: statuses.map((s) => s.value),
@@ -546,6 +527,9 @@ const Orders = () => {
     pageSize: 10,
   });
   const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
+  const [keywords, setKeywords] = useState<string[]>([]);
+  const [multiKeywordMode, setMultiKeywordMode] = useState(false);
+  const [searchKeywords, setSearchKeywords] = useState<string[]>([]);
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -555,35 +539,100 @@ const Orders = () => {
     []
   );
 
-  const handleClearSearch = () => {
-    setSearchValue("");
-    setDebouncedValue("");
-  };
-
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setSearchValue(value);
     debouncedChangeHandler(value);
   };
 
+  const toggleMode = () => {
+    setMultiKeywordMode((prev) => !prev);
+    setSearchValue("");
+    setKeywords([]);
+    setSearchKeywords([]);
+  };
+
+  const handleSearch = () => {
+    setSearchKeywords(keywords);
+    setRowSelect({});
+    setPagination({
+      pageIndex: 1,
+      pageSize: 10,
+    });
+  };
+
+  useEffect(() => {
+    if (
+      multiKeywordMode &&
+      searchKeywords.length > 0 &&
+      keywords.length === 0
+    ) {
+      setSearchKeywords(keywords);
+      setRowSelect({});
+    }
+  }, [keywords, multiKeywordMode, searchKeywords.length]);
+
+  useEffect(() => {
+    document.title = `Orders | Shipro Africa`;
+  }, []);
+
+  console.log(
+    searchKeywords.length > 0 && searchKeywords.length === keywords.length
+  );
+
   return (
     <div className="flex flex-col gap-8 mt-7">
-      <div className="flex items-center gap-2 mb-0">
-        <Input
+      <div className="flex items-start gap-2 mb-0">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={toggleMode}
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shadow-none border-zinc-300"
+              >
+                {multiKeywordMode ? (
+                  <Search className="h-5 w-5" />
+                ) : (
+                  <LucideIcons.List className="h-5 w-5" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="font-medium">
+                {multiKeywordMode
+                  ? "Switch to Single-Keyword Mode"
+                  : "Switch to Multi-Keyword Mode"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <MultiKeywordInput
           value={searchValue}
           onChange={handleChange}
-          className="h-11 pl-[3rem] !text-[1rem] placeholder:text-[.95rem]"
-          placeholder="Search order item(s)"
-          StartIcon={<Search className="ml-2 text-gray-400 size-4" />}
-          EndIcon={
-            searchValue ? (
-              <LucideIcons.X
-                className="text-gray-400 -mr-[.1rem] h-4 w-4 cursor-pointer"
-                onClick={handleClearSearch}
-              />
-            ) : null
+          placeholder={
+            multiKeywordMode
+              ? "Type keyword and press Enter..."
+              : "Search order item(s)"
           }
+          keywords={keywords}
+          isSearched={searchKeywords.length === keywords.length}
+          onKeywordsChange={setKeywords}
+          multiKeywordMode={multiKeywordMode}
+          onModeToggle={() => setMultiKeywordMode(!multiKeywordMode)}
+          className="!text-[1rem] placeholder:text-[.95rem]"
         />
+        {multiKeywordMode && (
+          <Button
+            onClick={handleSearch}
+            className="h-11 shadow-none"
+            disabled={keywords.length === 0}
+          >
+            <Search className="h-5 w-5" />
+            Search
+          </Button>
+        )}
         <MultiSelect<OrderStatus>
           options={Object.values(OrderStatus).map((status) => ({
             value: status,
@@ -591,16 +640,17 @@ const Orders = () => {
           }))}
           selected={statuses}
           onChange={setStatuses}
-          className="h-11"
+          className="h-11 border-zinc-300"
           placeholder="Select order statuses"
         />
       </div>
       <OrdersTable
+        statuses={statuses}
+        keywords={multiKeywordMode ? searchKeywords : keywords}
         rowSelect={rowSelect}
+        pagination={pagination}
         setRowSelect={setRowSelect}
         searchValue={debouncedValue}
-        statuses={statuses}
-        pagination={pagination}
         setPagination={setPagination}
       />
     </div>

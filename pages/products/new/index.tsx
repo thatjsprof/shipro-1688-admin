@@ -1,0 +1,211 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useQueryTabs } from "@/hooks/use-query-tabs";
+import { Basic } from "@/components/pages/products/basic";
+import { ProductFormValues } from "@/interfaces/product.interface";
+import { productSchema } from "@/schemas/product";
+import Picture from "@/components/pages/products/pictures";
+import Variant from "@/components/pages/products/variant";
+import Attribute from "@/components/pages/products/attribute";
+import { cn } from "@/lib/utils";
+import { useFileUpload } from "@/hooks/use-upload";
+import { IFile } from "@/interfaces/file.interface";
+import { formToApi } from "@/lib/helpers";
+
+enum ITabs {
+  Basic = "basic",
+  Variant = "variant",
+  Picture = "picture",
+  Attribute = "attribute",
+}
+
+const TAB_VALUES = [
+  ITabs.Basic,
+  ITabs.Picture,
+  ITabs.Variant,
+  ITabs.Attribute,
+] as const;
+const DEFAULT_TAB = ITabs.Basic;
+
+const TAB_FIELD_MAP: Record<ITabs, string[]> = {
+  [ITabs.Basic]: [
+    "description",
+    "stock",
+    "moq",
+    "location",
+    "deliveryFeeYen",
+    "deliveryFeeNaira",
+  ],
+  [ITabs.Variant]: ["variantProperties", "skus"],
+  [ITabs.Picture]: ["images"],
+  [ITabs.Attribute]: ["attributes"],
+};
+
+const Products = () => {
+  const { activeTab, handleTabChange } = useQueryTabs({
+    tabValues: TAB_VALUES,
+    defaultValue: DEFAULT_TAB,
+  });
+
+  const form = useForm<z.infer<typeof productSchema>>({
+    resolver: zodResolver(productSchema),
+    mode: "onTouched",
+    defaultValues: {
+      description: "",
+      location: "",
+      stock: "",
+      moq: "",
+      deliveryFeeYen: "",
+      deliveryFeeNaira: "",
+      images: [],
+      attributes: [{ key: "", value: "" }],
+      variantProperties: [
+        {
+          name: "",
+          values: [""],
+        },
+      ],
+      skus: {},
+    },
+  });
+
+  const images = form.watch("images") as IFile[];
+
+  const {
+    isDragging,
+    fileInputRef,
+    setFileContainerRef,
+    handleFileInputChange,
+    uploading,
+    files,
+    calculateOverallProgress,
+  } = useFileUpload({
+    fileTypes: ["image/*"],
+    noOfFiles: 1000,
+    currentFiles: images ?? [],
+    maxFileSize: 10 * 1024 * 1024,
+    setUploadedFiles: (files) => {
+      form.setValue(
+        "images",
+        files.map((file) => ({
+          url: file.url,
+          fileName: file.fileName,
+          key: file.key,
+        })),
+        { shouldValidate: false, shouldDirty: false }
+      );
+      form.clearErrors("images");
+    },
+    isMultiple: true,
+  });
+
+  console.log(form.watch());
+  console.log(form.formState.errors);
+
+  const onSubmit = (values: z.infer<typeof productSchema>) => {
+    const toSave = formToApi(values);
+    console.log({ toSave });
+  };
+
+  const getErrorByPath = (path: string) => {
+    const segments = path.split(".");
+    let current: any = form.formState.errors;
+    for (const segment of segments) {
+      if (!current) return undefined;
+      current = current[segment as keyof typeof current];
+    }
+    return current;
+  };
+
+  const tabHasErrors = (tab: ITabs) =>
+    TAB_FIELD_MAP[tab].some((fieldPath) => !!getErrorByPath(fieldPath));
+
+  return (
+    <div className="py-8">
+      <h1 className="text-2xl font-semibold mb-8">Create Product</h1>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className="gap-1">
+              <TabsTrigger
+                value={ITabs.Basic}
+                className={cn(tabHasErrors(ITabs.Basic) && "text-destructive")}
+              >
+                Basic
+                {tabHasErrors(ITabs.Basic) && (
+                  <span className="ml-2 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value={ITabs.Variant}
+                className={cn(
+                  tabHasErrors(ITabs.Variant) && "text-destructive"
+                )}
+              >
+                Variants
+                {tabHasErrors(ITabs.Variant) && (
+                  <span className="ml-2 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value={ITabs.Picture}
+                className={cn(
+                  tabHasErrors(ITabs.Picture) && "text-destructive"
+                )}
+              >
+                Pictures
+                {tabHasErrors(ITabs.Picture) && (
+                  <span className="ml-2 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </TabsTrigger>
+              <TabsTrigger
+                value={ITabs.Attribute}
+                className={cn(
+                  tabHasErrors(ITabs.Attribute) && "text-destructive"
+                )}
+              >
+                Attributes
+                {tabHasErrors(ITabs.Attribute) && (
+                  <span className="ml-2 h-2 w-2 rounded-full bg-destructive" />
+                )}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value={ITabs.Basic} className="pt-5">
+              <Basic form={form} />
+            </TabsContent>
+            <TabsContent value={ITabs.Variant} className="pt-5">
+              <Variant form={form} />
+            </TabsContent>
+            <TabsContent value={ITabs.Picture} className="pt-5">
+              <Picture
+                form={form}
+                isDragging={isDragging}
+                fileInputRef={fileInputRef}
+                setFileContainerRef={setFileContainerRef}
+                handleFileInputChange={handleFileInputChange}
+                uploading={uploading}
+                files={files}
+                calculateOverallProgress={calculateOverallProgress}
+              />
+            </TabsContent>
+            <TabsContent value={ITabs.Attribute} className="pt-5">
+              <Attribute form={form} />
+            </TabsContent>
+          </Tabs>
+          <Button
+            type="submit"
+            className="h-14 font-semibold px-6 shadow-none mt-[3rem]"
+          >
+            Save Product
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+};
+
+export default Products;

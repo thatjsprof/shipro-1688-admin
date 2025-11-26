@@ -16,7 +16,7 @@ export const orderApi = createApi({
           limit?: number;
           page?: number;
           statuses?: string[];
-          search?: string;
+          search?: string[];
         }
       >({
         query: (body) => {

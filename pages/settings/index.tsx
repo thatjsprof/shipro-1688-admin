@@ -1,6 +1,7 @@
 import Rates from "@/components/settings/rates";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
+import { useEffect } from "react";
 
 enum ITabs {
   Profile = "profile",
@@ -15,6 +16,10 @@ const Settings = () => {
     tabValues: TAB_VALUES,
     defaultValue: DEFAULT_TAB,
   });
+
+  useEffect(() => {
+    document.title = `Settings | Shipro Africa`;
+  }, []);
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange}>

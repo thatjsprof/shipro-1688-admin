@@ -96,11 +96,18 @@ export const useFileUpload = ({
     onFilesAddedRef.current = onFilesAdded;
   }, [onFilesAdded]);
 
-  // Callback ref to track when the container is mounted
   const setFileContainerRef = useCallback((node: HTMLDivElement | null) => {
     fileContainerRef.current = node;
     setIsContainerReady(!!node);
   }, []);
+
+  const handleUploadFiles = useCallback(async () => {
+    if (preventUpload) {
+      console.warn("Upload prevented by preventUpload prop");
+      return;
+    }
+    return await uppy.upload();
+  }, [uppy, preventUpload]);
 
   const handleFileInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,14 +177,6 @@ export const useFileUpload = ({
     []
   );
 
-  const handleUploadFiles = useCallback(async () => {
-    if (preventUpload) {
-      console.warn("Upload prevented by preventUpload prop");
-      return;
-    }
-    return await uppy.upload();
-  }, [uppy, preventUpload]);
-
   const calculateOverallProgress = useMemo(() => {
     const files = uppy.getFiles();
     if (!files.length) return 0;
@@ -205,10 +204,11 @@ export const useFileUpload = ({
     }
 
     const handleUpload = () => setUploading(true);
-    const handleFileAdded = () => {
+    const handleFileAdded = async () => {
       const currentFiles = uppy.getFiles();
       setFiles(currentFiles);
       setShowUploader(false);
+      await handleUploadFiles();
 
       if (onFilesAddedRef.current) {
         onFilesAddedRef.current(currentFiles);

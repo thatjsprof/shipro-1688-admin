@@ -1,3 +1,30 @@
+import { IOrder } from "./order.interface";
+
+export interface IPayment {
+  id: string;
+  orderId: string;
+  reference: string;
+  amount: number;
+  code: PaymentCodes;
+  currency: string;
+  status: PaymentStatus;
+  datePaid: Date;
+  link: string;
+  description: string;
+}
+
+export enum PaymentProviders {
+  PAYSTACK = "paystack",
+  WALLET = "wallet",
+}
+
+export enum PaymentCodes {
+  SOURCING_FEE = "SOURCING_FEE",
+  ITEM_FEE = "ITEM_FEE",
+  GOODS_FEE = "GOODS_FEE",
+  SHIPPING_FEE = "SHIPPING_FEE",
+}
+
 export enum PaymentStatus {
   PENDING = "PENDING",
   SUCCESSFUL = "SUCCESSFUL",
@@ -5,38 +32,8 @@ export enum PaymentStatus {
   CANCELLED = "CANCELLED",
 }
 
-export enum PaymentCodes {
-  SOURCING_FEE = "SOURCING_FEE",
-  GOODS_FEE = "GOODS_FEE",
-  SHIPPING_FEE = "SHIPPING_FEE",
-}
-
-export enum PaymentModules {
-  SOURCING_ORDER = "SOURCING_ORDER",
-  ORDER = "ORDER",
-  WALLET = "WALLET",
-}
-
-export enum PaymentProviders {
-  PAYSTACK = "paystack",
-}
-
-export interface IPayment {
+export interface IPaymentSession {
   id: string;
-  orderId?: string;
-  orderItemId?: string;
-  sourcingOrderId?: string;
-  trackingId?: string;
-  reference: string;
-  amount: number;
-  currency?: string;
-  code?: PaymentCodes;
-  module: PaymentModules;
-  status: PaymentStatus;
-  provider?: PaymentProviders;
-  providerReference?: string;
-  description?: string;
-  datePaid?: Date | string | null;
-  createdAt?: Date | string;
-  updatedAt?: Date | string;
+  order: IOrder;
+  payments: IPayment[];
 }

@@ -4,6 +4,10 @@ export interface IPrice {
   amountNaira: number;
 }
 
+export type ProductFormValues = {
+  description?: string;
+};
+
 export interface IVariant {
   id: string;
   text: string;
@@ -32,6 +36,7 @@ export interface IProduct {
   moq: number;
   category: string;
   info: string[];
+  skuPropRows: string[][]
   deliveryFeeYen: number;
   priceRange: [number, number];
   deliveryFeeNaira: number;
