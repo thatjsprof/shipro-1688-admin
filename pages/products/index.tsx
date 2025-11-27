@@ -1,16 +1,22 @@
+import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { IProduct } from "@/interfaces/product.interface";
-import { ICopy } from "@/lib/copy";
-import { ColumnDef } from "@tanstack/react-table";
+import useCopy, { ICopy } from "@/lib/copy";
+import { useGetProductsQuery } from "@/services/product.service";
+import { useAppSelector } from "@/store/hooks";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import debounce from "lodash.debounce";
-import { Search, X } from "lucide-react";
+import { Eye, Search, X } from "lucide-react";
 import Link from "next/link";
-import { ChangeEvent, useCallback, useState } from "react";
+import { useRouter } from "next/router";
+import { ChangeEvent, useCallback, useMemo, useState } from "react";
 
 const getColumns = (
-  copyToClipboard: ({ id, text, message, style }: ICopy) => void
+  copyToClipboard: ({ id, text, message, style }: ICopy) => void,
+  onViewClick: (row: IProduct) => void
 ): ColumnDef<IProduct>[] => {
   return [
     // {
@@ -57,7 +63,20 @@ const getColumns = (
       cell: ({ row }) => {
         const name = row.original.description;
         return name ? (
-          <div className="text-nowrap h-8 w-64">{name}</div>
+          <div className="text-nowrap h-8 w-64">
+            <div className="flex items-center gap-[0.6rem] h-full">
+              <p
+                className="truncate"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onViewClick(row.original);
+                }}
+              >
+                <span>{name}</span>
+              </p>
+            </div>
+          </div>
         ) : (
           <p>---</p>
         );
@@ -245,8 +264,36 @@ const getColumns = (
 };
 
 const Products = () => {
+  const router = useRouter();
+  const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
+  const authenticated = useAppSelector((state) => state.user.authenticated);
+  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
+    pageIndex: 1,
+    pageSize: 10,
+  });
+  const pagination = useMemo(
+    () => ({
+      pageIndex,
+      pageSize,
+    }),
+    [pageIndex, pageSize]
+  );
+  const { data, isLoading } = useGetProductsQuery(
+    {
+      page: pageIndex - 1,
+      limit: pageSize,
+      search: debouncedValue,
+    },
+    {
+      skip: !authenticated,
+    }
+  );
+  const products = data?.data.data ?? [];
+  const totalPages = data?.data.totalPages ?? 0;
+
+  const columns = getColumns(copyToClipboard, () => null);
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -286,6 +333,44 @@ const Products = () => {
         <Link href="/products/new">
           <Button className="shadow-none h-11">Create New</Button>
         </Link>
+      </div>
+      <div className="grid grid-cols-12 mt-8">
+        <DataTable
+          columns={columns}
+          data={products}
+          pageCount={totalPages}
+          manualPagination={true}
+          manualFiltering={true}
+          loading={isLoading}
+          pagination={pagination}
+          showSelected={false}
+          setPagination={setPagination}
+          showPagination={false}
+          headerRowClassname="hover:bg-transparent"
+          headerSubClassname="!px-0"
+          customEmpty="No orders Found"
+          wrapperCls="col-span-12 w-full"
+          className="border-none rounded-none"
+          cellStyles={{
+            orderNumber: "w-[13rem]",
+          }}
+          rowClick={(product) => {
+            router.push(`/products/${product.original.id}`);
+          }}
+        />
+      </div>
+      <div className="mt-7">
+        <AdvancedPagination
+          initialPage={pagination.pageIndex}
+          isLoading={false}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            setPagination((prev) => ({
+              ...prev,
+              pageIndex: page,
+            }));
+          }}
+        />
       </div>
     </div>
   );

@@ -14,14 +14,16 @@ import Attribute from "@/components/pages/products/attribute";
 import { cn } from "@/lib/utils";
 import { useFileUpload } from "@/hooks/use-upload";
 import { IFile } from "@/interfaces/file.interface";
-import { formToApi } from "@/lib/helpers";
+import { apiToForm, formToApi } from "@/lib/helpers";
 import { useRouter } from "next/router";
 import {
   useCreateProductMutation,
+  useGetProductQuery,
   useUpdateProductMutation,
 } from "@/services/product.service";
 import { Icons } from "@/components/shared/icons";
 import { notify } from "@/lib/toast";
+import { useEffect, useMemo } from "react";
 
 enum ITabs {
   Basic = "basic",
@@ -58,6 +60,7 @@ const Product = () => {
   const [createProduct, { isLoading }] = useCreateProductMutation();
   const [updateProduct, { isLoading: isLoadingUpdate }] =
     useUpdateProductMutation();
+  const { data: productData } = useGetProductQuery(id as string, { skip: !id });
   const { activeTab, handleTabChange } = useQueryTabs({
     tabValues: TAB_VALUES,
     defaultValue: DEFAULT_TAB,
@@ -118,9 +121,6 @@ const Product = () => {
     isMultiple: true,
   });
 
-  console.log(form.watch());
-  console.log(form.formState.errors);
-
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     try {
       const toSave = formToApi(values);
@@ -157,6 +157,13 @@ const Product = () => {
 
   const tabHasErrors = (tab: ITabs) =>
     TAB_FIELD_MAP[tab].some((fieldPath) => !!getErrorByPath(fieldPath));
+
+  useEffect(() => {
+    if (!productData?.data) return;
+    const converted = apiToForm(productData?.data);
+    console.log(converted);
+    form.reset(converted);
+  }, [productData?.data]);
 
   return (
     <div className="py-8">

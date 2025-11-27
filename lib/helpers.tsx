@@ -95,3 +95,53 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     propsInfoTable: combinations,
   };
 }
+
+export function apiToForm(sourceData: IProduct) {
+  const images = sourceData.images
+    .filter((img) => img.type === "image")
+    .map((img, index) => ({
+      url: img.url,
+      fileName: `image_${index + 1}.jpg`,
+      key: `${sourceData.id}_${index}`,
+      type: img.type,
+    }));
+
+  const variantProperties = (sourceData.propsOrder ?? []).map((propName) => {
+    const variantData = sourceData.variants[propName];
+    if (!variantData) {
+      throw new Error(`Variant property "${propName}" not found in variants`);
+    }
+    return {
+      name: propName,
+      values: variantData.map((v: any) => v.text),
+    };
+  });
+
+  const skus: Record<string, { price: string; stock: string }> = {};
+  Object.entries(sourceData.skus).forEach(([key, value]) => {
+    skus[key] = {
+      price: value?.price.toString() ?? "",
+      stock: value?.stock.toString() ?? "",
+    };
+  });
+
+  const attributes = sourceData.attrs.map((attr) => {
+    const [key, value] = Object.entries(attr)[0];
+    return { key, value };
+  });
+
+  const convertedProduct = {
+    stock: sourceData.stock.toString(),
+    moq: sourceData.moq.toString(),
+    description: sourceData.description,
+    location: sourceData.location,
+    deliveryFeeYen: sourceData.deliveryFeeYen.toString(),
+    deliveryFeeNaira: sourceData.deliveryFeeNaira.toString(),
+    images,
+    variantProperties,
+    skus,
+    attributes,
+  };
+
+  return convertedProduct;
+}

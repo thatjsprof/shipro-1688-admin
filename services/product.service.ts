@@ -7,7 +7,7 @@ const baseUrl = "/shipro-product";
 export const productApi = createApi({
   reducerPath: "rtk:product",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetProducts"],
+  tagTypes: ["GetProducts", "GetProduct"],
   endpoints: (builder) => {
     return {
       getProducts: builder.query<
@@ -27,6 +27,15 @@ export const productApi = createApi({
           };
         },
         providesTags: ["GetProducts"],
+      }),
+      getProduct: builder.query<ApiResponse<IProduct>, string>({
+        query: (id) => {
+          return {
+            url: `${baseUrl}/${id}`,
+            method: "GET",
+          };
+        },
+        providesTags: ["GetProduct"],
       }),
       createProduct: builder.mutation<ApiResponse<IProduct>, Partial<IProduct>>(
         {
@@ -64,4 +73,5 @@ export const {
   useCreateProductMutation,
   useGetProductsQuery,
   useUpdateProductMutation,
+  useGetProductQuery,
 } = productApi;

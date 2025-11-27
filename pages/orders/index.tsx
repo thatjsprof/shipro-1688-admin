@@ -1,6 +1,5 @@
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { DataTable } from "@/components/ui/data-table";
-import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import useCopy, { ICopy } from "@/lib/copy";
@@ -19,7 +18,6 @@ import debounce from "lodash.debounce";
 import { formatNum } from "@/lib/utils";
 import { orderStatusInfo } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
-import { useRouter } from "next/router";
 import { useGetOrderItemsQuery } from "@/services/order.service";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
@@ -321,7 +319,6 @@ const OrdersTable = ({
   rowSelect,
   keywords,
 }: OrdersTableProps) => {
-  const router = useRouter();
   const { copyToClipboard } = useCopy();
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
@@ -575,10 +572,6 @@ const Orders = () => {
   useEffect(() => {
     document.title = `Orders | Shipro Africa`;
   }, []);
-
-  console.log(
-    searchKeywords.length > 0 && searchKeywords.length === keywords.length
-  );
 
   return (
     <div className="flex flex-col gap-8 mt-7">
