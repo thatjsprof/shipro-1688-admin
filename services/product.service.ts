@@ -46,7 +46,7 @@ export const productApi = createApi({
               body,
             };
           },
-          invalidatesTags: ["GetProducts"],
+          invalidatesTags: ["GetProducts", "GetProduct"],
         }
       ),
       updateProduct: builder.mutation<
@@ -63,7 +63,7 @@ export const productApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetProducts"],
+        invalidatesTags: ["GetProducts", "GetProduct"],
       }),
     };
   },
