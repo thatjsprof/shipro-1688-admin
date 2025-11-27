@@ -162,8 +162,6 @@ const Picture = ({
     [calculateOverallProgress]
   );
 
-  console.log(form.formState.errors);
-
   return (
     <div>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Pictures</h3>

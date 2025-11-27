@@ -20,6 +20,7 @@ interface IFileUpload {
   setUploadedFiles: (files: IFile[]) => void;
   currentFiles?: IFile[];
   isMultiple?: boolean;
+  preventUpload?: boolean;
   error?: boolean;
 }
 

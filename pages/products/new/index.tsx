@@ -96,6 +96,7 @@ const Product = () => {
     setFileContainerRef,
     handleFileInputChange,
     uploading,
+    handleUploadFiles,
     files,
     calculateOverallProgress,
   } = useFileUpload({
@@ -103,6 +104,9 @@ const Product = () => {
     noOfFiles: 1000,
     currentFiles: images ?? [],
     maxFileSize: 10 * 1024 * 1024,
+    onFilesAdded: () => {
+      handleUploadFiles();
+    },
     setUploadedFiles: (files) => {
       form.setValue(
         "images",
@@ -124,7 +128,6 @@ const Product = () => {
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
     try {
       const toSave = formToApi(values);
-      console.log({ toSave });
       let response: ApiResponse<IProduct>;
       if (id) {
         response = await updateProduct({
@@ -161,7 +164,6 @@ const Product = () => {
   useEffect(() => {
     if (!productData?.data) return;
     const converted = apiToForm(productData?.data);
-    console.log(converted);
     form.reset(converted);
   }, [productData?.data]);
 

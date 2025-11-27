@@ -76,10 +76,12 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const updated = await updateItem({
         items: orders.map((order) => order.id),
         data: {
-          status: values["status"] ?? undefined,
-          timeArrivedInWarehouse: values["arrivedWarehouse"] ?? undefined,
-          trackingNumber: values["trackingNumber"] ?? undefined,
-          images: images.length > 0 ? images : undefined,
+          status: values["status"] || undefined,
+          timeArrivedInWarehouse: values["arrivedWarehouse"] || undefined,
+          trackingNumber: values["trackingNumber"] || undefined,
+          ...(orders.length === 1 && {
+            images: images.length > 0 ? images : undefined,
+          }),
           packageWeight: weight ? +weight : undefined,
           sendEmail: values["sendEmail"],
         },
@@ -96,7 +98,14 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
   const pictures = form.watch(`pictures`) ?? [];
 
   useEffect(() => {
-    form.reset();
+    form.reset({
+      pictures: [],
+      arrivedWarehouse: undefined,
+      packageWeight: "",
+      trackingNumber: "",
+      sendEmail: false,
+      status: "" as OrderStatus,
+    });
   }, [open]);
 
   useEffect(() => {

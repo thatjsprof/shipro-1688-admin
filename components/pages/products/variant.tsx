@@ -145,8 +145,6 @@ const Variant = ({ form }: IVariantProps) => {
     setAllCombinations(combinations);
   }, []);
 
-  console.log(watch());
-
   const variantProperties = watch(name);
 
   return (

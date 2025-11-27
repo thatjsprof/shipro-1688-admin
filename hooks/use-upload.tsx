@@ -208,7 +208,6 @@ export const useFileUpload = ({
       const currentFiles = uppy.getFiles();
       setFiles(currentFiles);
       setShowUploader(false);
-      await handleUploadFiles();
 
       if (onFilesAddedRef.current) {
         onFilesAddedRef.current(currentFiles);
