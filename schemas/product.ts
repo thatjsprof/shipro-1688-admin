@@ -13,6 +13,7 @@ export const productSchema = z.object({
         url: z.string().min(1, { message: "Url is required" }),
         fileName: z.string().min(1, { message: "FileName is required" }),
         key: z.string(),
+        type: z.string(),
       })
     )
     .min(1, "At least one image is required"),

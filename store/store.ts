@@ -20,6 +20,7 @@ import userSlice from "./user";
 import { orderApi } from "@/services/order.service";
 import { rateApi } from "@/services/rate.service";
 import { settingApi } from "@/services/management.service";
+import { productApi } from "@/services/product.service";
 
 const rootPersistConfig = {
   key: "admin:root",
@@ -36,6 +37,7 @@ const appPersistConfig = {
 const allReducers = combineReducers({
   [userApi.reducerPath]: userApi.reducer,
   [rateApi.reducerPath]: rateApi.reducer,
+  [productApi.reducerPath]: productApi.reducer,
   [orderApi.reducerPath]: orderApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
   [userSlice.name]: userSlice.reducer,
@@ -64,6 +66,7 @@ const store = () =>
       })
         .concat(userApi.middleware)
         .concat(rateApi.middleware)
+        .concat(productApi.middleware)
         .concat(settingApi.middleware)
         .concat(orderApi.middleware),
     devTools: process.env.ENVIRONMENT !== "production",

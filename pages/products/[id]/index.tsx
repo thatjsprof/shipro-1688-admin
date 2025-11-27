@@ -1,5 +1,7 @@
+import Product from "../new";
+
 const Edit = () => {
-  return <div></div>;
+  return <Product />;
 };
 
 export default Edit;

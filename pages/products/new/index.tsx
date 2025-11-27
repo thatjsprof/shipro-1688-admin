@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
 import { Basic } from "@/components/pages/products/basic";
-import { ProductFormValues } from "@/interfaces/product.interface";
+import { IProduct, ProductFormValues } from "@/interfaces/product.interface";
 import { productSchema } from "@/schemas/product";
 import Picture from "@/components/pages/products/pictures";
 import Variant from "@/components/pages/products/variant";
@@ -15,6 +15,12 @@ import { cn } from "@/lib/utils";
 import { useFileUpload } from "@/hooks/use-upload";
 import { IFile } from "@/interfaces/file.interface";
 import { formToApi } from "@/lib/helpers";
+import { useRouter } from "next/router";
+import {
+  useCreateProductMutation,
+  useUpdateProductMutation,
+} from "@/services/product.service";
+import { Icons } from "@/components/shared/icons";
 
 enum ITabs {
   Basic = "basic",
@@ -45,7 +51,12 @@ const TAB_FIELD_MAP: Record<ITabs, string[]> = {
   [ITabs.Attribute]: ["attributes"],
 };
 
-const Products = () => {
+const Product = () => {
+  const router = useRouter();
+  const { id } = router.query;
+  const [createProduct, { isLoading }] = useCreateProductMutation();
+  const [updateProduct, { isLoading: isLoadingUpdate }] =
+    useUpdateProductMutation();
   const { activeTab, handleTabChange } = useQueryTabs({
     tabValues: TAB_VALUES,
     defaultValue: DEFAULT_TAB,
@@ -91,11 +102,14 @@ const Products = () => {
     setUploadedFiles: (files) => {
       form.setValue(
         "images",
-        files.map((file) => ({
-          url: file.url,
-          fileName: file.fileName,
-          key: file.key,
-        })),
+        files.map((file) => {
+          return {
+            url: file.url,
+            fileName: file.fileName,
+            key: file.key,
+            type: file.type.includes("video") ? "video" : "image",
+          };
+        }),
         { shouldValidate: false, shouldDirty: false }
       );
       form.clearErrors("images");
@@ -106,9 +120,18 @@ const Products = () => {
   console.log(form.watch());
   console.log(form.formState.errors);
 
-  const onSubmit = (values: z.infer<typeof productSchema>) => {
+  const onSubmit = async (values: z.infer<typeof productSchema>) => {
     const toSave = formToApi(values);
     console.log({ toSave });
+    let response: ApiResponse<IProduct>;
+    if (id) {
+      response = await updateProduct({
+        id: id as string,
+        data: toSave,
+      }).unwrap();
+    } else {
+      response = await createProduct(toSave).unwrap();
+    }
   };
 
   const getErrorByPath = (path: string) => {
@@ -126,7 +149,9 @@ const Products = () => {
 
   return (
     <div className="py-8">
-      <h1 className="text-2xl font-semibold mb-8">Create Product</h1>
+      <h1 className="text-2xl font-semibold mb-8">
+        {id ? "Update" : "Create"} Product
+      </h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -198,8 +223,12 @@ const Products = () => {
           </Tabs>
           <Button
             type="submit"
+            disabled={isLoading || isLoadingUpdate}
             className="h-14 font-semibold px-6 shadow-none mt-[3rem]"
           >
+            {(isLoading || isLoadingUpdate) && (
+              <Icons.spinner className="h-3 w-3 animate-spin" />
+            )}
             Save Product
           </Button>
         </form>
@@ -208,4 +237,4 @@ const Products = () => {
   );
 };
 
-export default Products;
+export default Product;

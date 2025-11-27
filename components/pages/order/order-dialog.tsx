@@ -106,8 +106,8 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const arrivedWarehouse = order.timeArrivedInWarehouse
         ? new Date(order.timeArrivedInWarehouse)
         : undefined;
-      const packageWeight = order.packageWeight;
-      const trackingNumber = order.trackingNumber;
+      const packageWeight = order.packageWeight ?? "";
+      const trackingNumber = order.trackingNumber ?? "";
       const sendEmail = false;
       const status = order.status;
       form.reset({
@@ -332,6 +332,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                             <FormControl>
                               <Input
                                 {...field}
+                                value={field.value ?? ""}
                                 id="trackingNumber"
                                 className="bg-transparent"
                                 placeholder="Tracking Number"
