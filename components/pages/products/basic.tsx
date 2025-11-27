@@ -165,7 +165,42 @@ export const Basic = ({ form }: BasicProps) => {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <FormField
+            control={control}
+            name="moq"
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormLabel htmlFor="name">MOQ</FormLabel>
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <NumericFormat
+                        type="text"
+                        {...field}
+                        name="moq"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        placeholder="MOQ"
+                        displayType="input"
+                        decimalSeparator="."
+                        allowNegative={false}
+                        error={!!errors.moq?.message}
+                        thousandSeparator=","
+                        onValueChange={(values) => {
+                          if (!values.floatValue) return;
+                          form.setValue("moq", values.value);
+                        }}
+                        className="h-11 w-full"
+                        customInput={Input}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              );
+            }}
+          />
           <FormField
             control={control}
             name="deliveryFeeYen"

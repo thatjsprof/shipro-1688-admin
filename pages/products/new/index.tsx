@@ -21,6 +21,7 @@ import {
   useUpdateProductMutation,
 } from "@/services/product.service";
 import { Icons } from "@/components/shared/icons";
+import { notify } from "@/lib/toast";
 
 enum ITabs {
   Basic = "basic",
@@ -121,16 +122,26 @@ const Product = () => {
   console.log(form.formState.errors);
 
   const onSubmit = async (values: z.infer<typeof productSchema>) => {
-    const toSave = formToApi(values);
-    console.log({ toSave });
-    let response: ApiResponse<IProduct>;
-    if (id) {
-      response = await updateProduct({
-        id: id as string,
-        data: toSave,
-      }).unwrap();
-    } else {
-      response = await createProduct(toSave).unwrap();
+    try {
+      const toSave = formToApi(values);
+      console.log({ toSave });
+      let response: ApiResponse<IProduct>;
+      if (id) {
+        response = await updateProduct({
+          id: id as string,
+          data: toSave,
+        }).unwrap();
+      } else {
+        response = await createProduct(toSave).unwrap();
+      }
+      if (response.status === 200) {
+        notify(response.message);
+        router.push("/products");
+      } else {
+        notify(response.message);
+      }
+    } catch (err) {
+      notify("Failed to save product");
     }
   };
 

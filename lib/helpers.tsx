@@ -68,6 +68,7 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
   const images = form.images.map((img) => ({
     url: img.url,
     type: img.type,
+    key: img.key,
     thumbnail: img.url,
     fileName: img.fileName,
   }));

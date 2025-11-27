@@ -80,7 +80,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           timeArrivedInWarehouse: values["arrivedWarehouse"] ?? undefined,
           trackingNumber: values["trackingNumber"] ?? undefined,
           images: images.length > 0 ? images : undefined,
-          packageWeight: weight ? +weight : undefined,
+          packageWeight: weight ? +weight * 1000 : undefined,
           sendEmail: values["sendEmail"],
         },
       }).unwrap();
@@ -106,7 +106,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const arrivedWarehouse = order.timeArrivedInWarehouse
         ? new Date(order.timeArrivedInWarehouse)
         : undefined;
-      const packageWeight = order.packageWeight ?? "";
+      const packageWeight = (order.packageWeight || 0) / 1000 || "";
       const trackingNumber = order.trackingNumber ?? "";
       const sendEmail = false;
       const status = order.status;

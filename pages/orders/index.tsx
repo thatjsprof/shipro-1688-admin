@@ -180,7 +180,7 @@ const getColumns = (
         const packageWeight = row.getValue<string>("packageWeight");
         return packageWeight ? (
           <div className="flex items-center gap-[0.6rem] text-nowrap">
-            {formatNum(packageWeight)}g
+            {formatNum(packageWeight)}kg
           </div>
         ) : (
           <p>---</p>
