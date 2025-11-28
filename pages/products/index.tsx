@@ -77,6 +77,7 @@ const getColumns = (
             {images.slice(0, 3).map((image) => {
               return image.type === "image" ? (
                 <img
+                  key={image.url}
                   src={image.url}
                   className="w-10 h-10 rounded-md border flex-shrink-0"
                 />
@@ -170,7 +171,7 @@ const getColumns = (
       cell: ({ row }) => {
         const company = row.original.company;
         return company ? (
-          <div className="text-nowrap h-8 w-32">
+          <div className="text-nowrap h-8 w-28">
             <div className="flex items-center gap-[0.6rem] h-full">
               <p>
                 <span>{company}</span>
@@ -179,6 +180,33 @@ const getColumns = (
           </div>
         ) : (
           <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "actions",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title=""
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        return (
+          <div>
+            <Link
+              href={`${process.env.CLIENT_URL}/products/${row.original.id}`}
+              target="_blank"
+            >
+              <Button className="shadow-none">
+                <Eye />
+                View
+              </Button>
+            </Link>
+          </div>
         );
       },
       enableSorting: false,
