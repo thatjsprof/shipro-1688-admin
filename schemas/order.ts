@@ -23,5 +23,5 @@ export const orderSchema = z.object({
       })
     )
     .optional(),
-  status: z.nativeEnum(OrderStatus).optional(),
+  status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
 });

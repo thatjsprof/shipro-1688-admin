@@ -74,6 +74,11 @@ const data: {
       ],
     },
     {
+      title: "Users",
+      url: "/users",
+      Icon: <User className="!size-5" strokeWidth={2.5} />,
+    },
+    {
       title: "Settings",
       url: "/settings",
       Icon: <Settings className="!size-5" strokeWidth={2.5} />,

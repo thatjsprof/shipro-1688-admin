@@ -65,7 +65,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       packageWeight: "",
       trackingNumber: "",
       sendEmail: false,
-      status: undefined,
+      status: "",
       tags: [],
     },
   });
@@ -89,7 +89,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           }),
           packageWeight: weight ? +weight : undefined,
           sendEmail: values["sendEmail"],
-          tags: tags ? tags : undefined,
+          tags: tags.length > 0 ? tags : undefined,
         },
       }).unwrap();
       if (updated.status === 200) {
@@ -110,7 +110,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       packageWeight: "",
       trackingNumber: "",
       sendEmail: false,
-      status: "" as OrderStatus,
+      status: "",
       tags: [],
     });
   }, [open]);
@@ -122,11 +122,11 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const arrivedWarehouse = order.timeArrivedInWarehouse
         ? new Date(order.timeArrivedInWarehouse)
         : undefined;
-      const packageWeight = order.packageWeight ?? "";
-      const trackingNumber = order.trackingNumber ?? "";
+      const packageWeight = order.packageWeight || "";
+      const trackingNumber = order.trackingNumber || "";
       const sendEmail = false;
-      const status = order.status;
-      const tags = order.tags ?? [];
+      const status = order.status || "";
+      const tags = order.tags || [];
       form.reset({
         pictures,
         arrivedWarehouse,
