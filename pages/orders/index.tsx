@@ -219,7 +219,7 @@ const getColumns = (
       enableHiding: false,
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "dateOrdered",
       header: ({ column }) => {
         return (
           <DataTableColumnHeader
@@ -230,10 +230,10 @@ const getColumns = (
         );
       },
       cell: ({ row }) => {
-        const createdAt = row.getValue<Date>("createdAt");
+        const dateOrdered = row.getValue<Date>("dateOrdered");
         return (
           <div className="flex items-center gap-[0.9rem] text-nowrap">
-            {createdAt ? format(createdAt, "dd MMM, yyy, h:mm a") : "---"}
+            {dateOrdered ? format(dateOrdered, "dd MMM, yyy, h:mm a") : "---"}
           </div>
         );
       },
