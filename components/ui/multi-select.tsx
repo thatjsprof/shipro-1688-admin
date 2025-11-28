@@ -16,14 +16,28 @@ type MultiSelectProps<T extends string | number> = {
   onChange: (values: MultiSelectOption<T>[]) => void;
   placeholder?: string;
   className?: string;
+  label?: React.ReactNode;
+  align?: "end" | "center" | "start";
+  renderButton?: (selected: MultiSelectOption<T>[]) => React.ReactNode;
 };
 
 export function MultiSelect<T extends string | number>({
+  align,
   options,
   selected,
   className,
   onChange,
-  placeholder = "Select options",
+  label = (
+    <>
+      <Info className="size-4" />
+      <span>Status</span>
+    </>
+  ),
+  renderButton = (selected) => (
+    <span className="rounded-full bg-destructive min-h-5 min-w-5 text-white text-xs px-1 flex items-center justify-center">
+      {selected.length}
+    </span>
+  ),
 }: MultiSelectProps<T>) {
   const toggleOption = (option: MultiSelectOption<T>) => {
     const isSelected = selected.some((o) => o.value === option.value);
@@ -45,20 +59,15 @@ export function MultiSelect<T extends string | number>({
           )}
         >
           <p className="flex items-center gap-2 mr-3">
-            <Info className="size-4" />
-            Status
-            {selected.length > 0 && (
-              <span className="rounded-full bg-destructive min-h-5 min-w-5 text-white text-xs px-1 flex items-center justify-center">
-                {selected.length}
-              </span>
-            )}
+            {label}
+            {selected.length > 0 && renderButton && renderButton(selected)}
           </p>
         </Button>
       </PopoverTrigger>
       <PopoverContent
         onCloseAutoFocus={(e) => e.preventDefault()}
         className="p-2 w-fit"
-        align="end"
+        align={align}
       >
         {options.map((option) => (
           <div

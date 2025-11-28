@@ -15,7 +15,7 @@ import {
   useEffect,
 } from "react";
 import debounce from "lodash.debounce";
-import { formatNum } from "@/lib/utils";
+import { cn, formatNum, upperCaseFirst } from "@/lib/utils";
 import { orderStatusInfo } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { useGetOrderItemsQuery } from "@/services/order.service";
@@ -35,12 +35,8 @@ import OrderDialog from "@/components/pages/order/order-dialog";
 import OrderSheet from "@/components/pages/order/order-sheet";
 import { Icons } from "@/components/shared/icons";
 import MultiKeywordInput from "@/components/ui/multi-keyword";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 type LucideIconName = keyof typeof LucideIcons;
 
 const getColumns = (
@@ -273,6 +269,41 @@ const getColumns = (
       enableHiding: false,
     },
     {
+      accessorKey: "tags",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Tags"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const tags = row.original.tags ?? [];
+        return tags.length > 0 ? (
+          <div className="flex items-center gap-[0.6rem] text-nowrap">
+            {tags.map((t) => {
+              return (
+                <Badge
+                  key={t}
+                  className={cn(
+                    "h-8 rounded-full px-4",
+                    tags.includes("sensitive") &&
+                      "bg-yellow-500/10 text-destructive text-sm"
+                  )}
+                >
+                  {upperCaseFirst(t)}
+                </Badge>
+              );
+            })}
+          </div>
+        ) : (
+          <div>---</div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "actions",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -318,6 +349,8 @@ interface OrdersTableProps {
   setPagination: Dispatch<SetStateAction<PaginationState>>;
   pagination: PaginationState;
   setRowSelect: Dispatch<SetStateAction<Record<string, boolean>>>;
+  rowSelection: IOrderItem[];
+  setRowSelection: Dispatch<SetStateAction<IOrderItem[]>>;
   rowSelect: Record<string, boolean>;
 }
 
@@ -326,6 +359,8 @@ const OrdersTable = ({
   statuses,
   pagination: { pageIndex, pageSize },
   setPagination,
+  rowSelection,
+  setRowSelection,
   setRowSelect,
   rowSelect,
   keywords,
@@ -334,7 +369,6 @@ const OrdersTable = ({
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
-  const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
@@ -346,6 +380,13 @@ const OrdersTable = ({
     setSelectedOrderItem(orderItem);
     setIsPaymentDialogOpen(true);
   };
+
+  const clearState = () => {
+    setRowSelection([]);
+    setRowSelect({});
+  };
+
+  console.log(rowSelection);
 
   const columns = getColumns(
     copyToClipboard,
@@ -411,23 +452,20 @@ const OrdersTable = ({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 mt-4 mb-5">
         {hasSelected && (
           <div className="flex items-center gap-2">
             <p className="text-sm">{rowSelection.length} items selected</p>
             <Button
               className="shadow-none"
               variant="outline"
-              onClick={() => {
-                setRowSelect({});
-                setRowSelection([]);
-              }}
+              onClick={clearState}
             >
               Clear Selected
             </Button>
           </div>
         )}
-        <div className="flex justify-end gap-2 mt-4 mb-5 items-end ml-auto">
+        <div className="flex justify-end gap-2 items-end ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="shadow-none">
@@ -515,6 +553,7 @@ const OrdersTable = ({
         open={openUpdate}
         onOpenChange={setOpenUpdate}
         orders={orderUpdate!}
+        clearState={clearState}
       />
       <OrderSheet open={openSheet} onOpenChange={setOpenSheet} item={order!} />
       <PaymentDialog
@@ -538,9 +577,15 @@ const Orders = () => {
     pageSize: 10,
   });
   const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
+  const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [multiKeywordMode, setMultiKeywordMode] = useState(false);
   const [searchKeywords, setSearchKeywords] = useState<string[]>([]);
+
+  const clearState = () => {
+    setRowSelection([]);
+    setRowSelect({});
+  };
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -565,7 +610,7 @@ const Orders = () => {
 
   const handleSearch = () => {
     setSearchKeywords(keywords);
-    setRowSelect({});
+    clearState();
     setPagination({
       pageIndex: 1,
       pageSize: 10,
@@ -579,7 +624,7 @@ const Orders = () => {
       keywords.length === 0
     ) {
       setSearchKeywords(keywords);
-      setRowSelect({});
+      clearState();
     }
   }, [keywords, multiKeywordMode, searchKeywords.length]);
 
@@ -653,12 +698,14 @@ const Orders = () => {
       </div>
       <OrdersTable
         statuses={statuses}
-        keywords={multiKeywordMode ? searchKeywords : keywords}
         rowSelect={rowSelect}
         pagination={pagination}
+        rowSelection={rowSelection}
         setRowSelect={setRowSelect}
         searchValue={debouncedValue}
         setPagination={setPagination}
+        setRowSelection={setRowSelection}
+        keywords={multiKeywordMode ? searchKeywords : keywords}
       />
     </div>
   );

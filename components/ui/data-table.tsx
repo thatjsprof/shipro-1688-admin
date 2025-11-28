@@ -200,6 +200,11 @@ export function DataTable<TData, TValue>({
     if (!changed) return;
 
     prevRowSelectionRef.current = { ...currentSelection };
+    if (Object.keys(currentSelection).length === 0) {
+      allSelectedRowsRef.current.clear();
+      onSelectedRowsChange([]);
+      return;
+    }
     data.forEach((row, index) => {
       const id = getRowId ? getRowId(row, index) : index.toString();
 
@@ -217,6 +222,7 @@ export function DataTable<TData, TValue>({
     data,
     getRowId,
     onSelectedRowsChange,
+    setRowSelection,
   ]);
 
   return (

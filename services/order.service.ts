@@ -41,6 +41,7 @@ export const orderApi = createApi({
               key: string;
               url: string;
             }[];
+            tags?: string[];
             packageWeight?: number;
             sendEmail?: boolean;
           };

@@ -15,5 +15,13 @@ export const orderSchema = z.object({
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
   sendEmail: z.boolean().optional(),
+  tags: z
+    .array(
+      z.object({
+        value: z.string(),
+        label: z.string(),
+      })
+    )
+    .optional(),
   status: z.nativeEnum(OrderStatus).optional(),
 });

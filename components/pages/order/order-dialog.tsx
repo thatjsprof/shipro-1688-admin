@@ -21,13 +21,13 @@ import FileUploadButton from "@/hooks/use-file";
 import { IFile } from "@/interfaces/file.interface";
 import { orderSchema } from "@/schemas/order";
 import z from "zod";
-import { cn } from "@/lib/utils";
+import { cn, upperCaseFirst } from "@/lib/utils";
 import { X } from "lucide-react";
 import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import DatePicker from "@/components/ui/date";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -43,12 +43,15 @@ import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/shared/icons";
 import { notify } from "@/lib/toast";
 import { format } from "date-fns";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { Badge } from "@/components/ui/badge";
 type LucideIconName = keyof typeof LucideIcons;
 
 interface IDialogProps {
   open: boolean;
   orders: IOrderItem[];
   onOpenChange: (open: boolean) => void;
+  clearState: () => void;
 }
 
 const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
@@ -63,6 +66,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       trackingNumber: "",
       sendEmail: false,
       status: undefined,
+      tags: [],
     },
   });
 
@@ -73,6 +77,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
     try {
       const weight = values["packageWeight"];
       const images = values["pictures"] ?? [];
+      const tags = (values["tags"] ?? []).map((t) => t.value);
       const updated = await updateItem({
         items: orders.map((order) => order.id),
         data: {
@@ -84,6 +89,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           }),
           packageWeight: weight ? +weight : undefined,
           sendEmail: values["sendEmail"],
+          tags: tags ? tags : undefined,
         },
       }).unwrap();
       if (updated.status === 200) {
@@ -105,6 +111,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       trackingNumber: "",
       sendEmail: false,
       status: "" as OrderStatus,
+      tags: [],
     });
   }, [open]);
 
@@ -119,6 +126,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const trackingNumber = order.trackingNumber ?? "";
       const sendEmail = false;
       const status = order.status;
+      const tags = order.tags;
       form.reset({
         pictures,
         arrivedWarehouse,
@@ -126,6 +134,10 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         trackingNumber,
         sendEmail,
         status,
+        tags: tags.map((t) => ({
+          label: upperCaseFirst(t),
+          value: t,
+        })),
       });
     }
   }, [orders]);
@@ -346,6 +358,63 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                 className="bg-transparent"
                                 placeholder="Tracking Number"
                                 error={!!errors?.trackingNumber?.message}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({}) => {
+                      return (
+                        <FormItem>
+                          <FormLabel htmlFor="name">Tags</FormLabel>
+                          <div className="flex flex-col space-y-1">
+                            <FormControl>
+                              <MultiSelect
+                                options={[
+                                  {
+                                    value: "sensitive",
+                                    label: "Sensitive",
+                                  },
+                                ]}
+                                selected={form.watch("tags") ?? []}
+                                onChange={(val) => {
+                                  form.setValue("tags", val);
+                                }}
+                                label={
+                                  (form.watch("tags") ?? []).length === 0 && (
+                                    <>
+                                      <LucideIcons.Tag className="size-4 text-gray-400" />
+                                      <span className="text-sm text-gray-400">
+                                        Tags
+                                      </span>
+                                    </>
+                                  )
+                                }
+                                renderButton={(selected) => {
+                                  return (
+                                    <div className="flex items-center flex-wrap gap-2">
+                                      {selected.map((s) => {
+                                        return (
+                                          <Badge
+                                            key={s.value}
+                                            className="bg-gray-500"
+                                          >
+                                            {s.label}
+                                          </Badge>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                }}
+                                align="start"
+                                className="border-zinc-300 shadow-none focus-visible:border-primary data-[state=open]:border-primary data-[state=open]:outline-none data-[state=open]:outline-offset-0 px-3 py-1 hover:border-zinc-400 !bg-transparent flex justify-start h-11 w-full"
+                                placeholder="Select tags"
                               />
                             </FormControl>
                             <FormMessage />
