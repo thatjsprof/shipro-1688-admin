@@ -79,7 +79,7 @@ const getColumns = (
                 <img
                   key={image.url}
                   src={image.url}
-                  className="w-10 h-10 rounded-md border flex-shrink-0"
+                  className="w-10 h-10 rounded-md border flex-shrink-0 object-cover object-top"
                 />
               ) : (
                 <></>

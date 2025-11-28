@@ -418,9 +418,12 @@ const OrdersTable = ({
             <Button
               className="shadow-none"
               variant="outline"
-              onClick={() => setRowSelect({})}
+              onClick={() => {
+                setRowSelect({});
+                setRowSelection([]);
+              }}
             >
-              Clear Selcted
+              Clear Selected
             </Button>
           </div>
         )}
@@ -429,7 +432,7 @@ const OrdersTable = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="shadow-none">
                 <LucideIcons.Settings />
-                Actions
+                <span className="hidden sm:inline-block">Actions</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
