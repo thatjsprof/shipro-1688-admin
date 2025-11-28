@@ -126,7 +126,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const trackingNumber = order.trackingNumber ?? "";
       const sendEmail = false;
       const status = order.status;
-      const tags = order.tags;
+      const tags = order.tags ?? [];
       form.reset({
         pictures,
         arrivedWarehouse,
