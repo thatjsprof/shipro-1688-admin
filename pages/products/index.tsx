@@ -19,38 +19,6 @@ const getColumns = (
   onViewClick: (row: IProduct) => void
 ): ColumnDef<IProduct>[] => {
   return [
-    // {
-    //   accessorKey: "trackingNumber",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Tracking Number"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const trackingNumber = row.getValue<string>("trackingNumber");
-    //     return trackingNumber ? (
-    //       <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
-    //         <Copy
-    //           className="size-4"
-    //           onClick={() =>
-    //             copyToClipboard({
-    //               id: "copy-tracking-number",
-    //               text: trackingNumber,
-    //               message: "Tracking number copied to clipboard",
-    //             })
-    //           }
-    //         />
-    //         <p>{trackingNumber}</p>
-    //       </div>
-    //     ) : (
-    //       <p>---</p>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -62,18 +30,138 @@ const getColumns = (
       ),
       cell: ({ row }) => {
         const name = row.original.description;
-        return name ? (
-          <div className="text-nowrap h-8 w-64">
+        return (
+          <div className="w-110">
+            {name ? (
+              <div className="text-nowrap h-8">
+                <div className="flex items-center gap-[0.6rem] h-full">
+                  <p className="truncate">
+                    <span>{name}</span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p>---</p>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "images",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Images"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const images = row.original.images;
+        return images.length > 0 ? (
+          <div className="flex items-center gap-[0.5rem] text-nowrap h-8">
+            {images.slice(0, 3).map((image) => {
+              return image.type === "image" ? (
+                <img
+                  src={image.url}
+                  className="w-10 h-10 rounded-md border flex-shrink-0"
+                />
+              ) : (
+                <></>
+              );
+            })}
+            {images.length > 3 && (
+              <span className="text-sm">+{images.length - 3} more</span>
+            )}
+          </div>
+        ) : (
+          <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "priceRange",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Price Range"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const priceRange = row.original.priceRange ?? [];
+        return (
+          <div className="w-32">
+            {priceRange.length > 0 ? (
+              (() => {
+                const [min, max] = priceRange;
+                return (
+                  <div className="flex items-center gap-[0.5rem] text-nowrap h-8">
+                    <p>¥{min}</p>
+                    {max && (
+                      <>
+                        <span>-</span>
+                        <p>¥{max}</p>
+                      </>
+                    )}
+                  </div>
+                );
+              })()
+            ) : (
+              <p>---</p>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "moq",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="MOQ"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const moq = row.original.moq;
+        return (
+          <div className="w-18">
+            {moq > 0 ? (
+              <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
+                <p className="truncate">{moq}</p>
+              </div>
+            ) : (
+              <p>---</p>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "company",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Company"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const company = row.original.company;
+        return company ? (
+          <div className="text-nowrap h-8 w-32">
             <div className="flex items-center gap-[0.6rem] h-full">
-              <p
-                className="truncate"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onViewClick(row.original);
-                }}
-              >
-                <span>{name}</span>
+              <p>
+                <span>{company}</span>
               </p>
             </div>
           </div>
@@ -84,182 +172,6 @@ const getColumns = (
       enableSorting: false,
       enableHiding: false,
     },
-    // {
-    //   accessorKey: "quantity",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Quantity"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const itemsQuantity = row.original.items.reduce((acc, cur) => {
-    //       return (acc += cur.quantity);
-    //     }, 0);
-    //     const quantity = itemsQuantity || row.original.quantity;
-    //     return quantity > 0 ? (
-    //       <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
-    //         <p className="truncate">{quantity}</p>
-    //       </div>
-    //     ) : (
-    //       <p>---</p>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "orderAmount",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Order Amount"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const orderAmount = row.getValue<string>("orderAmount");
-    //     return parseFloat(orderAmount) > 0 ? (
-    //       <div className="flex items-center gap-[0.6rem] text-nowrap">
-    //         ₦{formatNum(orderAmount)}
-    //       </div>
-    //     ) : (
-    //       <p>---</p>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "packageWeight",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Package Weight"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const packageWeight = row.getValue<string>("packageWeight");
-    //     return packageWeight ? (
-    //       <div className="flex items-center gap-[0.6rem] text-nowrap">
-    //         {formatNum(packageWeight)}g
-    //       </div>
-    //     ) : (
-    //       <p>---</p>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "user",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Owner"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const user = row.original.order.user.name;
-    //     return (
-    //       <div className="flex items-center gap-[0.6rem] text-nowrap">
-    //         {user}
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "createdAt",
-    //   header: ({ column }) => {
-    //     return (
-    //       <DataTableColumnHeader
-    //         column={column}
-    //         title="Date Ordered"
-    //         className="-mb-[1.8px] px-2"
-    //       />
-    //     );
-    //   },
-    //   cell: ({ row }) => {
-    //     const createdAt = row.getValue<Date>("createdAt");
-    //     return (
-    //       <div className="flex items-center gap-[0.9rem] text-nowrap">
-    //         {createdAt ? format(createdAt, "dd MMM, yyy, h:mm a") : "---"}
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "status",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title="Status"
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     const status = row.getValue<OrderStatus>("status");
-    //     const statusInfo = orderStatusInfo[status];
-    //     const IconComponent = LucideIcons[
-    //       statusInfo?.icon as LucideIconName
-    //     ] as LucideIcons.LucideIcon;
-
-    //     return (
-    //       <div
-    //         className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] w-fit font-medium"
-    //         style={{
-    //           backgroundColor: statusInfo?.bgColor,
-    //           color: statusInfo?.color ?? "#fff",
-    //         }}
-    //       >
-    //         <IconComponent className="size-4" />
-    //         {statusInfo?.text}
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
-    // {
-    //   accessorKey: "actions",
-    //   header: ({ column }) => (
-    //     <DataTableColumnHeader
-    //       column={column}
-    //       title=""
-    //       className="-mb-[1.8px] px-2"
-    //     />
-    //   ),
-    //   cell: ({ row }) => {
-    //     return (
-    //       <div className="flex items-center gap-[0.6rem] text-nowrap">
-    //         <Button
-    //           variant="outline"
-    //           className="shadow-none"
-    //           onClick={() => {
-    //             onUpdateClick(row.original);
-    //           }}
-    //         >
-    //           <LucideIcons.Pencil className="size-4" />
-    //         </Button>
-    //         <Button
-    //           className="bg-secondary hover:bg-secondary"
-    //           onClick={() => onPaymentClick(row.original)}
-    //         >
-    //           <LucideIcons.BanknoteArrowUp className="size-5" />
-    //         </Button>
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
   ];
 };
 

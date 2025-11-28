@@ -23,7 +23,9 @@ import {
 } from "@/services/product.service";
 import { Icons } from "@/components/shared/icons";
 import { notify } from "@/lib/toast";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 enum ITabs {
   Basic = "basic",
@@ -169,6 +171,12 @@ const Product = () => {
 
   return (
     <div className="py-8">
+      <Link href="/products">
+        <div className="flex items-center gap-2 text-gray-500 mb-6 text-sm cursor-pointer w-fit">
+          <ArrowLeft className="size-5" />
+          Back to Products
+        </div>
+      </Link>
       <h1 className="text-2xl font-semibold mb-8">
         {id ? "Update" : "Create"} Product
       </h1>
