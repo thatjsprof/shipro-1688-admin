@@ -100,7 +100,7 @@ const getColumns = (
             <div className="flex items-center gap-[0.6rem] h-full">
               <Tooltip
                 contentClassName="max-w-[15rem] py-3 bg-primary text-white"
-                side="right"
+                side="top"
                 mobileVariant="popover"
                 content={
                   <div>
@@ -589,7 +589,7 @@ const Orders = () => {
       <div className="flex items-start gap-2 mb-0">
         <Tooltip
           contentClassName="max-w-[15rem] py-3 bg-primary text-white"
-          side="right"
+          side="top"
           mobileVariant="popover"
           content={
             <p className="font-medium">

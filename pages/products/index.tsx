@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
+import { Tooltip } from "@/components/ui/tooltip";
 import { IProduct } from "@/interfaces/product.interface";
 import useCopy, { ICopy } from "@/lib/copy";
 import { useGetProductsQuery } from "@/services/product.service";
@@ -32,17 +33,28 @@ const getColumns = (
         const name = row.original.description;
         return (
           <div className="w-110">
-            {name ? (
-              <div className="text-nowrap h-8">
-                <div className="flex items-center gap-[0.6rem] h-full">
-                  <p className="truncate">
-                    <span>{name}</span>
-                  </p>
+            <Tooltip
+              contentClassName="max-w-[15rem] py-3 bg-primary text-white"
+              side="top"
+              mobileVariant="popover"
+              content={
+                <div>
+                  <p className="mb-1">{name}</p>
                 </div>
-              </div>
-            ) : (
-              <p>---</p>
-            )}
+              }
+            >
+              {name ? (
+                <div className="text-nowrap h-8">
+                  <div className="flex items-center gap-[0.6rem] h-full">
+                    <p className="truncate">
+                      <span>{name}</span>
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p>---</p>
+              )}
+            </Tooltip>
           </div>
         );
       },
