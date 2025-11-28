@@ -98,17 +98,28 @@ const getColumns = (
         return name ? (
           <div className="text-nowrap h-8 w-64">
             <div className="flex items-center gap-[0.6rem] h-full">
-              <p
-                className="truncate hover:text-secondary duration-200 transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onViewClick(row.original);
-                }}
+              <Tooltip
+                contentClassName="max-w-[15rem] py-3 bg-primary text-white"
+                side="right"
+                mobileVariant="popover"
+                content={
+                  <div>
+                    <p className="mb-1">{name}</p>
+                  </div>
+                }
               >
-                <LucideIcons.Eye className="size-4 flex-shrink-0 inline-block -mt-[3px] mr-2" />
-                <span>{name}</span>
-              </p>
+                <p
+                  className="truncate hover:text-secondary duration-200 transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onViewClick(row.original);
+                  }}
+                >
+                  <LucideIcons.Eye className="size-4 flex-shrink-0 inline-block -mt-[3px] mr-2" />
+                  <span>{name}</span>
+                </p>
+              </Tooltip>
             </div>
           </div>
         ) : (
@@ -576,31 +587,31 @@ const Orders = () => {
   return (
     <div className="flex flex-col gap-8 mt-7">
       <div className="flex items-start gap-2 mb-0">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                onClick={toggleMode}
-                variant="outline"
-                size="icon"
-                className="h-11 w-11 shadow-none border-zinc-300"
-              >
-                {multiKeywordMode ? (
-                  <Search className="h-5 w-5" />
-                ) : (
-                  <LucideIcons.List className="h-5 w-5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="font-medium">
-                {multiKeywordMode
-                  ? "Switch to Single-Keyword Mode"
-                  : "Switch to Multi-Keyword Mode"}
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip
+          contentClassName="max-w-[15rem] py-3 bg-primary text-white"
+          side="right"
+          mobileVariant="popover"
+          content={
+            <p className="font-medium">
+              {multiKeywordMode
+                ? "Switch to Single-Keyword Mode"
+                : "Switch to Multi-Keyword Mode"}
+            </p>
+          }
+        >
+          <Button
+            onClick={toggleMode}
+            variant="outline"
+            size="icon"
+            className="h-11 w-11 shadow-none border-zinc-300"
+          >
+            {multiKeywordMode ? (
+              <Search className="h-5 w-5" />
+            ) : (
+              <LucideIcons.List className="h-5 w-5" />
+            )}
+          </Button>
+        </Tooltip>
         <MultiKeywordInput
           value={searchValue}
           onChange={handleChange}
