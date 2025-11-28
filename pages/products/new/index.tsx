@@ -140,10 +140,10 @@ const Product = () => {
         response = await createProduct(toSave).unwrap();
       }
       if (response.status === 200) {
-        notify(response.message);
+        notify(response.message, "success");
         router.push("/products");
       } else {
-        notify(response.message);
+        notify(response.message, "error");
       }
     } catch (err) {
       notify("Failed to save product");
