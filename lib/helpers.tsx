@@ -5,28 +5,31 @@ import z from "zod";
 type FormFormat = z.infer<typeof productSchema>;
 
 export function formToApi(form: FormFormat): Partial<IProduct> {
-  const getSKUKey = (combination: string[]): string => {
-    return combination
-      .map((value) => value.replace(/\s+/g, "").toLowerCase())
-      .join("_");
+  const getSKUKey = (
+    combination: Array<{ id: string; value: string }>
+  ): string => {
+    return combination.map((item) => item.value).join("_");
   };
 
   const generateCombinations = (
     properties: FormFormat["variantProperties"]
-  ): string[][] => {
+  ): Array<Array<{ id: string; value: string }>> => {
     if (properties.length === 0) return [];
-    const combinations: string[][] = [];
+    const combinations: Array<Array<{ id: string; value: string }>> = [];
 
-    const generate = (current: string[], depth: number) => {
+    const generate = (
+      current: Array<{ id: string; value: string }>,
+      depth: number
+    ) => {
       if (depth === properties.length) {
         combinations.push([...current]);
         return;
       }
 
       const prop = properties[depth];
-      for (const value of prop.values) {
-        if (value.trim()) {
-          current.push(value);
+      for (const valueObj of prop.values) {
+        if (valueObj.value.trim()) {
+          current.push(valueObj);
           generate(current, depth + 1);
           current.pop();
         }
@@ -38,110 +41,138 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
   };
 
   const combinations = generateCombinations(form.variantProperties);
-  const propsOrder = form.variantProperties.map((p) => p.name.toLowerCase());
-  const variants: IProduct["variants"] = {};
+  const variants: Record<string, Array<{ id: string; text: string }>> = {};
   form.variantProperties.forEach((prop) => {
-    const propKey = prop.name.toLowerCase();
-    variants[propKey] = prop.values.map((value, idx) => ({
-      id: idx.toString(),
-      text: value,
+    const propKey = prop.name.toLowerCase().replace(/\s+/g, "");
+    variants[propKey] = prop.values.map((val, idx) => ({
+      id: String(idx),
+      text: val.value,
     }));
   });
 
-  const skus: IProduct["skus"] = {};
-  let skuIdCounter = 1;
+  const skuPropHeaders = form.variantProperties.map((prop) =>
+    prop.name.toLowerCase().replace(/\s+/g, "")
+  );
 
-  combinations.forEach((combination) => {
+  const propsOrder = [...skuPropHeaders];
+  const skuPropRows = combinations.map((combination) =>
+    combination.map((item) => item.value)
+  );
+  const propsInfoTable = [...skuPropRows];
+  const skus: any = {};
+  combinations.forEach((combination, idx) => {
     const skuKey = getSKUKey(combination);
-    const formSku = form.skus[skuKey];
+    const formSkuKey = combination.map((item) => item.id).join("_");
+    const skuData = form.skus[formSkuKey];
 
-    if (formSku) {
-      skus[skuKey] = {
-        id: skuIdCounter.toString(),
-        price: parseFloat(formSku.price) || 0,
-        stock: parseFloat(formSku.stock) || 0,
-        priceNaira: 0,
-      } as any;
-      skuIdCounter++;
-    }
+    skus[skuKey] = {
+      id: String(idx + 1),
+      price: parseFloat(skuData?.price || "0"),
+      stock: parseInt(skuData?.stock || "0", 10),
+    };
   });
-  const images = form.images.map((img) => ({
-    url: img.url,
-    type: img.type,
-    key: img.key,
-    thumbnail: img.url,
-    fileName: img.fileName,
-  }));
 
   const attrs = form.attributes.map((attr) => ({
     [attr.key]: attr.value,
   }));
 
   return {
-    image: images[0].url,
-    images,
+    images: form.images,
     description: form.description,
-    stock: parseFloat(form.stock) || 0,
-    moq: parseFloat(form.moq) || 1,
+    stock: parseInt(form.stock, 10),
+    moq: parseInt(form.moq, 10),
     attrs,
-    location: form.location ?? "",
-    deliveryFeeYen: parseFloat(form.deliveryFeeYen) || 0,
-    deliveryFeeNaira: parseFloat(form.deliveryFeeNaira || "") || 0,
-    propsOrder,
+    location: form.location,
+    deliveryFeeYen: parseFloat(form.deliveryFeeYen),
+    deliveryFeeNaira: form.deliveryFeeNaira
+      ? parseFloat(form.deliveryFeeNaira)
+      : undefined,
     variants,
-    skuPropRows: combinations,
-    skuPropHeaders: propsOrder,
+    skuPropRows,
+    skuPropHeaders,
     skus,
-    propsInfoTable: combinations,
+    propsOrder,
+    propsInfoTable,
   };
 }
 
-export function apiToForm(sourceData: IProduct) {
-  const images = sourceData.images
-    .filter((img) => img.type === "image")
-    .map((img, index) => ({
-      url: img.url,
-      fileName: `image_${index + 1}.jpg`,
-      key: `${sourceData.id}_${index}`,
-      type: img.type,
-    }));
-
-  const variantProperties = (sourceData.propsOrder ?? []).map((propName) => {
-    const variantData = sourceData.variants[propName];
-    if (!variantData) {
-      throw new Error(`Variant property "${propName}" not found in variants`);
-    }
+export function apiToForm(product: IProduct): FormFormat {
+  const variantProperties = (product.propsOrder ?? []).map((propKey) => {
+    const variantValues = product.variants[propKey] || [];
     return {
-      name: propName,
-      values: variantData.map((v: any) => v.text),
+      name: propKey,
+      values: variantValues.map((v: any) => ({
+        id: `${propKey}_${v.id}_${v.text.replace(/\s+/g, "").toLowerCase()}`,
+        value: v.text,
+      })),
     };
   });
 
-  const skus: Record<string, { price: string; stock: string }> = {};
-  Object.entries(sourceData.skus).forEach(([key, value]) => {
-    skus[key] = {
-      price: value?.price.toString() ?? "",
-      stock: value?.stock.toString() ?? "",
+  const generateFormCombinations = (
+    properties: typeof variantProperties
+  ): Array<Array<{ id: string; value: string }>> => {
+    if (properties.length === 0) return [];
+    const combinations: Array<Array<{ id: string; value: string }>> = [];
+
+    const generate = (
+      current: Array<{ id: string; value: string }>,
+      depth: number
+    ) => {
+      if (depth === properties.length) {
+        combinations.push([...current]);
+        return;
+      }
+
+      const prop = properties[depth];
+      for (const valueObj of prop.values) {
+        current.push(valueObj);
+        generate(current, depth + 1);
+        current.pop();
+      }
     };
+
+    generate([], 0);
+    return combinations;
+  };
+
+  const formCombinations = generateFormCombinations(variantProperties);
+  const skusRecord: Record<string, { price: string; stock: string }> = {};
+
+  formCombinations.forEach((combination) => {
+    const formSkuKey = combination.map((item) => item.id).join("_");
+    const apiSkuKey = combination.map((item) => item.value).join("_");
+    const apiSku = product.skus[apiSkuKey];
+
+    if (apiSku) {
+      skusRecord[formSkuKey] = {
+        price: String(apiSku.price),
+        stock: String(apiSku.stock),
+      };
+    } else {
+      skusRecord[formSkuKey] = {
+        price: "",
+        stock: "",
+      };
+    }
   });
 
-  const attributes = sourceData.attrs.map((attr) => {
+  const attributes = product.attrs.map((attr) => {
     const [key, value] = Object.entries(attr)[0];
     return { key, value };
   });
 
-  const convertedProduct = {
-    stock: sourceData.stock.toString(),
-    moq: sourceData.moq.toString(),
-    description: sourceData.description,
-    location: sourceData.location,
-    deliveryFeeYen: sourceData.deliveryFeeYen.toString(),
-    deliveryFeeNaira: sourceData.deliveryFeeNaira.toString(),
-    images,
+  return {
+    stock: String(product.stock),
+    moq: String(product.moq),
+    description: product.description,
+    location: product.location,
+    deliveryFeeYen: String(product.deliveryFeeYen),
+    deliveryFeeNaira: product.deliveryFeeNaira
+      ? String(product.deliveryFeeNaira)
+      : undefined,
+    images: product.images,
     variantProperties,
-    skus,
+    skus: skusRecord,
     attributes,
   };
-
-  return convertedProduct;
 }

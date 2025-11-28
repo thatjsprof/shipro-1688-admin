@@ -23,7 +23,9 @@ const Variant = ({ form }: IVariantProps) => {
   const name = "variantProperties";
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const variantPropertiesRef = useRef<string>("");
-  const [allCombinations, setAllCombinations] = useState<string[][]>([]);
+  const [allCombinations, setAllCombinations] = useState<
+    Array<Array<{ id: string; value: string }>>
+  >([]);
 
   const {
     fields: propertyFields,
@@ -34,16 +36,23 @@ const Variant = ({ form }: IVariantProps) => {
     name,
   });
 
+  const generateId = () => {
+    return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
   const addProperty = () => {
     appendProperty({
       name: "",
-      values: [""],
+      values: [{ id: generateId(), value: "" }],
     });
   };
 
   const addPropertyValue = (propIndex: number) => {
     const currentProperties = getValues(name);
-    const updatedValues = [...currentProperties[propIndex].values, ""];
+    const updatedValues = [
+      ...currentProperties[propIndex].values,
+      { id: generateId(), value: "" },
+    ];
     setValue(`${name}.${propIndex}.values`, updatedValues);
   };
 
@@ -55,26 +64,29 @@ const Variant = ({ form }: IVariantProps) => {
     setValue(`${name}.${propIndex}.values`, updatedValues);
   };
 
-  const getSKUKey = (combination: string[]): string => {
-    return combination
-      .map((value) => value.replace(/\s+/g, "").toLowerCase())
-      .join("_");
+  const getSKUKey = (
+    combination: Array<{ id: string; value: string }>
+  ): string => {
+    return combination.map((item) => item.id).join("_");
   };
 
   const generateAllCombinations = (variantProperties: any[]) => {
     if (variantProperties.length === 0) return [];
-    const combinations: string[][] = [];
+    const combinations: Array<Array<{ id: string; value: string }>> = [];
 
-    const generate = (current: string[], depth: number) => {
+    const generate = (
+      current: Array<{ id: string; value: string }>,
+      depth: number
+    ) => {
       if (depth === variantProperties.length) {
         combinations.push([...current]);
         return;
       }
 
       const prop = variantProperties[depth];
-      for (const value of prop.values) {
-        if (value.trim()) {
-          current.push(value);
+      for (const valueObj of prop.values) {
+        if (valueObj.value.trim()) {
+          current.push(valueObj);
           generate(current, depth + 1);
           current.pop();
         }
@@ -217,11 +229,11 @@ const Variant = ({ form }: IVariantProps) => {
                 </label>
                 <div className="flex flex-col gap-3">
                   {watch(`variantProperties.${propIndex}.values`).map(
-                    (_, valueIndex) => (
+                    (valueObj, valueIndex) => (
                       <FormField
-                        key={valueIndex}
+                        key={valueObj.id}
                         control={control}
-                        name={`variantProperties.${propIndex}.values.${valueIndex}`}
+                        name={`variantProperties.${propIndex}.values.${valueIndex}.value`}
                         render={({ field }) => (
                           <FormItem>
                             <div className="space-y-1">
@@ -318,9 +330,11 @@ const Variant = ({ form }: IVariantProps) => {
                     key={idx}
                     className="border-b border-gray-100 hover:bg-gray-50"
                   >
-                    {combination.map((value, vIdx) => (
+                    {combination.map((valueObj, vIdx) => (
                       <td key={vIdx} className="py-3 px-4 w-fit">
-                        <span className="text-sm text-gray-900">{value}</span>
+                        <span className="text-sm text-gray-900">
+                          {valueObj.value}
+                        </span>
                       </td>
                     ))}
                     <td className="py-3 px-4 align-top">

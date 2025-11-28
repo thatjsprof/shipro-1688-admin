@@ -22,7 +22,12 @@ export const productSchema = z.object({
       z.object({
         name: z.string().min(1, "Property name is required"),
         values: z
-          .array(z.string().min(1, "Value cannot be empty"))
+          .array(
+            z.object({
+              id: z.string(),
+              value: z.string().min(1, "Value cannot be empty"),
+            })
+          )
           .min(1, "At least one value is required"),
       })
     )

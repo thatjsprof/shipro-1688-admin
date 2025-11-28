@@ -83,7 +83,12 @@ const Product = () => {
       variantProperties: [
         {
           name: "",
-          values: [""],
+          values: [
+            {
+              id: "",
+              value: "",
+            },
+          ],
         },
       ],
       skus: {},

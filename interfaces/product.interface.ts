@@ -23,6 +23,22 @@ export interface IRating {
   user_nick: string;
 }
 
+export type ISku = Record<
+  string,
+  {
+    height: string;
+    id: string;
+    length: number;
+    price: number;
+    stock: number;
+    totalSold: number;
+    volume: number;
+    weight: number;
+    width: number;
+    priceNaira: number;
+  }
+>;
+
 export interface IProduct {
   id: string;
   image: string;
@@ -36,7 +52,7 @@ export interface IProduct {
   moq: number;
   category: string;
   info: string[];
-  skuPropRows: string[][]
+  skuPropRows: string[][];
   deliveryFeeYen: number;
   priceRange: [number, number];
   deliveryFeeNaira: number;
@@ -58,25 +74,11 @@ export interface IProduct {
   images: {
     type: string;
     url: string;
-    thumbnail: string;
+    fileName: string;
+    key: string;
+    // thumbnail: string;
   }[];
   skuPropHeaders: string[];
   propsInfoTable: (string | number)[][];
-  skus: Partial<
-    Record<
-      string,
-      {
-        height: string;
-        id: string;
-        length: number;
-        price: number;
-        stock: number;
-        totalSold: number;
-        volume: number;
-        weight: number;
-        width: number;
-        priceNaira: number;
-      }
-    >
-  >;
+  skus: Partial<ISku>;
 }
