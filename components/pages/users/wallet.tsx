@@ -408,7 +408,7 @@ const Wallet = () => {
                       <Button
                         type="submit"
                         className="shadow-none h-11 font-semibold"
-                        disabled={!form.formState.isValid || isLoading}
+                        disabled={isLoading}
                       >
                         {isLoading && (
                           <Icons.spinner className="h-3 w-3 animate-spin" />
