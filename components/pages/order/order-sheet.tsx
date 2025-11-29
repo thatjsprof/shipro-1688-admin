@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/sheet";
 import { IOrderItem } from "@/interfaces/order.interface";
 import { formatNum, upperCaseFirst } from "@/lib/utils";
+import * as LucideIcons from "lucide-react";
+import { orderStatusInfo } from "@/lib/constants";
+type LucideIconName = keyof typeof LucideIcons;
 
 interface ISheetProps {
   item: IOrderItem;
@@ -43,6 +46,11 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
     .filter((p) => p.type === "image")
     .map((p) => p.url);
   const allImages = [...adminImages, ...productImages, ...images];
+  const status = item.status;
+  const statusInfo = orderStatusInfo[status];
+  const IconComponent = LucideIcons[
+    statusInfo?.icon as LucideIconName
+  ] as LucideIcons.LucideIcon;
 
   const scrollToImage = (imageUrl: string) => {
     const index = allImages.indexOf(imageUrl);
@@ -62,6 +70,18 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
             </SheetDescription>
           </SheetHeader>
           <div className="p-4 pt-0">
+            {IconComponent && (
+              <div
+                className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] w-fit font-medium mb-6"
+                style={{
+                  backgroundColor: statusInfo?.bgColor,
+                  color: statusInfo?.color ?? "#fff",
+                }}
+              >
+                <IconComponent className="size-4" />
+                {statusInfo?.text}
+              </div>
+            )}
             <div className="flex-1">
               {allImages.length > 0 && (
                 <Carousel

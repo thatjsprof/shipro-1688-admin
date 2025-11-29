@@ -252,7 +252,7 @@ const getColumns = (
           statusInfo?.icon as LucideIconName
         ] as LucideIcons.LucideIcon;
 
-        return (
+        return IconComponent ? (
           <div
             className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] w-fit font-medium"
             style={{
@@ -263,6 +263,8 @@ const getColumns = (
             <IconComponent className="size-4" />
             {statusInfo?.text}
           </div>
+        ) : (
+          <div>---</div>
         );
       },
       enableSorting: false,

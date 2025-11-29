@@ -128,12 +128,12 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const status = order.status || "";
       const tags = order.tags || [];
       form.reset({
+        status,
         pictures,
         arrivedWarehouse,
         packageWeight: packageWeight?.toString() ?? "",
         trackingNumber,
         sendEmail,
-        status,
         tags: tags.map((t) => ({
           label: upperCaseFirst(t),
           value: t,
