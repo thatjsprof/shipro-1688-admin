@@ -115,7 +115,7 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                 <a
                   target="_blank"
                   href={product.url}
-                  className="text-[#fc6320] hover:underline break-all line-clamp-1 mt-2"
+                  className="text-[#fc6320] hover:underline break-all line-clamp-1 mt-2 w-fit"
                 >
                   {product.url}
                 </a>
