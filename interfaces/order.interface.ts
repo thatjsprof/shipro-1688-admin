@@ -119,3 +119,7 @@ export enum OrderStatus {
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
 }
+
+export enum OrderEmails {
+  WAREHOUSE_ARRIVAL = "WAREHOUSE_ARRIVAL",
+}

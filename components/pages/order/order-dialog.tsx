@@ -27,7 +27,7 @@ import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import DatePicker from "@/components/ui/date";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -94,10 +94,11 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       }).unwrap();
       if (updated.status === 200) {
         onOpenChange(false);
+        notify(updated.message, "success");
       }
     } catch (err) {
       console.error(err);
-      notify("Failed to update this order(s)");
+      notify("Failed to update this order(s)", "error");
     }
   };
 

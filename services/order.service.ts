@@ -1,6 +1,10 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
-import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
+import {
+  IOrderItem,
+  OrderEmails,
+  OrderStatus,
+} from "@/interfaces/order.interface";
 
 const baseUrl = "/admin/order";
 
@@ -56,6 +60,23 @@ export const orderApi = createApi({
         },
         invalidatesTags: ["GetOrderItems"],
       }),
+      sendEmails: builder.mutation<
+        ApiResponse<IOrderItem[]>,
+        Partial<{
+          items: string[];
+          data: {
+            emailType?: OrderEmails | string;
+          };
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/items/email`,
+            method: "POST",
+            body: data,
+          };
+        },
+      }),
     };
   },
 });
@@ -64,4 +85,5 @@ export const {
   useGetOrderItemsQuery,
   useLazyGetOrderItemsQuery,
   useUpdateItemsMutation,
+  useSendEmailsMutation,
 } = orderApi;

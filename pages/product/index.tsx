@@ -656,8 +656,6 @@ const ProductManager: React.FC = () => {
                           />
                         </button>
                       ))}
-
-                      {/* ADD IMAGE BUTTON */}
                       <button className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-blue-600 hover:bg-blue-50 transition">
                         <Plus size={24} className="text-gray-400" />
                       </button>
@@ -666,8 +664,6 @@ const ProductManager: React.FC = () => {
                 </div>
               </div>
             )}
-
-            {/* ATTRIBUTES TAB */}
             {activeTab === "attributes" && (
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">

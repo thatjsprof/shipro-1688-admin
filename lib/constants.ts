@@ -1,4 +1,23 @@
-import { OrderStatus } from "@/interfaces/order.interface";
+import { OrderEmails, OrderStatus } from "@/interfaces/order.interface";
+
+export const orderEmailsInfo: Partial<
+  Record<
+    OrderEmails,
+    {
+      icon: string;
+      bgColor: string;
+      color: string;
+      text: string;
+    }
+  >
+> = {
+  [OrderEmails.WAREHOUSE_ARRIVAL]: {
+    icon: "PencilLine",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "Warehouse Arrival",
+  },
+};
 
 export const orderStatusInfo: Partial<
   Record<

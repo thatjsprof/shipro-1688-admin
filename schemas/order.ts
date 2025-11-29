@@ -1,4 +1,4 @@
-import { OrderStatus } from "@/interfaces/order.interface";
+import { OrderEmails, OrderStatus } from "@/interfaces/order.interface";
 import { z } from "zod";
 
 export const orderSchema = z.object({
@@ -24,4 +24,8 @@ export const orderSchema = z.object({
     )
     .optional(),
   status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
+});
+
+export const orderEmailsSchema = z.object({
+  emailType: z.union([z.nativeEnum(OrderEmails), z.literal("")]).optional(),
 });

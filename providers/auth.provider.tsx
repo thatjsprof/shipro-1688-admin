@@ -1,10 +1,7 @@
 import { Spinner } from "@/components/ui/spinner";
 import { IUserRole } from "@/interfaces/user.interface";
 import { useLazyGetSettingsQuery } from "@/services/management.service";
-import {
-  useGetRatesQuery,
-  useLazyGetRatesQuery,
-} from "@/services/rate.service";
+import { useLazyGetRatesQuery } from "@/services/rate.service";
 import { useLazyGetProfileQuery } from "@/services/user.service";
 import { setRates, setSetting } from "@/store/app";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -24,6 +21,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   async function fetchUser() {
     try {
       const res = await getUser().unwrap();
+
       if (res.session) {
         const data = res.user;
         if (data.role === IUserRole.admin) {

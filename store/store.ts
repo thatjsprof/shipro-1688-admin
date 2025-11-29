@@ -1,4 +1,4 @@
-import { userApi } from "@/services/user.service";
+import { authApi, userApi } from "@/services/user.service";
 import {
   Action,
   combineReducers,
@@ -35,6 +35,7 @@ const appPersistConfig = {
 };
 
 const allReducers = combineReducers({
+  [authApi.reducerPath]: authApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [rateApi.reducerPath]: rateApi.reducer,
   [productApi.reducerPath]: productApi.reducer,
@@ -65,6 +66,7 @@ const store = () =>
         },
       })
         .concat(userApi.middleware)
+        .concat(authApi.middleware)
         .concat(rateApi.middleware)
         .concat(productApi.middleware)
         .concat(settingApi.middleware)

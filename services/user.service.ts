@@ -3,9 +3,38 @@ import { baseQueryWithReauth } from "@/lib/rtk";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
 const baseUrl = "/auth";
+const baseUrlUser = "/user";
 
 export const userApi = createApi({
   reducerPath: "rtk:user",
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ["GetUsers"],
+  endpoints: (builder) => {
+    return {
+      getUsers: builder.query<
+        ApiResponse<PaginatedResult<IUser[]>>,
+        {
+          limit?: number;
+          page?: number;
+          search?: string;
+        }
+      >({
+        query: ({ page, limit, search }) => {
+          return {
+            url: `${baseUrlUser}/all?page=${page}&limit=${limit}${
+              search ? `&search=${search}` : ""
+            }`,
+            method: "GET",
+          };
+        },
+        providesTags: ["GetUsers"],
+      }),
+    };
+  },
+});
+
+export const authApi = createApi({
+  reducerPath: "rtk:auth",
   baseQuery: baseQueryWithReauth,
   tagTypes: ["GetUser"],
   endpoints: (builder) => {
@@ -148,7 +177,6 @@ export const userApi = createApi({
 });
 
 export const {
-  useLazyGetProfileQuery,
   useSignupMutation,
   useLoginMutation,
   useForgotPasswordMutation,
@@ -157,4 +185,7 @@ export const {
   useLogoutMutation,
   useChangePasswordMutation,
   useGetOauthMutation,
-} = userApi;
+  useLazyGetProfileQuery,
+} = authApi;
+
+export const { useGetUsersQuery } = userApi;

@@ -37,6 +37,7 @@ import { Icons } from "@/components/shared/icons";
 import MultiKeywordInput from "@/components/ui/multi-keyword";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import OrderEmailsDialog from "@/components/pages/order/order-emails";
 type LucideIconName = keyof typeof LucideIcons;
 
 const getColumns = (
@@ -370,8 +371,10 @@ const OrdersTable = ({
   const { copyToClipboard } = useCopy();
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
+  const [orderEmails, setOrderEmails] = useState<IOrderItem[]>([]);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
+  const [openEmails, setOpenEmails] = useState<boolean>(false);
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
   );
@@ -387,8 +390,6 @@ const OrdersTable = ({
     setRowSelection([]);
     setRowSelect({});
   };
-
-  console.log(rowSelection);
 
   const columns = getColumns(
     copyToClipboard,
@@ -491,7 +492,13 @@ const OrdersTable = ({
               >
                 Delete
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={!hasSelected}>
+              <DropdownMenuItem
+                disabled={!hasSelected}
+                onClick={() => {
+                  setOpenEmails(true);
+                  setOrderEmails(rowSelection);
+                }}
+              >
                 Send Email
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -556,6 +563,11 @@ const OrdersTable = ({
         onOpenChange={setOpenUpdate}
         orders={orderUpdate!}
         clearState={clearState}
+      />
+      <OrderEmailsDialog
+        open={openEmails}
+        onOpenChange={setOpenEmails}
+        orders={orderEmails!}
       />
       <OrderSheet open={openSheet} onOpenChange={setOpenSheet} item={order!} />
       <PaymentDialog
