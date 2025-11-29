@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 enum ITabs {
@@ -15,8 +14,6 @@ const TAB_VALUES = [ITabs.Basic, ITabs.Wallet];
 const DEFAULT_TAB = ITabs.Basic;
 
 const User = () => {
-  const router = useRouter();
-  const { id } = router.query;
   const { activeTab, handleTabChange } = useQueryTabs({
     tabValues: TAB_VALUES,
     defaultValue: DEFAULT_TAB,

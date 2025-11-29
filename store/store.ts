@@ -21,6 +21,7 @@ import { orderApi } from "@/services/order.service";
 import { rateApi } from "@/services/rate.service";
 import { settingApi } from "@/services/management.service";
 import { productApi } from "@/services/product.service";
+import { walletApi } from "@/services/wallet.service";
 
 const rootPersistConfig = {
   key: "admin:root",
@@ -36,6 +37,7 @@ const appPersistConfig = {
 
 const allReducers = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
+  [walletApi.reducerPath]: walletApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [rateApi.reducerPath]: rateApi.reducer,
   [productApi.reducerPath]: productApi.reducer,
@@ -67,6 +69,7 @@ const store = () =>
       })
         .concat(userApi.middleware)
         .concat(authApi.middleware)
+        .concat(walletApi.middleware)
         .concat(rateApi.middleware)
         .concat(productApi.middleware)
         .concat(settingApi.middleware)
