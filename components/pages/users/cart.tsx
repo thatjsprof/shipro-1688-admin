@@ -42,7 +42,7 @@ const Cart = () => {
         </div>
       ) : items.length === 0 ? (
         <div className="w-full flex justify-center mt-10">
-          <p className="text-2xl font-semibold">No items in warehouse</p>
+          <p className="text-2xl font-semibold">No items in cart</p>
         </div>
       ) : (
         <div>
