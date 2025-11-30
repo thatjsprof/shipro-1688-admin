@@ -1,3 +1,4 @@
+import Cart from "@/components/pages/users/cart";
 import Wallet from "@/components/pages/users/wallet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
@@ -8,9 +9,10 @@ import { useEffect } from "react";
 enum ITabs {
   Basic = "basic",
   Wallet = "wallet",
+  Cart = "cart",
 }
 
-const TAB_VALUES = [ITabs.Basic, ITabs.Wallet];
+const TAB_VALUES = [ITabs.Basic, ITabs.Wallet, ITabs.Cart];
 const DEFAULT_TAB = ITabs.Basic;
 
 const User = () => {
@@ -36,6 +38,7 @@ const User = () => {
         <TabsList>
           <TabsTrigger value={ITabs.Basic}>Basic</TabsTrigger>
           <TabsTrigger value={ITabs.Wallet}>Wallet</TabsTrigger>
+          <TabsTrigger value={ITabs.Cart}>Cart</TabsTrigger>
         </TabsList>
         <TabsContent value={ITabs.Basic}>
           <div className="py-6 text-sm text-muted-foreground">
@@ -44,6 +47,9 @@ const User = () => {
         </TabsContent>
         <TabsContent value={ITabs.Wallet}>
           <Wallet />
+        </TabsContent>
+        <TabsContent value={ITabs.Cart}>
+          <Cart />
         </TabsContent>
       </Tabs>
     </div>

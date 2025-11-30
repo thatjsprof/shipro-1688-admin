@@ -129,9 +129,8 @@ const Picture = ({
       dragItem.current !== dragOverItem.current
     ) {
       const newImages = [...images];
-      const temp = newImages[dragItem.current];
-      newImages[dragItem.current] = newImages[dragOverItem.current];
-      newImages[dragOverItem.current] = temp;
+      const [movedItem] = newImages.splice(dragItem.current, 1);
+      newImages.splice(dragOverItem.current, 0, movedItem);
 
       requestAnimationFrame(() => {
         setValue("images", newImages, {
