@@ -7,6 +7,14 @@ export const productSchema = z.object({
   location: z.string().optional(),
   deliveryFeeYen: z.string().min(1, "Delivery fee is required"),
   deliveryFeeNaira: z.string().optional(),
+  totalSoldDuration: z
+    .array(
+      z.object({
+        duration: z.string().min(1, "Duration is required"),
+        amount: z.string().min(1, "Amount is required"),
+      })
+    )
+    .optional(),
   images: z
     .array(
       z.object({

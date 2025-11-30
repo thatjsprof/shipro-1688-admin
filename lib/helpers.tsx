@@ -101,6 +101,10 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     skus,
     propsOrder,
     propsInfoTable,
+    totalSoldDuration: form.totalSoldDuration?.reduce((acc, item) => {
+      acc[item.duration] = parseFloat(item.amount);
+      return acc;
+    }, {} as Record<string, number>),
   };
 }
 
@@ -190,6 +194,12 @@ export function apiToForm(product: IProduct): FormFormat {
     deliveryFeeNaira: product.deliveryFeeNaira
       ? String(product.deliveryFeeNaira)
       : undefined,
+    totalSoldDuration: Object.entries(product.totalSoldDuration || {}).map(
+      ([duration, amount]) => ({
+        duration,
+        amount: String(amount),
+      })
+    ),
     images: product.images,
     variantProperties,
     skus: skusRecord,

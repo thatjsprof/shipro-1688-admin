@@ -1,5 +1,5 @@
-import { UseFormReturn } from "react-hook-form";
-
+import { UseFormReturn, useFieldArray } from "react-hook-form";
+import { Plus, X } from "lucide-react";
 import {
   FormField,
   FormItem,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { productSchema } from "@/schemas/product";
 import z from "zod";
 import { NumericFormat } from "react-number-format";
@@ -27,6 +28,11 @@ export const Basic = ({ form }: BasicProps) => {
     watch,
     formState: { errors },
   } = form;
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "totalSoldDuration",
+  });
 
   useEffect(() => {
     form.setValue(
@@ -237,6 +243,82 @@ export const Basic = ({ form }: BasicProps) => {
               );
             }}
           />
+        </div>
+
+        {/* Total Sold Duration Field */}
+        <div>
+          <FormLabel>Total Sold Duration</FormLabel>
+          <div className="space-y-3 mt-2">
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex gap-2 items-start">
+                <FormField
+                  control={control}
+                  name={`totalSoldDuration.${index}.duration`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g., 90 days"
+                          error={!!errors?.totalSoldDuration?.[index]?.duration}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={control}
+                  name={`totalSoldDuration.${index}.amount`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <NumericFormat
+                          type="text"
+                          {...field}
+                          placeholder="Amount"
+                          displayType="input"
+                          decimalSeparator="."
+                          allowNegative={false}
+                          thousandSeparator=","
+                          error={!!errors?.totalSoldDuration?.[index]?.amount}
+                          onValueChange={(values) => {
+                            form.setValue(
+                              `totalSoldDuration.${index}.amount`,
+                              values.value
+                            );
+                          }}
+                          className="h-11 w-full"
+                          customInput={Input}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => remove(index)}
+                  disabled={fields.length === 1}
+                  className="h-11"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => append({ duration: "", amount: "" })}
+              className="w-full h-10 shadow-none"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Duration
+            </Button>
+          </div>
         </div>
       </div>
     </div>
