@@ -12,7 +12,7 @@ const Cart = () => {
   const { data, isLoading, refetch, isFetching } = useGetCartQuery(idToUse, {
     skip: !idToUse,
   });
-  const items = data?.data.items || [];
+  const items = data?.data?.items || [];
 
   const handleRefresh = async () => {
     await refetch().unwrap();
