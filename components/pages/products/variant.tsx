@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { productSchema } from "@/schemas/product";
-import { Plus, Trash2, X, ImagePlus } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import z from "zod";
@@ -24,7 +24,6 @@ const Variant = ({ form }: IVariantProps) => {
   const { getValues, setValue, control, watch, formState } = form;
   const name = "variantProperties";
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const variantPropertiesRef = useRef<string>("");
   const [allCombinations, setAllCombinations] = useState<
     Array<Array<{ id: string; value: string }>>
   >([]);
@@ -106,46 +105,41 @@ const Variant = ({ form }: IVariantProps) => {
   useEffect(() => {
     const subscription = watch((value, { name: fieldName }) => {
       if (fieldName?.startsWith(name)) {
-        const currentProps = JSON.stringify(value.variantProperties || []);
-
-        if (currentProps !== variantPropertiesRef.current) {
-          variantPropertiesRef.current = currentProps;
-
-          if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-          }
-
-          debounceTimerRef.current = setTimeout(() => {
-            const combinations = generateAllCombinations(
-              value.variantProperties || []
-            );
-            setAllCombinations(combinations);
-            const currentSkus = getValues("skus") || {};
-            const newSkus: Record<
-              string,
-              {
-                price: string;
-                stock: string;
-              }
-            > = {};
-
-            combinations.forEach((combination) => {
-              const skuKey = getSKUKey(combination);
-              if (currentSkus[skuKey]) {
-                newSkus[skuKey] = currentSkus[skuKey];
-              } else {
-                newSkus[skuKey] = {
-                  price: "",
-                  stock: "",
-                };
-              }
-            });
-
-            setValue("skus", newSkus, {
-              shouldValidate: false,
-            });
-          }, 500);
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
         }
+
+        debounceTimerRef.current = setTimeout(() => {
+          const combinations = generateAllCombinations(
+            value.variantProperties || []
+          );
+          setAllCombinations(combinations);
+
+          const currentSkus = getValues("skus") || {};
+          const newSkus: Record<
+            string,
+            {
+              price: string;
+              stock: string;
+            }
+          > = {};
+
+          combinations.forEach((combination) => {
+            const skuKey = getSKUKey(combination);
+            if (currentSkus[skuKey]) {
+              newSkus[skuKey] = currentSkus[skuKey];
+            } else {
+              newSkus[skuKey] = {
+                price: "",
+                stock: "",
+              };
+            }
+          });
+
+          setValue("skus", newSkus, {
+            shouldValidate: false,
+          });
+        }, 500);
       }
     });
 
