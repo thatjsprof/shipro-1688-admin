@@ -111,13 +111,19 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                   Category: {item.category}
                 </p>
               )}
-              {product?.url && (
+              {(product?.url || product.internalProduct) && (
                 <a
                   target="_blank"
-                  href={product.url}
+                  href={
+                    product.internalProduct
+                      ? `${process.env.CLIENT_URL}/products/${product.id}`
+                      : product.url
+                  }
                   className="text-[#fc6320] hover:underline break-all line-clamp-1 mt-2 w-fit"
                 >
-                  {product.url}
+                  {product.internalProduct
+                    ? `${process.env.CLIENT_URL}/products/${product.id}`
+                    : product.url}
                 </a>
               )}
               <p className="text-sm text-gray-600 mt-2">Quantity: {quantity}</p>
