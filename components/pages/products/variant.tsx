@@ -64,6 +64,7 @@ const Variant = ({ form }: IVariantProps) => {
     setValue(`${name}.${propIndex}.values`, updatedValues);
   };
 
+  // Create SKU key using stable IDs
   const getSKUKey = (
     combination: Array<{ id: string; value: string }>
   ): string => {
@@ -123,15 +124,13 @@ const Variant = ({ form }: IVariantProps) => {
               }
             > = {};
 
-            console.log({ combinations });
-            console.log({ variantProperties: value.variantProperties });
-
             combinations.forEach((combination) => {
               const skuKey = getSKUKey(combination);
-              console.log({ skuKey, currentSkus });
               if (currentSkus[skuKey]) {
+                // Preserve existing data
                 newSkus[skuKey] = currentSkus[skuKey];
               } else {
+                // Initialize new SKU
                 newSkus[skuKey] = {
                   price: "",
                   stock: "",

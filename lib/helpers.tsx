@@ -8,7 +8,9 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
   const getSKUKey = (
     combination: Array<{ id: string; value: string }>
   ): string => {
-    return combination.map((item) => item.value).join("_");
+    return combination
+      .map((item) => item.value.replace(/\s+/g, "").toLowerCase())
+      .join("_");
   };
 
   const generateCombinations = (
@@ -102,7 +104,7 @@ export function apiToForm(product: IProduct): FormFormat {
     return {
       name: propKey,
       values: variantValues.map((v: any) => ({
-        id: `${propKey}_${v.id}_${v.text.replace(/\s+/g, "").toLowerCase()}`,
+        id: v.id,
         value: v.text,
       })),
     };
@@ -110,12 +112,14 @@ export function apiToForm(product: IProduct): FormFormat {
 
   const generateFormCombinations = (
     properties: typeof variantProperties
-  ): Array<Array<{ id: string; value: string }>> => {
+  ): Array<Array<{ id: string; value: string; propName: string }>> => {
     if (properties.length === 0) return [];
-    const combinations: Array<Array<{ id: string; value: string }>> = [];
+    const combinations: Array<
+      Array<{ id: string; value: string; propName: string }>
+    > = [];
 
     const generate = (
-      current: Array<{ id: string; value: string }>,
+      current: Array<{ id: string; value: string; propName: string }>,
       depth: number
     ) => {
       if (depth === properties.length) {
@@ -125,7 +129,11 @@ export function apiToForm(product: IProduct): FormFormat {
 
       const prop = properties[depth];
       for (const valueObj of prop.values) {
-        current.push(valueObj);
+        current.push({
+          id: valueObj.id,
+          value: valueObj.value,
+          propName: prop.name,
+        });
         generate(current, depth + 1);
         current.pop();
       }
@@ -140,7 +148,10 @@ export function apiToForm(product: IProduct): FormFormat {
 
   formCombinations.forEach((combination) => {
     const formSkuKey = combination.map((item) => item.id).join("_");
-    const apiSkuKey = combination.map((item) => item.value).join("_");
+    const apiSkuKey = combination
+      .map((item) => item.value.replace(/\s+/g, "").toLowerCase())
+      .join("_");
+
     const apiSku = product.skus[apiSkuKey];
 
     if (apiSku) {
