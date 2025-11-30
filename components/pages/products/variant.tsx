@@ -8,11 +8,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { productSchema } from "@/schemas/product";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, ImagePlus } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import z from "zod";
+import FileUploadButton from "@/hooks/use-file";
 import { useEffect, useRef, useState } from "react";
+import { IFile } from "@/interfaces/file.interface";
 
 interface IVariantProps {
   form: UseFormReturn<z.infer<typeof productSchema>>;
@@ -43,7 +45,7 @@ const Variant = ({ form }: IVariantProps) => {
   const addProperty = () => {
     appendProperty({
       name: "",
-      values: [{ id: generateId(), value: "" }],
+      values: [{ id: generateId(), value: "", image: null }],
     });
   };
 
@@ -51,7 +53,7 @@ const Variant = ({ form }: IVariantProps) => {
     const currentProperties = getValues(name);
     const updatedValues = [
       ...currentProperties[propIndex].values,
-      { id: generateId(), value: "" },
+      { id: generateId(), value: "", image: null },
     ];
     setValue(`${name}.${propIndex}.values`, updatedValues);
   };
@@ -64,7 +66,10 @@ const Variant = ({ form }: IVariantProps) => {
     setValue(`${name}.${propIndex}.values`, updatedValues);
   };
 
-  // Create SKU key using stable IDs
+  const removeImage = (propIndex: number, valueIndex: number) => {
+    setValue(`${name}.${propIndex}.values.${valueIndex}.image`, null);
+  };
+
   const getSKUKey = (
     combination: Array<{ id: string; value: string }>
   ): string => {
@@ -127,10 +132,8 @@ const Variant = ({ form }: IVariantProps) => {
             combinations.forEach((combination) => {
               const skuKey = getSKUKey(combination);
               if (currentSkus[skuKey]) {
-                // Preserve existing data
                 newSkus[skuKey] = currentSkus[skuKey];
               } else {
-                // Initialize new SKU
                 newSkus[skuKey] = {
                   price: "",
                   stock: "",
@@ -233,52 +236,121 @@ const Variant = ({ form }: IVariantProps) => {
                 <div className="flex flex-col gap-3">
                   {watch(`variantProperties.${propIndex}.values`).map(
                     (valueObj, valueIndex) => (
-                      <FormField
-                        key={valueObj.id}
-                        control={control}
-                        name={`variantProperties.${propIndex}.values.${valueIndex}.value`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-3">
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Value"
-                                    error={
-                                      !!formState.errors.variantProperties?.[
-                                        propIndex
-                                      ]?.values?.[valueIndex]
+                      <div key={valueObj.id} className="space-y-2">
+                        <FormField
+                          control={control}
+                          name={`variantProperties.${propIndex}.values.${valueIndex}.value`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    <FormControl className="flex-1">
+                                      <Input
+                                        {...field}
+                                        placeholder="Value"
+                                        error={
+                                          !!formState.errors
+                                            .variantProperties?.[propIndex]
+                                            ?.values?.[valueIndex]?.value
+                                        }
+                                        className="flex-1"
+                                      />
+                                    </FormControl>
+                                    <div className="ml-0 max-w-[15rem] w-full">
+                                      {valueObj.image ? (
+                                        <div className="flex items-center gap-2 p-1 bg-gray-50 rounded-md border border-gray-200 w-full relative h-11">
+                                          <img
+                                            src={valueObj.image.url}
+                                            alt={valueObj.image.fileName}
+                                            className="w-11 h-full object-cover rounded"
+                                          />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm text-gray-700 truncate">
+                                              {valueObj.image.fileName}
+                                            </p>
+                                          </div>
+                                          <span
+                                            className="absolute top-1 right-1 bg-red-700 rounded-full h-4 w-4 flex items-center justify-center cursor-pointer"
+                                            onClick={() =>
+                                              removeImage(propIndex, valueIndex)
+                                            }
+                                          >
+                                            <X className="h-3 w-3 text-white" />
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <FileUploadButton
+                                          error={
+                                            !!formState.errors
+                                              .variantProperties?.[propIndex]
+                                              ?.values?.[valueIndex]?.image
+                                          }
+                                          label="Click to Add Image"
+                                          noOfFiles={1}
+                                          fileTypes={["image/*"]}
+                                          currentFiles={
+                                            form.watch(
+                                              `variantProperties.${propIndex}.values.${valueIndex}.image`
+                                            )
+                                              ? ([
+                                                  form.watch(
+                                                    `variantProperties.${propIndex}.values.${valueIndex}.image`
+                                                  ),
+                                                ]?.map((picture) => ({
+                                                  url: picture?.url,
+                                                  fileName: picture?.fileName,
+                                                  key: picture?.key,
+                                                })) as IFile[])
+                                              : []
+                                          }
+                                          isMultiple={false}
+                                          className="border-zinc-300 w-full"
+                                          setUploadedFiles={(files) => {
+                                            form.setValue(
+                                              `variantProperties.${propIndex}.values.${valueIndex}.image`,
+                                              files.map((file) => ({
+                                                url: file.url,
+                                                fileName: file.fileName,
+                                                key: file.key,
+                                                type: "",
+                                              }))?.[0]
+                                            );
+                                            form.clearErrors(
+                                              `variantProperties.${propIndex}.values.${valueIndex}.image`
+                                            );
+                                          }}
+                                        />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    onClick={() =>
+                                      removePropertyValue(propIndex, valueIndex)
                                     }
-                                    className="flex-1"
-                                  />
-                                </FormControl>
-                                <Button
-                                  type="button"
-                                  onClick={() =>
-                                    removePropertyValue(propIndex, valueIndex)
-                                  }
-                                  variant="ghost"
-                                  className={cn(
-                                    "p-2 !text-gray-400 hover:text-red-600 hover:bg-red-50 rounded cursor-pointer",
-                                    watch(
-                                      `variantProperties.${propIndex}.values`
-                                    ).length === 1 && "cursor-not-allowed"
-                                  )}
-                                  disabled={
-                                    watch(
-                                      `variantProperties.${propIndex}.values`
-                                    ).length === 1
-                                  }
-                                >
-                                  <X size={16} />
-                                </Button>
+                                    variant="ghost"
+                                    className={cn(
+                                      "p-2 !text-gray-400 hover:text-red-600 hover:bg-red-50 rounded cursor-pointer",
+                                      watch(
+                                        `variantProperties.${propIndex}.values`
+                                      ).length === 1 && "cursor-not-allowed"
+                                    )}
+                                    disabled={
+                                      watch(
+                                        `variantProperties.${propIndex}.values`
+                                      ).length === 1
+                                    }
+                                  >
+                                    <X size={16} />
+                                  </Button>
+                                </div>
+                                <FormMessage />
                               </div>
-                              <FormMessage />
-                            </div>
-                          </FormItem>
-                        )}
-                      />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )
                   )}
                 </div>

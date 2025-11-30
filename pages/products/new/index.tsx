@@ -171,7 +171,6 @@ const Product = () => {
   useEffect(() => {
     if (!productData?.data) return;
     const converted = apiToForm(productData?.data);
-    console.log(converted);
     form.reset(converted);
   }, [productData?.data]);
 

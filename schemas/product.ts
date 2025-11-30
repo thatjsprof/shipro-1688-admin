@@ -26,6 +26,17 @@ export const productSchema = z.object({
             z.object({
               id: z.string(),
               value: z.string().min(1, "Value cannot be empty"),
+              image: z
+                .object({
+                  url: z.string().min(1, { message: "Url is required" }),
+                  fileName: z
+                    .string()
+                    .min(1, { message: "FileName is required" }),
+                  key: z.string(),
+                  type: z.string(),
+                })
+                .nullable()
+                .optional(),
             })
           )
           .min(1, "At least one value is required"),

@@ -21,6 +21,8 @@ interface IFileUpload {
   currentFiles?: IFile[];
   isMultiple?: boolean;
   preventUpload?: boolean;
+  className?: string;
+  label?: string;
   error?: boolean;
 }
 
@@ -32,6 +34,8 @@ const FileUpload = ({
   isMultiple,
   setUploadedFiles,
   error,
+  className,
+  label = "Click here to upload your pictures",
 }: IFileUpload) => {
   const [open, setOpen] = useState(false);
 
@@ -64,12 +68,13 @@ const FileUpload = ({
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="space-y-2">
         <Button
           type="button"
           className={cn(
             "relative w-full justify-between shadow-none data-[state=open]:border-primary data-[state=open]:outline-offset-0 h-11 rounded-md hover:border-zinc-400 border bg-white px-3 py-1 overflow-hidden hover:bg-transparent bg-transparent",
+            className,
             error && "border-destructive"
           )}
           onClick={() => setOpen(true)}
@@ -82,7 +87,7 @@ const FileUpload = ({
                 )}%`
               : files.length > 0
               ? `${files.length} files selected`
-              : "Click here to upload your pictures"}
+              : label}
           </span>
         </Button>
         {uploading && (
@@ -125,7 +130,7 @@ const FileUpload = ({
                     ref={fileInputRef}
                     type="file"
                     className="hidden h-full w-full"
-                    multiple={true}
+                    multiple={isMultiple}
                     accept={fileTypes?.join(",")}
                     onChange={handleFileInputChange}
                   />

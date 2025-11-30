@@ -31,7 +31,7 @@ export const productApi = createApi({
       getProduct: builder.query<ApiResponse<IProduct>, string>({
         query: (id) => {
           return {
-            url: `${baseUrl}/${id}`,
+            url: `${baseUrl}/${id}?parse=false`,
             method: "GET",
           };
         },
@@ -46,7 +46,10 @@ export const productApi = createApi({
               body,
             };
           },
-          invalidatesTags: ["GetProducts", "GetProduct"],
+          invalidatesTags: (result) => {
+            if (!result) return [];
+            return ["GetProducts", "GetProduct"];
+          },
         }
       ),
       updateProduct: builder.mutation<
@@ -63,7 +66,10 @@ export const productApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetProducts", "GetProduct"],
+        invalidatesTags: (result) => {
+          if (!result) return [];
+          return ["GetProducts", "GetProduct"];
+        },
       }),
     };
   },

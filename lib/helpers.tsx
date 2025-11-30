@@ -49,6 +49,12 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     variants[propKey] = prop.values.map((val, idx) => ({
       id: String(idx),
       text: val.value,
+      ...(val.image && {
+        image: {
+          ...val.image,
+          type: "image",
+        },
+      }),
     }));
   });
 
@@ -106,6 +112,9 @@ export function apiToForm(product: IProduct): FormFormat {
       values: variantValues.map((v: any) => ({
         id: v.id,
         value: v.text,
+        ...(v.image && {
+          image: v.image,
+        }),
       })),
     };
   });
