@@ -1,9 +1,22 @@
+import AdvancedPagination from "@/components/ui/advanced-pagination";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { IPayment } from "@/interfaces/payment.interface";
 import useCopy, { ICopy } from "@/lib/copy";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import debounce from "lodash.debounce";
+import { Search, X } from "lucide-react";
+import Link from "next/link";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 
 const columns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void
@@ -98,6 +111,9 @@ const columns = (
 
 const Payments = () => {
   const { copyToClipboard } = useCopy();
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedValue, setDebouncedValue] = useState("");
+
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -110,24 +126,75 @@ const Payments = () => {
     [pageIndex, pageSize]
   );
 
+  const debouncedChangeHandler = useCallback(
+    debounce((value) => {
+      setDebouncedValue(value);
+    }, 300),
+    []
+  );
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setSearchValue(value);
+    debouncedChangeHandler(value);
+  };
+
+  const handleClearSearch = () => {
+    setDebouncedValue("");
+    setSearchValue("");
+  };
+
   return (
-    <div>
-      <DataTable
-        columns={columns(copyToClipboard)}
-        data={[]}
-        pageCount={0}
-        manualPagination={true}
-        manualFiltering={true}
-        loading={false}
-        pagination={pagination}
-        showSelected={false}
-        setPagination={setPagination}
-        showPagination={false}
-        headerRowClassname="hover:bg-transparent"
-        headerSubClassname="!px-0"
-        customEmpty="No secure links found"
-        className="border-none rounded-none"
-      />
+    <div className="mt-7">
+      <div className="flex items-center gap-3 justify-between">
+        <Input
+          value={searchValue}
+          onChange={handleChange}
+          placeholder="Search Payment(s)"
+          className="h-11 pl-[3rem] !text-[1rem] placeholder:text-[.95rem]"
+          StartIcon={<Search className="ml-2 text-gray-400 h-4 w-4" />}
+          EndIcon={
+            searchValue ? (
+              <X
+                className="text-gray-400 -mr-[.1rem] h-4 w-4 cursor-pointer"
+                onClick={handleClearSearch}
+              />
+            ) : null
+          }
+        />
+        <Button className="shadow-none h-11">Create New</Button>
+      </div>
+      <div className="grid grid-cols-12 mt-8">
+        <DataTable
+          columns={columns(copyToClipboard)}
+          data={[]}
+          pageCount={0}
+          manualPagination={true}
+          manualFiltering={true}
+          loading={false}
+          pagination={pagination}
+          showSelected={false}
+          setPagination={setPagination}
+          showPagination={false}
+          headerRowClassname="hover:bg-transparent"
+          headerSubClassname="!px-0"
+          wrapperCls="col-span-12 w-full"
+          customEmpty="No secure links found"
+          className="border-none rounded-none"
+        />
+        <div className="mt-7">
+          <AdvancedPagination
+            initialPage={pagination.pageIndex}
+            isLoading={false}
+            totalPages={0}
+            onPageChange={(page) => {
+              setPagination((prev) => ({
+                ...prev,
+                pageIndex: page,
+              }));
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

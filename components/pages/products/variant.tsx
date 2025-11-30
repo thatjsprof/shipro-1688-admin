@@ -123,8 +123,11 @@ const Variant = ({ form }: IVariantProps) => {
               }
             > = {};
 
+            console.log(combinations);
+
             combinations.forEach((combination) => {
               const skuKey = getSKUKey(combination);
+              console.log(skuKey, currentSkus[skuKey]);
               if (currentSkus[skuKey]) {
                 newSkus[skuKey] = currentSkus[skuKey];
               } else {

@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   Truck,
   User,
+  Wallet,
 } from "lucide-react";
 import {
   Collapsible,
@@ -72,6 +73,11 @@ const data: {
           Icon: <Truck className="!size-5" strokeWidth={2.5} />,
         },
       ],
+    },
+    {
+      title: "Payments",
+      url: "/payments",
+      Icon: <Wallet className="!size-5" strokeWidth={2.5} />,
     },
     {
       title: "Users",
