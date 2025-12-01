@@ -1,3 +1,4 @@
+import { IAddress } from "./address.interface";
 import { IPayment } from "./payment.interface";
 import { IProduct } from "./product.interface";
 import { IUser } from "./user.interface";
@@ -45,6 +46,7 @@ export interface IOrder {
   shippingFee: number;
   createdAt: Date;
   type: OrderType;
+  deliveryAddress: IAddress;
   origin: OrderOrigin;
   status: OrderStatus;
   payments: IPayment[];

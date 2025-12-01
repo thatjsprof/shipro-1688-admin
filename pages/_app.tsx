@@ -36,6 +36,7 @@ const APP_ROUTES = [
   "/products",
   "/users",
   "/payments",
+  "/shipments",
 ];
 
 export default function App({ Component, pageProps }: AppProps) {

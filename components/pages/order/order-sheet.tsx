@@ -19,12 +19,53 @@ import { IOrderItem } from "@/interfaces/order.interface";
 import { formatNum, upperCaseFirst } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
 import { orderStatusInfo } from "@/lib/constants";
+import { IAddress } from "@/interfaces/address.interface";
 type LucideIconName = keyof typeof LucideIcons;
 
 interface ISheetProps {
   item: IOrderItem;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+export function AddressCard({ address }: { address: IAddress }) {
+  const {
+    firstName,
+    lastName,
+    apartment,
+    address: street,
+    city,
+    state,
+    country,
+    postalCode,
+    phoneNumber,
+    isDefault,
+  } = address;
+
+  return (
+    <div className="w-full max-w-md rounded-2xl border bg-white p-5 mt-8">
+      <h3 className="text-lg font-semibold mb-3">Delivery Address</h3>
+      <div className="space-y-1 text-sm text-gray-700">
+        <p>
+          {firstName} {lastName}
+        </p>
+        {apartment && <p>{apartment}</p>}
+        <p>{street}</p>
+        <p>
+          {city}, {state}
+        </p>
+        <p className="capitalize">{country}</p>
+        {postalCode && <p className="font-medium">Postal Code: {postalCode}</p>}
+        <p className="font-medium">Phone: {phoneNumber}</p>
+      </div>
+
+      {isDefault && (
+        <span className="mt-3 inline-block rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+          Default Address
+        </span>
+      )}
+    </div>
+  );
 }
 
 const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
@@ -48,6 +89,7 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
   const allImages = [...adminImages, ...productImages, ...images];
   const status = item.status;
   const statusInfo = orderStatusInfo[status];
+  const deliveryAddress = item.order.deliveryAddress;
   const IconComponent = LucideIcons[
     statusInfo?.icon as LucideIconName
   ] as LucideIcons.LucideIcon;
@@ -58,6 +100,8 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
       carouselApi.scrollTo(index);
     }
   };
+
+  console.log(item.order);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -197,6 +241,9 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                   ))}
                 </div>
               )}
+            </div>
+            <div>
+              <AddressCard address={item.order.deliveryAddress} />
             </div>
           </div>
         </ScrollArea>

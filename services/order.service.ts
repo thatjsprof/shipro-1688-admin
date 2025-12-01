@@ -1,6 +1,7 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import {
+  IOrder,
   IOrderItem,
   OrderEmails,
   OrderStatus,
@@ -11,7 +12,7 @@ const baseUrl = "/admin/order";
 export const orderApi = createApi({
   reducerPath: "rtk:order",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetOrderItems", "GetOrder"],
+  tagTypes: ["GetOrderItems", "GetOrder", "GetOrders"],
   endpoints: (builder) => {
     return {
       getOrderItems: builder.query<
@@ -31,6 +32,26 @@ export const orderApi = createApi({
           };
         },
         providesTags: ["GetOrderItems"],
+      }),
+      getOrders: builder.query<
+        ApiResponse<PaginatedResult<IOrder[]>>,
+        {
+          limit?: number;
+          page?: number;
+          statuses?: string[];
+          origins?: string[];
+          types?: string[];
+          search?: string;
+        }
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/all`,
+            method: "POST",
+            body,
+          };
+        },
+        providesTags: ["GetOrders"],
       }),
       updateItems: builder.mutation<
         ApiResponse<IOrderItem[]>,
@@ -86,4 +107,5 @@ export const {
   useLazyGetOrderItemsQuery,
   useUpdateItemsMutation,
   useSendEmailsMutation,
+  useGetOrdersQuery,
 } = orderApi;
