@@ -293,12 +293,14 @@ const Shipments = () => {
                               Total Weight
                             </div>
                             <div className="font-semibold">
-                              {shipment.packageWeight ||
-                                shipment.shipmentItems.reduce(
-                                  (acc, cur) => (acc += cur.packageWeight),
+                              {formatNum(
+                                shipment.packageWeight ||
+                                  shipment.shipmentItems.reduce(
+                                    (acc, cur) => (acc += cur.packageWeight),
+                                    0
+                                  ) ||
                                   0
-                                ) ||
-                                0}
+                              )}
                               kg
                             </div>
                           </div>
@@ -383,7 +385,7 @@ const Shipments = () => {
                               <div className="flex items-start gap-3">
                                 {image && (
                                   <img
-                                    src={image}
+                                    src={`${process.env.SERVER_URL}/proxy?url=${image}`}
                                     className="h-16 w-16 object-cover object-center rounded-lg flex-shrink-0"
                                   />
                                 )}
