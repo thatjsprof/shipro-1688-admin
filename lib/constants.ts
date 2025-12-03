@@ -1,4 +1,5 @@
 import { OrderEmails, OrderStatus } from "@/interfaces/order.interface";
+import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
 
 export const orderEmailsInfo: Partial<
   Record<
@@ -17,6 +18,20 @@ export const orderEmailsInfo: Partial<
     color: "#fff",
     text: "Warehouse Arrival",
   },
+};
+
+export const statusTags: Record<PaymentCodes, string> = {
+  [PaymentCodes.GOODS_FEE]: "Goods Fee",
+  [PaymentCodes.ITEM_FEE]: "Fees Fee",
+  [PaymentCodes.SHIPPING_FEE]: "Shipping Fee",
+  [PaymentCodes.SOURCING_FEE]: "Sourcing Fee",
+};
+
+export const paymentStatus: Record<PaymentStatus, string> = {
+  [PaymentStatus.SUCCESSFUL]: "Successful",
+  [PaymentStatus.PENDING]: "Pending",
+  [PaymentStatus.CANCELLED]: "Cancelled",
+  [PaymentStatus.FAILED]: "Failed",
 };
 
 export const orderStatusInfo: Partial<
@@ -75,7 +90,7 @@ export const orderStatusInfo: Partial<
   [OrderStatus.IN_NIGERIA]: {
     icon: "Wallet",
     bgColor: "#6366F1",
-    color: "",
+    color: "#fff",
     text: "In Nigeria",
   },
   [OrderStatus.SHIPPED]: {

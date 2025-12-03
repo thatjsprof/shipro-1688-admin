@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IOrder, OrderType } from "@/interfaces/order.interface";
+import { IOrder, OrderStatus, OrderType } from "@/interfaces/order.interface";
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
@@ -31,7 +31,7 @@ import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import debounce from "lodash.debounce";
-import Link from "next/link";
+import UpdateDialog from "@/components/pages/shipments/update";
 type LucideIconName = keyof typeof LucideIcons;
 
 const Shipments = () => {
@@ -39,7 +39,8 @@ const Shipments = () => {
   const router = useRouter();
   const { search } = router.query;
   const [page, setPage] = useState<number>(1);
-  const [openPayment, setOpenPayment] = useState(false);
+  const [open, setOpen] = useState<boolean>(false);
+  //   const [openPayment, setOpenPayment] = useState(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -118,24 +119,24 @@ const Shipments = () => {
         ) : (
           <>
             {shipments.map((shipment) => {
-              // const pendingPayments = shipment.payments.filter(
-              //   (payment) => payment.status === PaymentStatus.PENDING
-              // );
-              // const pendingItemsPayments = shipment.shipmentItems.map((item) =>
-              //   item.payments.filter((i) => i.status === PaymentStatus.PENDING)
-              // );
-              // const totalPendingPayments = [
-              //   ...pendingPayments,
-              //   ...pendingItemsPayments.flat(),
-              // ];
-              // const hasPendingPayments =
-              //   shipment.type === OrderType.SHIPMENT &&
-              //   totalPendingPayments.length > 0;
-              const shippingFee = shipment.payments.find(
-                (s) =>
-                  s.code === PaymentCodes.SHIPPING_FEE &&
-                  s.status === PaymentStatus.PENDING
+              const pendingPayments = shipment.payments.filter(
+                (payment) => payment.status === PaymentStatus.PENDING
               );
+              const pendingItemsPayments = shipment.shipmentItems.map((item) =>
+                item.payments.filter((i) => i.status === PaymentStatus.PENDING)
+              );
+              const totalPendingPayments = [
+                ...pendingPayments,
+                ...pendingItemsPayments.flat(),
+              ];
+              const hasPendingPayments =
+                shipment.type === OrderType.SHIPMENT &&
+                totalPendingPayments.length > 0;
+              const shippingFee = totalPendingPayments
+                .filter((p) => p.code === PaymentCodes.SHIPPING_FEE)
+                .reduce((acc, cur) => {
+                  return (acc += +cur.amount);
+                }, 0);
               const statusInfo = orderStatusInfo[shipment.status];
               const IconComponent = LucideIcons[
                 statusInfo?.icon as LucideIconName
@@ -233,7 +234,7 @@ const Shipments = () => {
                         </div>
                       )} */}
                         <Dialog>
-                          <DialogTrigger>
+                          <DialogTrigger asChild>
                             <Button
                               size="sm"
                               variant="outline"
@@ -280,6 +281,18 @@ const Shipments = () => {
                             </ScrollArea>
                           </DialogContent>
                         </Dialog>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shadow-none h-11"
+                          onClick={() => {
+                            setOrder(shipment);
+                            setOpen(true);
+                          }}
+                        >
+                          <LucideIcons.Pencil className="w-4 h-4" />
+                          Edit
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -338,8 +351,8 @@ const Shipments = () => {
                               Shipping Fee
                             </div>
                             <div className="font-semibold">
-                              {shippingFee
-                                ? `₦${formatNum(shippingFee.amount)}`
+                              {shippingFee > 0
+                                ? `₦${formatNum(shippingFee)}`
                                 : "---"}
                             </div>
                           </div>
@@ -445,6 +458,7 @@ const Shipments = () => {
             onPageChange={setPage}
           />
         </div>
+        <UpdateDialog open={open} setOpen={setOpen} order={order} />
       </div>
     </div>
   );

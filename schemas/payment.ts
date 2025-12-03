@@ -1,12 +1,22 @@
 import { z } from "zod";
 import { PaymentStatus, PaymentCodes } from "@/interfaces/payment.interface";
 
-export const paymentInputSchema = z.object({
-  amount: z.union([z.number(), z.string()]),
-  status: z.nativeEnum(PaymentStatus).default(PaymentStatus.PENDING),
-  description: z.string().optional(),
-  code: z.nativeEnum(PaymentCodes).optional(),
-});
+export const paymentInputSchema = z
+  .object({
+    amount: z.string().min(1, "Amount is required"),
+    status: z.union([z.nativeEnum(PaymentStatus), z.literal("")]),
+    description: z.string().min(1, "Description is required"),
+    code: z.union([z.nativeEnum(PaymentCodes), z.literal("")]),
+    sendEmail: z.boolean().optional(),
+  })
+  .refine((data) => data.status !== "", {
+    message: "Status is required",
+    path: ["status"],
+  })
+  .refine((data) => data.code !== "", {
+    message: "Code is required",
+    path: ["code"],
+  });
 
 export const paymentSchema = paymentInputSchema
   .refine(

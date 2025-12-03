@@ -31,3 +31,18 @@ export const upperCaseFirst = (str: string) => {
   if (!str) return "";
   return `${str[0].toUpperCase()}${str.slice(1)}`;
 };
+
+export const generateCode = (length: number): string => {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+  let prefix = "";
+  for (let i = 0; i < 2; i++) {
+    prefix += letters[Math.floor(Math.random() * letters.length)];
+  }
+  let numbers = "";
+  for (let i = 0; i < length; i++) {
+    numbers += digits[Math.floor(Math.random() * digits.length)];
+  }
+
+  return prefix + numbers;
+};

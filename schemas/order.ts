@@ -26,6 +26,13 @@ export const orderSchema = z.object({
   status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
 });
 
+export const shipmentSchema = z.object({
+  trackingNumber: z.string().optional(),
+  packageWeight: z.string().optional(),
+  sendEmail: z.boolean().optional(),
+  status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
+});
+
 export const orderEmailsSchema = z.object({
   emailType: z.union([z.nativeEnum(OrderEmails), z.literal("")]).optional(),
 });

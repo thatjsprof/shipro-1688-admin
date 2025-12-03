@@ -81,6 +81,27 @@ export const orderApi = createApi({
         },
         invalidatesTags: ["GetOrderItems"],
       }),
+      updateOrder: builder.mutation<
+        ApiResponse<IOrder[]>,
+        Partial<{
+          id: string;
+          data: {
+            status?: OrderStatus;
+            trackingNumber?: string;
+            packageWeight?: number;
+            sendEmail?: boolean;
+          };
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/${data.id}`,
+            method: "PATCH",
+            body: data.data,
+          };
+        },
+        invalidatesTags: ["GetOrders"],
+      }),
       sendEmails: builder.mutation<
         ApiResponse<IOrderItem[]>,
         Partial<{
@@ -107,5 +128,6 @@ export const {
   useLazyGetOrderItemsQuery,
   useUpdateItemsMutation,
   useSendEmailsMutation,
+  useUpdateOrderMutation,
   useGetOrdersQuery,
 } = orderApi;

@@ -13,6 +13,12 @@ export interface IPayment {
   description: string;
 }
 
+export enum PaymentModules {
+  SOURCING_ORDER = "SOURCING_ORDER",
+  ORDER = "ORDER",
+  WALLET = "WALLET",
+}
+
 export enum PaymentProviders {
   PAYSTACK = "paystack",
   WALLET = "wallet",

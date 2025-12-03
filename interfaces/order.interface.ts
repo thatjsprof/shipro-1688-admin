@@ -45,6 +45,7 @@ export interface IOrder {
   paidShippingFee: boolean;
   shippingFee: number;
   createdAt: Date;
+  emailsSent: Record<string, string[]>;
   type: OrderType;
   deliveryAddress: IAddress;
   origin: OrderOrigin;
