@@ -29,6 +29,7 @@ interface ISheetProps {
 }
 
 export function AddressCard({ address }: { address: IAddress }) {
+  if (!address) return;
   const {
     firstName,
     lastName,
