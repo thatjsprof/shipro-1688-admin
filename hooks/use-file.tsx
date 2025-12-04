@@ -24,12 +24,16 @@ interface IFileUpload {
   className?: string;
   label?: string;
   error?: boolean;
+  showcurrent?: boolean;
+  outerFiles?: IFile[];
 }
 
 const FileUpload = ({
   fileTypes = ["image/*"],
   noOfFiles,
   maxFileSize,
+  showcurrent,
+  outerFiles = [],
   currentFiles = [],
   isMultiple,
   setUploadedFiles,
@@ -200,6 +204,28 @@ const FileUpload = ({
               </Button>
             </div>
           )}
+          <div className="px-5">
+            <p className="text-sm font-semibold">Choose from Existing</p>
+            <div className="flex items-center flex-wrap gap-2 py-3 pt-3">
+              {outerFiles.map((o) => {
+                return (
+                  <div
+                    className="w-16 h-16 cursor-pointer"
+                    onClick={() => {
+                      setUploadedFiles([o]);
+                      setOpen(false);
+                    }}
+                  >
+                    <img
+                      src={o.url}
+                      alt={o.fileName}
+                      className="w-full h-full object-cover object-top rounded"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

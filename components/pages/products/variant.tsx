@@ -298,6 +298,16 @@ const Variant = ({ form }: IVariantProps) => {
                                                 })) as IFile[])
                                               : []
                                           }
+                                          outerFiles={
+                                            form.watch("images").map((t) => {
+                                              return {
+                                                url: t?.url,
+                                                fileName: t?.fileName,
+                                                key: t?.key,
+                                                type: t?.type,
+                                              };
+                                            }) as IFile[]
+                                          }
                                           isMultiple={false}
                                           className="border-zinc-300 w-full"
                                           setUploadedFiles={(files) => {
