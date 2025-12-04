@@ -56,6 +56,7 @@ import {
 import { format } from "date-fns";
 import { notify } from "@/lib/toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Icons } from "@/components/shared/icons";
 
 const stageLabels: Record<TrackingStage, string> = {
   PENDING: "Pending",
@@ -93,8 +94,9 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
   setOpen,
 }) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [addTracking] = useAddTrackingUpdateMutation();
-  const [updateTracking] = useUpdateTrackingMutation();
+  const [addTracking, { isLoading }] = useAddTrackingUpdateMutation();
+  const [updateTracking, { isLoading: isLoadingUpdate }] =
+    useUpdateTrackingMutation();
   const { data } = useGetTrackingUpdatesQuery(
     {
       orderId: order?.id,
@@ -219,8 +221,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
     });
   }, [order]);
 
-  console.log(form.formState.errors);
-
   useEffect(() => {
     if (form.watch("useDefault")) {
       const title = Object.entries(orderStatusTitle).find(([k]) => {
@@ -255,20 +255,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
                           <div className="flex flex-col space-y-1">
                             <FormControl>
                               <Input
-                                // items={[
-                                //   OrderStatus.PENDING_TRANSIT,
-                                //   OrderStatus.IN_TRANSIT,
-                                //   OrderStatus.IN_NIGERIA,
-                                //   OrderStatus.OUT_FOR_DELIVERY,
-                                //   OrderStatus.PROCESSING,
-                                //   OrderStatus.DELIVERED,
-                                //   OrderStatus.CANCELLED,
-                                // ].map((o) => {
-                                //   return {
-                                //     label: orderStatusTitle[o] ?? "",
-                                //     value: o,
-                                //   };
-                                // })}
                                 {...field}
                                 placeholder="e.g., Package Out for Delivery"
                                 error={!!form.formState.errors.title}
@@ -288,20 +274,6 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
                           <div className="flex flex-col space-y-1">
                             <FormControl>
                               <Textarea
-                                // items={[
-                                //   OrderStatus.PENDING_TRANSIT,
-                                //   OrderStatus.IN_TRANSIT,
-                                //   OrderStatus.IN_NIGERIA,
-                                //   OrderStatus.OUT_FOR_DELIVERY,
-                                //   OrderStatus.PROCESSING,
-                                //   OrderStatus.DELIVERED,
-                                //   OrderStatus.CANCELLED,
-                                // ].map((o) => {
-                                //   return {
-                                //     label: shipmentStatusDesc[o] ?? "",
-                                //     value: o,
-                                //   };
-                                // })}
                                 {...field}
                                 placeholder="e.g., Detailed description of step"
                                 error={!!form.formState.errors.description}
@@ -496,10 +468,15 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
                       )}
                       <Button
                         type="button"
+                        disabled={isLoading || isLoadingUpdate}
                         onClick={form.handleSubmit(onSubmit)}
                         className="flex-1 px-4 py-2 rounded-lg h-11 shadow-none"
                       >
-                        <Plus className="w-4 h-4" />
+                        {isLoading || isLoadingUpdate ? (
+                          <Icons.spinner className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4" />
+                        )}
                         {editingIndex !== null ? "Update" : "Add"} Tracking
                       </Button>
                     </div>
