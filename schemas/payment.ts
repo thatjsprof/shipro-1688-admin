@@ -6,6 +6,7 @@ export const paymentInputSchema = z
     amount: z.string().min(1, "Amount is required"),
     status: z.union([z.nativeEnum(PaymentStatus), z.literal("")]),
     description: z.string().min(1, "Description is required"),
+    redirectLink: z.string().min(1, "Link is required"),
     code: z.union([z.nativeEnum(PaymentCodes), z.literal("")]),
     sendEmail: z.boolean().optional(),
   })

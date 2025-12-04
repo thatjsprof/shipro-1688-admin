@@ -59,7 +59,6 @@ export function AddressCard({ address }: { address: IAddress }) {
         {postalCode && <p className="font-medium">Postal Code: {postalCode}</p>}
         <p className="font-medium">Phone: {phoneNumber}</p>
       </div>
-
       {isDefault && (
         <span className="mt-3 inline-block rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
           Default Address

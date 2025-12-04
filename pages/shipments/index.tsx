@@ -141,15 +141,18 @@ const Shipments = () => {
               const hasPendingPayments =
                 shipment.type === OrderType.SHIPMENT &&
                 totalPendingPayments.length > 0;
-              const shippingFee = totalPendingPayments
-                .filter((p) => p.code === PaymentCodes.SHIPPING_FEE)
-                .reduce((acc, cur) => {
-                  return (acc += +cur.amount);
-                }, 0);
               const statusInfo = orderStatusInfo[shipment.status];
               const IconComponent = LucideIcons[
                 statusInfo?.icon as LucideIconName
               ] as LucideIcons.LucideIcon;
+            const totalShippingPayments = [
+              ...shipment.payments.filter(
+                (p) => p.code === PaymentCodes.SHIPPING_FEE
+              ),
+            ];
+            const shippingFee = totalShippingPayments.reduce((acc, cur) => {
+              return (acc += +cur.amount - cur.providerFees);
+            }, 0);
 
               return (
                 <Card

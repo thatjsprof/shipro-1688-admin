@@ -72,6 +72,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       description: "",
       code: "",
       sendEmail: false,
+      redirectLink: "",
     },
   });
 
@@ -91,6 +92,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
             module: PaymentModules.ORDER,
             status: values.status as PaymentStatus,
             code: values.code as PaymentCodes,
+            redirectLink: values.redirectLink,
           },
         }).unwrap();
       } else {
@@ -101,6 +103,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           status: values.status as PaymentStatus,
           orderId: order?.id,
           code: values.code as PaymentCodes,
+          redirectLink: values.redirectLink,
         }).unwrap();
       }
 
@@ -111,6 +114,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           description: "",
           code: "",
           sendEmail: false,
+          redirectLink: "",
         });
         setPayment(undefined);
         notify(response.message, "success");
@@ -130,6 +134,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       status: payment.status as PaymentStatus,
       code: (payment.code as PaymentCodes) || "",
       sendEmail: false,
+      redirectLink: "",
     });
   }, [payment]);
 
@@ -152,15 +157,22 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                             <InputDropdown
                               items={[
                                 {
-                                  label: "Shipping Fee",
-                                  value: "Shipping Fee",
+                                  label: `Shipping Fee for order ${order?.orderNumber}`,
+                                  value: `Shipping Fee for order ${order?.orderNumber}`,
                                 },
                               ]}
                               type="textarea"
                               placeholder="Description"
                               {...field}
+                              onChange={(v) => {
+                                form.setValue(
+                                  "description",
+                                  v.value.toString()
+                                );
+                              }}
+                              initialValue={form.watch("description")}
                               error={!!form.formState.errors.description}
-                              className="p-4 px-4 text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
+                              className="text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
                             />
                           </FormControl>
                         </div>
@@ -250,6 +262,51 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                             </SelectContent>
                           </Select>
                         </FormControl>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="redirectLink"
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Redirect Link</FormLabel>
+                      <div className="flex flex-col space-y-1">
+                        <div className="flex items-center gap-3">
+                          <FormControl>
+                            <InputDropdown
+                              items={[
+                                {
+                                  label: "Warehouse",
+                                  value: `${process.env.CLIENT_URL}/orders?tab=warehouse`,
+                                },
+                                {
+                                  label: "Orders",
+                                  value: `${process.env.CLIENT_URL}/orders?tab=placed`,
+                                },
+                                {
+                                  label: "Shipments",
+                                  value: `${process.env.CLIENT_URL}/orders?tab=shipments`,
+                                },
+                              ]}
+                              type="input"
+                              placeholder="Redirect Link"
+                              {...field}
+                              onChange={(v) => {
+                                form.setValue(
+                                  "redirectLink",
+                                  v.value.toString()
+                                );
+                              }}
+                              initialValue={form.watch("redirectLink")}
+                              error={!!form.formState.errors.redirectLink}
+                            />
+                          </FormControl>
+                        </div>
                         <FormMessage />
                       </div>
                     </FormItem>
@@ -352,38 +409,43 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           {payments.length > 0 && (
             <div className="mt-6">
               <p className="mb-4 font-semibold">List of Payments</p>
-              {payments.map((p) => {
-                return (
-                  <div key={p.id} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-[.92rem]">{p.description}</p>
-                      <p className="text-[.92rem]">{formatNum(p.amount)}</p>
-                      <div className="mt-2 flex-nowrap">
-                        <PaymentStatusPill status={p.status} />
+              <div className="flex flex-col gap-4">
+                {payments.map((p) => {
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex-1">
+                        <p className="text-[.92rem]">{p.description}</p>
+                        <p className="text-[.92rem]">{formatNum(p.amount)}</p>
+                        <div className="mt-2 flex-nowrap">
+                          <PaymentStatusPill status={p.status} />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="shadow-none"
+                          onClick={() => {
+                            setPayment(p);
+                          }}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="shadow-none"
+                          type="button"
+                        >
+                          <Trash className="size-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2 items-center">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="shadow-none"
-                        onClick={() => {
-                          setPayment(p);
-                        }}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="shadow-none"
-                        type="button"
-                      >
-                        <Trash className="size-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </form>

@@ -12,7 +12,7 @@ const baseUrl = "/admin/payment";
 export const paymentApi = createApi({
   reducerPath: "rtk:payment",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetPayments"],
+  tagTypes: ["GetPayments", "GetOrders"],
   endpoints: (builder) => {
     return {
       getPayments: builder.query<
@@ -44,6 +44,7 @@ export const paymentApi = createApi({
           status: PaymentStatus;
           description: string;
           code: PaymentCodes;
+          redirectLink: string;
         }>
       >({
         query: (data) => {
@@ -53,7 +54,7 @@ export const paymentApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetPayments"],
+        invalidatesTags: ["GetPayments", "GetOrders"],
       }),
       updatePayment: builder.mutation<
         ApiResponse<IPayment>,
@@ -65,6 +66,7 @@ export const paymentApi = createApi({
             status: PaymentStatus;
             description: string;
             code: PaymentCodes;
+            redirectLink: string;
           };
         }>
       >({
@@ -75,7 +77,7 @@ export const paymentApi = createApi({
             body: data.data,
           };
         },
-        invalidatesTags: ["GetPayments"],
+        invalidatesTags: ["GetPayments", "GetOrders"],
       }),
     };
   },
