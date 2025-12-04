@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import InputDropdown from "@/components/ui/input-dropdown";
 import {
   Select,
   SelectValue,
@@ -148,12 +149,18 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                       <div className="flex flex-col space-y-1">
                         <div className="flex items-center gap-3">
                           <FormControl>
-                            <Textarea
+                            <InputDropdown
+                              items={[
+                                {
+                                  label: "Shipping Fee",
+                                  value: "Shipping Fee",
+                                },
+                              ]}
+                              type="textarea"
                               placeholder="Description"
-                              rows={3}
                               {...field}
                               error={!!form.formState.errors.description}
-                              className="p-4 px-4 text-sm placeholder:text-sm !bg-transparent shadow-none"
+                              className="p-4 px-4 text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
                             />
                           </FormControl>
                         </div>

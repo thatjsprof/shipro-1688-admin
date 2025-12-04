@@ -34,6 +34,33 @@ export const paymentStatus: Record<PaymentStatus, string> = {
   [PaymentStatus.FAILED]: "Failed",
 };
 
+export const orderStatusTitle: Partial<Record<OrderStatus, string>> = {
+  [OrderStatus.DRAFT]: "Draft",
+  [OrderStatus.PLACED]: "Placed",
+  [OrderStatus.SOURCING]: "Sourcing",
+  [OrderStatus.PURCHASED]: "Purchased",
+  [OrderStatus.PENDING_TRANSIT_TO_WAREHOUSE]: "Warehouse Inbound Pending",
+  [OrderStatus.IN_TRANSIT_TO_WAREHOUSE]: "Warehouse Inbound",
+  [OrderStatus.AT_WAREHOUSE]: "In Warehouse",
+  [OrderStatus.PENDING_TRANSIT]: "Pending Transit",
+  [OrderStatus.IN_TRANSIT]: "In Transit",
+  [OrderStatus.IN_NIGERIA]: "In Nigeria",
+  [OrderStatus.OUT_FOR_DELIVERY]: "Out For Delivery",
+  [OrderStatus.PROCESSING]: "Processing",
+  [OrderStatus.SHIPPED]: "Shipped",
+  [OrderStatus.DELIVERED]: "Delivered",
+  [OrderStatus.CANCELLED]: "Cancelled",
+};
+export const shipmentStatusDesc: Partial<Record<OrderStatus, string>> = {
+  [OrderStatus.PENDING_TRANSIT]: "Your order is pending transit to Nigeria",
+  [OrderStatus.IN_TRANSIT]: "Your order is in transit to Nigeria",
+  [OrderStatus.IN_NIGERIA]: "Your order is in Nigeria",
+  [OrderStatus.OUT_FOR_DELIVERY]: "Your order is out for delivery",
+  [OrderStatus.PROCESSING]: "Your order is being processed",
+  [OrderStatus.DELIVERED]: "Your order have been delivered",
+  [OrderStatus.CANCELLED]: "Your order has been Cancelled",
+};
+
 export const orderStatusInfo: Partial<
   Record<
     OrderStatus,
@@ -98,6 +125,18 @@ export const orderStatusInfo: Partial<
     bgColor: "#06B6D4",
     color: "#fff",
     text: "Shipped",
+  },
+  [OrderStatus.PENDING_TRANSIT_TO_WAREHOUSE]: {
+    icon: "Truck",
+    bgColor: "#06B6D4",
+    color: "#fff",
+    text: "Pending Transit to Warehouse",
+  },
+  [OrderStatus.PURCHASED]: {
+    icon: "Truck",
+    bgColor: "#06B6D4",
+    color: "#fff",
+    text: "Purchased",
   },
   [OrderStatus.AT_WAREHOUSE]: {
     icon: "Truck",

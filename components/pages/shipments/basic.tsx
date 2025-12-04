@@ -91,6 +91,8 @@ const Basic = ({ order, setOpen }: IBasic) => {
     });
   }, [order]);
 
+  console.log(Object.entries(OrderStatus));
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>

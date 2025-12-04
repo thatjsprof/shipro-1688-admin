@@ -6,7 +6,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IOrder, OrderStatus, OrderType } from "@/interfaces/order.interface";
+import {
+  IOrder,
+  OrderStatus,
+  OrderType,
+  TrackingStage,
+} from "@/interfaces/order.interface";
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
@@ -32,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { Search, X } from "lucide-react";
 import debounce from "lodash.debounce";
 import UpdateDialog from "@/components/pages/shipments/update";
+import OrderTrackingDialog from "@/components/pages/shipments/tracking";
 type LucideIconName = keyof typeof LucideIcons;
 
 const Shipments = () => {
@@ -40,6 +46,7 @@ const Shipments = () => {
   const { search } = router.query;
   const [page, setPage] = useState<number>(1);
   const [open, setOpen] = useState<boolean>(false);
+  const [openTracking, setOpenTracking] = useState<boolean>(false);
   //   const [openPayment, setOpenPayment] = useState(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
@@ -75,6 +82,8 @@ const Shipments = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  console.log(order);
 
   return (
     <div className="max-w-4xl mt-7">
@@ -233,54 +242,18 @@ const Shipments = () => {
                           </Dialog>
                         </div>
                       )} */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="shadow-none h-11"
-                              // onClick={() => setSelectedShipmentForTracking(shipment)}
-                            >
-                              <LucideIcons.Eye className="w-4 h-4" />
-                              Track
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <ScrollArea className="max-h-[90vh]">
-                              <DialogHeader>
-                                <DialogTitle>Shipment Progress</DialogTitle>
-                              </DialogHeader>
-                              <div>
-                                <div className="mt-5 flex flex-col gap-4">
-                                  {/* {shipment.trackingUpdates.map(
-                                  ({
-                                    title,
-                                    description,
-                                    createdAt,
-                                    stage,
-                                    id,
-                                  }) => {
-                                    return (
-                                      <div key={id} className="flex gap-3">
-                                        {statusIcons[stage]}
-                                        <div className="flex flex-col gap-1">
-                                          <p className="font-medium">{title}</p>
-                                          <p className="text-sm text-wrap">
-                                            {description}
-                                          </p>
-                                          <p className="text-sm text-gray-600">
-                                            {format(createdAt, "yyyy-MM-dd")}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                )} */}
-                                </div>
-                              </div>
-                            </ScrollArea>
-                          </DialogContent>
-                        </Dialog>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shadow-none h-11"
+                          onClick={() => {
+                            setOrder(shipment);
+                            setOpenTracking(true);
+                          }}
+                        >
+                          <LucideIcons.Eye className="w-4 h-4" />
+                          Track
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -459,6 +432,11 @@ const Shipments = () => {
           />
         </div>
         <UpdateDialog open={open} setOpen={setOpen} order={order} />
+        <OrderTrackingDialog
+          order={order!}
+          open={openTracking}
+          setOpen={setOpenTracking}
+        />
       </div>
     </div>
   );

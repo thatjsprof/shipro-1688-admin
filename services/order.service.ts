@@ -3,8 +3,10 @@ import { baseQueryWithReauth } from "@/lib/rtk";
 import {
   IOrder,
   IOrderItem,
+  IOrderTracking,
   OrderEmails,
   OrderStatus,
+  TrackingStage,
 } from "@/interfaces/order.interface";
 
 const baseUrl = "/admin/order";
@@ -12,7 +14,7 @@ const baseUrl = "/admin/order";
 export const orderApi = createApi({
   reducerPath: "rtk:order",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetOrderItems", "GetOrder", "GetOrders"],
+  tagTypes: ["GetOrderItems", "GetOrder", "GetOrders", "GetOrdersTracking"],
   endpoints: (builder) => {
     return {
       getOrderItems: builder.query<
@@ -53,6 +55,24 @@ export const orderApi = createApi({
         },
         providesTags: ["GetOrders"],
       }),
+      getTrackingUpdates: builder.query<
+        ApiResponse<PaginatedResult<IOrderTracking[]>>,
+        {
+          limit?: number;
+          page?: number;
+          noLimit?: boolean;
+          orderId: string;
+        }
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/tracking/all`,
+            method: "POST",
+            body,
+          };
+        },
+        providesTags: ["GetOrdersTracking"],
+      }),
       updateItems: builder.mutation<
         ApiResponse<IOrderItem[]>,
         Partial<{
@@ -80,6 +100,51 @@ export const orderApi = createApi({
           };
         },
         invalidatesTags: ["GetOrderItems"],
+      }),
+      addTrackingUpdate: builder.mutation<
+        ApiResponse<IOrderTracking[]>,
+        Partial<{
+          orderId: string;
+          status?: OrderStatus;
+          title: string;
+          description: string;
+          stage: TrackingStage;
+          updateOrder?: boolean;
+          sendEmail?: boolean;
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/tracking`,
+            method: "POST",
+            body: data,
+          };
+        },
+        invalidatesTags: ["GetOrdersTracking"],
+      }),
+      updateTracking: builder.mutation<
+        ApiResponse<IOrderTracking[]>,
+        Partial<{
+          id: string;
+          data: {
+            orderId: string;
+            status?: OrderStatus;
+            title?: string;
+            description?: string;
+            stage: TrackingStage;
+            updateOrder?: boolean;
+            sendEmail?: boolean;
+          };
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/tracking/${data.id}`,
+            method: "PATCH",
+            body: data.data,
+          };
+        },
+        invalidatesTags: ["GetOrdersTracking"],
       }),
       updateOrder: builder.mutation<
         ApiResponse<IOrder[]>,
@@ -130,4 +195,7 @@ export const {
   useSendEmailsMutation,
   useUpdateOrderMutation,
   useGetOrdersQuery,
+  useUpdateTrackingMutation,
+  useAddTrackingUpdateMutation,
+  useGetTrackingUpdatesQuery,
 } = orderApi;

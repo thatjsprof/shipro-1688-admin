@@ -500,8 +500,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                         Email Statuses
                       </p>
                       <div className="flex flex-col gap-2">
-                        {Object.entries(orders[0].emailsSent).map(
-                          ([key, value]) => {
+                        {Object.entries(orders[0].emailsSent)
+                          .filter(([v]) => !["WAREHOUSE_ARRIVAL"].includes(v))
+                          .map(([key, value]) => {
                             return (
                               <div key={key} className="text-[.8rem]">
                                 <span className="font-semibold">
@@ -516,8 +517,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                 ))}
                               </div>
                             );
-                          }
-                        )}
+                          })}
                       </div>
                     </div>
                   )}
