@@ -2,8 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
 import {
-  PaymentFormData,
-  PaymentFormInput,
+  PaymentAltFormData,
+  PaymentAltFormInput,
   paymentInputSchema,
 } from "@/schemas/payment";
 import {
@@ -40,7 +40,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: PaymentFormData) => void;
+  onSubmit: (data: PaymentAltFormData) => void;
   isLoading?: boolean;
 }
 
@@ -50,7 +50,7 @@ export const PaymentDialog = ({
   onSubmit,
   isLoading = false,
 }: PaymentDialogProps) => {
-  const form = useForm<PaymentFormInput, any, PaymentFormData>({
+  const form = useForm<PaymentAltFormInput, any, PaymentAltFormData>({
     resolver: zodResolver(paymentInputSchema) as any,
     mode: "onTouched",
     defaultValues: {
@@ -61,7 +61,7 @@ export const PaymentDialog = ({
     },
   });
 
-  const handleSubmit = async (data: PaymentFormInput) => {};
+  const handleSubmit = async (data: PaymentAltFormInput) => {};
 
   useEffect(() => {
     if (!open) {
