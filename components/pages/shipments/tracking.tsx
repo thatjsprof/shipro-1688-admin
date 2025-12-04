@@ -71,7 +71,7 @@ const trackingUpdateSchema = z.object({
   updateOrder: z.boolean().optional(),
   useDefault: z.boolean().optional(),
   sendEmail: z.boolean().optional(),
-  createdAt: z.date(),
+  createdAt: z.date().optional(),
 });
 
 const trackingFormSchema = z.object({
@@ -219,7 +219,7 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
     });
   }, [order]);
 
-  console.log(mainForm.watch());
+  console.log(form.formState.errors);
 
   useEffect(() => {
     if (form.watch("useDefault")) {
@@ -542,10 +542,12 @@ const OrderTrackingDialog: React.FC<OrderTrackingDialogProps> = ({
                                 )}
                                 <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
                                   <Clock className="w-3 h-3" />
-                                  {format(
-                                    tracking.createdAt,
-                                    "dd/MM/yyy h:mm a"
-                                  )}
+                                  {tracking.createdAt
+                                    ? format(
+                                        tracking.createdAt,
+                                        "dd/MM/yyy h:mm a"
+                                      )
+                                    : "---"}
                                 </div>
                               </div>
                               <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100">
