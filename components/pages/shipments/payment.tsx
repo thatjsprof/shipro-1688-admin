@@ -78,7 +78,6 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
 
   const { watch } = form;
   const { errors } = form.formState;
-  console.log(errors);
 
   const handleSubmit = async (values: z.infer<typeof paymentInputSchema>) => {
     try {
@@ -89,21 +88,25 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           data: {
             description: values.description,
             amount: +values.amount,
+            baseAmount: +values.amount,
             module: PaymentModules.ORDER,
             status: values.status as PaymentStatus,
             code: values.code as PaymentCodes,
             redirectLink: values.redirectLink,
+            sendEmail: values.sendEmail || false,
           },
         }).unwrap();
       } else {
         response = await createPayment({
           description: values.description,
           amount: +values.amount,
+          baseAmount: +values.amount,
           module: PaymentModules.ORDER,
           status: values.status as PaymentStatus,
           orderId: order?.id,
           code: values.code as PaymentCodes,
           redirectLink: values.redirectLink,
+          sendEmail: values.sendEmail || false,
         }).unwrap();
       }
 

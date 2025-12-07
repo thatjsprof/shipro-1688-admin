@@ -5,6 +5,7 @@ export interface IPayment {
   orderId: string;
   reference: string;
   amount: number;
+  baseAmount: number;
   code: PaymentCodes;
   currency: string;
   status: PaymentStatus;

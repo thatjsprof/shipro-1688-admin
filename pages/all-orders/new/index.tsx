@@ -231,8 +231,6 @@ const NewOrder = () => {
   const tabHasErrors = (tab: ITabs) =>
     TAB_FIELD_MAP[tab].some((fieldPath) => !!getErrorByPath(fieldPath));
 
-  console.log(form.formState.errors);
-
   useEffect(() => {
     document.title = `Orders | Shipro Africa`;
   }, []);

@@ -39,12 +39,14 @@ export const paymentApi = createApi({
         Partial<{
           userId: string;
           orderId: string;
+          baseAmount: number;
           amount: number;
           module: PaymentModules;
           status: PaymentStatus;
           description: string;
           code: PaymentCodes;
           redirectLink: string;
+          sendEmail: boolean;
         }>
       >({
         query: (data) => {
@@ -62,11 +64,13 @@ export const paymentApi = createApi({
           id: string;
           data: {
             amount: number;
+            baseAmount: number;
             module: PaymentModules;
             status: PaymentStatus;
             description: string;
             code: PaymentCodes;
             redirectLink: string;
+            sendEmail: boolean;
           };
         }>
       >({

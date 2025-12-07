@@ -10,7 +10,6 @@ import {
   ShippingType,
   TrackingStage,
 } from "@/interfaces/order.interface";
-import { IAddress } from "@/interfaces/address.interface";
 
 const baseUrl = "/admin/order";
 
@@ -194,6 +193,7 @@ export const orderApi = createApi({
             trackingNumber?: string;
             packageWeight?: number;
             sendEmail?: boolean;
+            addTracking?: boolean;
           };
         }>
       >({
@@ -204,7 +204,7 @@ export const orderApi = createApi({
             body: data.data,
           };
         },
-        invalidatesTags: ["GetOrders"],
+        invalidatesTags: ["GetOrders", "GetOrdersTracking"],
       }),
       sendEmails: builder.mutation<
         ApiResponse<IOrderItem[]>,

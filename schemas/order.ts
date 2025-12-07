@@ -30,6 +30,7 @@ export const shipmentSchema = z.object({
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
   sendEmail: z.boolean().optional(),
+  addTracking: z.boolean().optional(),
   status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
 });
 

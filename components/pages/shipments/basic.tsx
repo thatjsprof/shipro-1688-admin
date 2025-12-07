@@ -46,6 +46,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       packageWeight: "",
       trackingNumber: "",
       sendEmail: false,
+      addTracking: false,
       status: "",
     },
   });
@@ -64,6 +65,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
             ? +values.packageWeight
             : undefined,
           sendEmail: values.sendEmail,
+          addTracking: values.addTracking,
         },
       }).unwrap();
       if (response.status === 200) {
@@ -90,8 +92,6 @@ const Basic = ({ order, setOpen }: IBasic) => {
       sendEmail,
     });
   }, [order]);
-
-  console.log(Object.entries(OrderStatus));
 
   return (
     <Form {...form}>
@@ -212,10 +212,32 @@ const Basic = ({ order, setOpen }: IBasic) => {
           </div>
           <FormField
             control={form.control}
-            name="sendEmail"
+            name="addTracking"
             render={({ field }) => {
               return (
                 <FormItem className="flex items-center mt-2">
+                  <FormControl>
+                    <Checkbox
+                      id="addTracking"
+                      checked={form.watch("addTracking")}
+                      onCheckedChange={field.onChange}
+                      className="shadow-none"
+                      disabled={!watch("status")}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-nowrap" htmlFor="addTracking">
+                    Add Tracking
+                  </FormLabel>
+                </FormItem>
+              );
+            }}
+          />
+          <FormField
+            control={form.control}
+            name="sendEmail"
+            render={({ field }) => {
+              return (
+                <FormItem className="flex items-center mt-3">
                   <FormControl>
                     <Checkbox
                       id="sendEmail"

@@ -135,8 +135,9 @@ const Shipments = () => {
                   (p) => p.code === PaymentCodes.SHIPPING_FEE
                 ),
               ];
+              console.log(totalShippingPayments);
               const shippingFee = totalShippingPayments.reduce((acc, cur) => {
-                return (acc += +cur.amount - cur.providerFees);
+                return (acc += +cur.amount);
               }, 0);
 
               return (
@@ -236,11 +237,11 @@ const Shipments = () => {
                           className="shadow-none h-11"
                           onClick={() => {
                             setOrder(shipment);
-                            setOpenTracking(true);
+                            setOpen(true);
                           }}
                         >
-                          <LucideIcons.Eye className="w-4 h-4" />
-                          Track
+                          <LucideIcons.Pencil className="w-4 h-4" />
+                          Edit
                         </Button>
                         <Button
                           size="sm"
@@ -248,11 +249,11 @@ const Shipments = () => {
                           className="shadow-none h-11"
                           onClick={() => {
                             setOrder(shipment);
-                            setOpen(true);
+                            setOpenTracking(true);
                           }}
                         >
-                          <LucideIcons.Pencil className="w-4 h-4" />
-                          Edit
+                          <LucideIcons.Eye className="w-4 h-4" />
+                          Track
                         </Button>
                       </div>
                     </div>

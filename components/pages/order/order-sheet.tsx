@@ -101,8 +101,6 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
     }
   };
 
-  console.log(item.order);
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg max-h-[100vh] h-full w-full overflow-hidden">
