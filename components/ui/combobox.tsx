@@ -40,10 +40,12 @@ interface ICombobox {
   lowercaseVal?: boolean;
   filterFunction?: (value: string, search: string) => number;
   isModal?: boolean;
+  contentCls?: string;
 }
 
 export function Combobox({
   items,
+  contentCls,
   handleInputChange,
   searchPlaceholder,
   emptyPlaceholder,
@@ -112,7 +114,7 @@ export function Combobox({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="p-0 popover-content-width-full"
+          className={cn("p-0 popover-content-width-full", contentCls)}
           align="start"
         >
           <Command filter={filterFunction}>

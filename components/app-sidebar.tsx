@@ -3,6 +3,7 @@ import {
   CalendarArrowUp,
   ChevronRight,
   Home,
+  Package,
   PackageSearch,
   Settings,
   ShoppingBag,
@@ -64,8 +65,13 @@ const data: {
       items: [
         {
           title: "All Orders",
-          url: "/orders",
+          url: "/all-orders",
           Icon: <ShoppingBag className="!size-5" strokeWidth={2.5} />,
+        },
+        {
+          title: "Order Items",
+          url: "/orders",
+          Icon: <Package className="!size-5" strokeWidth={2.5} />,
         },
         {
           title: "Shipments",

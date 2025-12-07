@@ -22,7 +22,7 @@ import { useGetOrderItemsQuery } from "@/services/order.service";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { PaymentDialog } from "@/components/pages/order/payment-dialog";
-import { PaymentAltFormData, PaymentFormData } from "@/schemas/payment";
+import { PaymentAltFormData } from "@/schemas/payment";
 import { notify } from "@/lib/toast";
 import { format } from "date-fns";
 import {

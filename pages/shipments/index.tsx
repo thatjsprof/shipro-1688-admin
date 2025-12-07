@@ -6,12 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  IOrder,
-  OrderStatus,
-  OrderType,
-  TrackingStage,
-} from "@/interfaces/order.interface";
+import { IOrder, OrderType } from "@/interfaces/order.interface";
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
@@ -20,15 +15,7 @@ import { ChangeEvent, useCallback, useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { orderStatusInfo } from "@/lib/constants";
 import { format } from "date-fns";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
 import { formatNum } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -82,8 +69,6 @@ const Shipments = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
-
-  console.log(order);
 
   return (
     <div className="max-w-4xl mt-7">
@@ -145,14 +130,14 @@ const Shipments = () => {
               const IconComponent = LucideIcons[
                 statusInfo?.icon as LucideIconName
               ] as LucideIcons.LucideIcon;
-            const totalShippingPayments = [
-              ...shipment.payments.filter(
-                (p) => p.code === PaymentCodes.SHIPPING_FEE
-              ),
-            ];
-            const shippingFee = totalShippingPayments.reduce((acc, cur) => {
-              return (acc += +cur.amount - cur.providerFees);
-            }, 0);
+              const totalShippingPayments = [
+                ...shipment.payments.filter(
+                  (p) => p.code === PaymentCodes.SHIPPING_FEE
+                ),
+              ];
+              const shippingFee = totalShippingPayments.reduce((acc, cur) => {
+                return (acc += +cur.amount - cur.providerFees);
+              }, 0);
 
               return (
                 <Card

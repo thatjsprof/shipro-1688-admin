@@ -36,6 +36,7 @@ const APP_ROUTES = [
   "/products",
   "/users",
   "/payments",
+  "/all-orders",
   "/shipments",
 ];
 

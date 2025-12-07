@@ -17,13 +17,14 @@ export const userApi = createApi({
           limit?: number;
           page?: number;
           search?: string;
+          noLimit?: boolean;
         }
       >({
         query: ({ page, limit, search }) => {
           return {
-            url: `${baseUrlUser}/all?page=${page}&limit=${limit}${
-              search ? `&search=${search}` : ""
-            }`,
+            url: `${baseUrlUser}/all?page=${page}${
+              limit ? `&limit=${limit}` : ""
+            }${search ? `&search=${search}` : ""}`,
             method: "GET",
           };
         },
