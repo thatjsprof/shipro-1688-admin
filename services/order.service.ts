@@ -1,13 +1,16 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import {
+  AirLocation,
   IOrder,
   IOrderItem,
   IOrderTracking,
   OrderEmails,
   OrderStatus,
+  ShippingType,
   TrackingStage,
 } from "@/interfaces/order.interface";
+import { IAddress } from "@/interfaces/address.interface";
 
 const baseUrl = "/admin/order";
 
@@ -17,6 +20,23 @@ export const orderApi = createApi({
   tagTypes: ["GetOrderItems", "GetOrder", "GetOrders", "GetOrdersTracking"],
   endpoints: (builder) => {
     return {
+      createShipment: builder.mutation<
+        ApiResponse<IOrder>,
+        {
+          itemIds?: string[];
+          shippingType?: ShippingType;
+          airLocation?: AirLocation;
+        }
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/shipment`,
+            method: "POST",
+            body: data,
+          };
+        },
+        invalidatesTags: ["GetOrders", "GetOrderItems"],
+      }),
       getOrderItems: builder.query<
         ApiResponse<PaginatedResult<IOrderItem[]>>,
         {
@@ -211,6 +231,7 @@ export const {
   useSendEmailsMutation,
   useUpdateOrderMutation,
   useGetOrdersQuery,
+  useCreateShipmentMutation,
   useCreateOrderMutation,
   useUpdateTrackingMutation,
   useAddTrackingUpdateMutation,

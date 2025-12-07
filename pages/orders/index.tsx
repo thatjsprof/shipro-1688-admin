@@ -38,6 +38,7 @@ import MultiKeywordInput from "@/components/ui/multi-keyword";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import OrderEmailsDialog from "@/components/pages/order/order-emails";
+import ShipmentDialog from "@/components/pages/order/shipment-dialog";
 type LucideIconName = keyof typeof LucideIcons;
 
 const getColumns = (
@@ -371,9 +372,11 @@ const OrdersTable = ({
   const { copyToClipboard } = useCopy();
   const [order, setOrder] = useState<IOrderItem | null>(null);
   const [orderUpdate, setOrderUpdate] = useState<IOrderItem[]>([]);
+  const [orderShipment, setOrderShipment] = useState<IOrderItem[]>([]);
   const [orderEmails, setOrderEmails] = useState<IOrderItem[]>([]);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
   const [openUpdate, setOpenUpdate] = useState<boolean>(false);
+  const [openShipment, setOpenShipment] = useState<boolean>(false);
   const [openEmails, setOpenEmails] = useState<boolean>(false);
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
@@ -448,6 +451,9 @@ const OrdersTable = ({
   const orders = orderItems?.data.data ?? [];
   const totalPages = orderItems?.data.totalPages ?? 0;
   const hasSelected = rowSelection.length > 0;
+  const hasWarehouseItems = rowSelection.some(
+    (item) => item.status === OrderStatus.AT_WAREHOUSE
+  );
 
   const getRowId = useCallback((row: IOrderItem) => {
     return row.id.toString();
@@ -488,18 +494,27 @@ const OrdersTable = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 disabled={!hasSelected}
-                className="text-destructive"
-              >
-                Delete
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={!hasSelected}
                 onClick={() => {
                   setOpenEmails(true);
                   setOrderEmails(rowSelection);
                 }}
               >
                 Send Email
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!hasSelected || !hasWarehouseItems}
+                onClick={() => {
+                  setOpenShipment(true);
+                  setOrderShipment(rowSelection);
+                }}
+              >
+                Create Shipment
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!hasSelected}
+                className="text-destructive"
+              >
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -566,8 +581,8 @@ const OrdersTable = ({
       />
       <OrderEmailsDialog
         open={openEmails}
-        onOpenChange={setOpenEmails}
         orders={orderEmails!}
+        onOpenChange={setOpenEmails}
       />
       <OrderSheet open={openSheet} onOpenChange={setOpenSheet} item={order!} />
       <PaymentDialog
@@ -575,6 +590,12 @@ const OrdersTable = ({
         onOpenChange={setIsPaymentDialogOpen}
         onSubmit={handlePaymentSubmit}
         isLoading={isSubmittingPayment}
+      />
+      <ShipmentDialog
+        open={openShipment}
+        onOpenChange={setOpenShipment}
+        orders={orderShipment}
+        clearState={clearState}
       />
     </div>
   );
@@ -705,7 +726,14 @@ const Orders = () => {
             label: orderStatusInfo[status]?.text ?? "",
           }))}
           selected={statuses}
-          onChange={setStatuses}
+          onChange={(statuses) => {
+            clearState();
+            setPagination({
+              pageIndex: 1,
+              pageSize: 10,
+            });
+            setStatuses(statuses);
+          }}
           className="h-11 border-zinc-300"
           placeholder="Select order statuses"
         />
