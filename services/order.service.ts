@@ -146,6 +146,22 @@ export const orderApi = createApi({
         },
         invalidatesTags: ["GetOrdersTracking"],
       }),
+      createOrder: builder.mutation<
+        ApiResponse<IOrder[]>,
+        Partial<{
+          order: any;
+          payment: any;
+        }>
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}`,
+            method: "POST",
+            body: data,
+          };
+        },
+        invalidatesTags: ["GetOrders"],
+      }),
       updateOrder: builder.mutation<
         ApiResponse<IOrder[]>,
         Partial<{
@@ -195,6 +211,7 @@ export const {
   useSendEmailsMutation,
   useUpdateOrderMutation,
   useGetOrdersQuery,
+  useCreateOrderMutation,
   useUpdateTrackingMutation,
   useAddTrackingUpdateMutation,
   useGetTrackingUpdatesQuery,

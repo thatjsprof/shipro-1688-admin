@@ -40,9 +40,10 @@ const Items = ({ form }: ItemsProps) => {
     <div>
       {fields.map((_, idx) => {
         return (
-          <div className="my-4 border rounded-lg p-6 pt-5 relative">
+          <div className="my-4 border rounded-lg p-6 pt-5 relative" key={_.id}>
             <p className="mb-5 font-semibold">{_.name || `Item ${idx + 1}`}</p>
-            <div className="flex flex-col gap-4" key={_.id}>
+            <p className="font-semibold text-sm mt-3">Required Fields</p>
+            <div className="flex flex-col gap-4 py-4">
               <FormField
                 control={form.control}
                 name={`items.${idx}.name`}
@@ -138,6 +139,49 @@ const Items = ({ form }: ItemsProps) => {
                   );
                 }}
               />
+              <FormField
+                control={form.control}
+                name={`items.${idx}.quantity`}
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel htmlFor={`items.${idx}.quantity`}>
+                        Quantity
+                      </FormLabel>
+                      <div className="flex flex-col space-y-1">
+                        <FormControl>
+                          <NumericFormat
+                            type="text"
+                            {...field}
+                            name={`items.${idx}.quantity`}
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            placeholder="Quantity"
+                            displayType="input"
+                            decimalSeparator="."
+                            allowNegative={false}
+                            error={!!errors?.items?.[idx]?.quantity}
+                            thousandSeparator=","
+                            onValueChange={(values) => {
+                              if (!values.floatValue) return;
+                              form.setValue(
+                                `items.${idx}.quantity`,
+                                values.value
+                              );
+                            }}
+                            className="h-11 w-full"
+                            customInput={Input}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+            <p className="font-semibold text-sm mt-3">Optional Fields</p>
+            <div className="flex flex-col gap-4 py-4">
               <FormField
                 control={form.control}
                 name={`items.${idx}.orderAmount`}

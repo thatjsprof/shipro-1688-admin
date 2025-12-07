@@ -42,7 +42,6 @@ const Details = ({ form }: DetailsProps) => {
     { skip: !authenticated }
   );
   const users = data?.data.data || [];
-  console.log({ users });
 
   return (
     <div>
@@ -67,13 +66,11 @@ const Details = ({ form }: DetailsProps) => {
                           value,
                         };
                       })}
-                      contentCls="PopoverContent"
+                      popoverCls="PopoverContent"
                       externalValue={form.watch("order.userId")!}
                       handleReceiveValue={(val) => {
                         form.setValue("order.userId", val);
-                        form.setError("order.userId", {
-                          message: "",
-                        });
+                        form.clearErrors("order.userId");
                       }}
                       emptyPlaceholder="User not found"
                       className="z-[9999]"
@@ -278,7 +275,6 @@ const Details = ({ form }: DetailsProps) => {
                   <FormControl>
                     <NumericFormat
                       type="text"
-                      {...field}
                       name="order.subTotal"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -291,8 +287,14 @@ const Details = ({ form }: DetailsProps) => {
                       thousandSeparator=","
                       onValueChange={(values) => {
                         if (!values.floatValue) return;
-                        form.setValue("order.subTotal", values.value);
+                        form.setValue(
+                          "order.subTotal",
+                          values.floatValue.toString()
+                        );
                       }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
                       className="h-11 w-full"
                       customInput={Input}
                     />
@@ -314,7 +316,6 @@ const Details = ({ form }: DetailsProps) => {
                   <FormControl>
                     <NumericFormat
                       type="text"
-                      {...field}
                       name="order.orderAmount"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -327,8 +328,55 @@ const Details = ({ form }: DetailsProps) => {
                       thousandSeparator=","
                       onValueChange={(values) => {
                         if (!values.floatValue) return;
-                        form.setValue("order.orderAmount", values.value);
+                        form.setValue(
+                          "order.orderAmount",
+                          values.floatValue.toString()
+                        );
                       }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
+                      className="h-11 w-full"
+                      customInput={Input}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={form.control}
+          name="order.shippingFeeWithinChina"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormLabel htmlFor="name">Shipping Fee Within China</FormLabel>
+                <div className="flex flex-col space-y-1">
+                  <FormControl>
+                    <NumericFormat
+                      type="text"
+                      name="order.shippingFeeWithinChina"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      placeholder="Shipping Fee Within China"
+                      displayType="input"
+                      prefix="₦"
+                      decimalSeparator="."
+                      allowNegative={false}
+                      error={!!errors.order?.shippingFeeWithinChina?.message}
+                      thousandSeparator=","
+                      onValueChange={(values) => {
+                        if (!values.floatValue) return;
+                        form.setValue(
+                          "order.shippingFeeWithinChina",
+                          values.floatValue.toString()
+                        );
+                      }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
                       className="h-11 w-full"
                       customInput={Input}
                     />
@@ -350,7 +398,6 @@ const Details = ({ form }: DetailsProps) => {
                   <FormControl>
                     <NumericFormat
                       type="text"
-                      {...field}
                       name="order.serviceCharge"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -363,8 +410,14 @@ const Details = ({ form }: DetailsProps) => {
                       thousandSeparator=","
                       onValueChange={(values) => {
                         if (!values.floatValue) return;
-                        form.setValue("order.serviceCharge", values.value);
+                        form.setValue(
+                          "order.serviceCharge",
+                          values.floatValue.toString()
+                        );
                       }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
                       className="h-11 w-full"
                       customInput={Input}
                     />
@@ -386,7 +439,6 @@ const Details = ({ form }: DetailsProps) => {
                   <FormControl>
                     <NumericFormat
                       type="text"
-                      {...field}
                       name="order.totalWeight"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -399,8 +451,14 @@ const Details = ({ form }: DetailsProps) => {
                       thousandSeparator=","
                       onValueChange={(values) => {
                         if (!values.floatValue) return;
-                        form.setValue("order.totalWeight", values.value);
+                        form.setValue(
+                          "order.totalWeight",
+                          values.floatValue.toString()
+                        );
                       }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
                       className="h-11 w-full"
                       customInput={Input}
                     />
@@ -422,7 +480,6 @@ const Details = ({ form }: DetailsProps) => {
                   <FormControl>
                     <NumericFormat
                       type="text"
-                      {...field}
                       name="order.packageWeight"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -435,8 +492,14 @@ const Details = ({ form }: DetailsProps) => {
                       thousandSeparator=","
                       onValueChange={(values) => {
                         if (!values.floatValue) return;
-                        form.setValue("order.packageWeight", values.value);
+                        form.setValue(
+                          "order.packageWeight",
+                          values.floatValue.toString()
+                        );
                       }}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      disabled={field.disabled}
                       className="h-11 w-full"
                       customInput={Input}
                     />

@@ -21,7 +21,7 @@ export const orderSchema = z.object({
   shippingType: ShippingTypeEnum.optional(),
   airLocation: AirLocationEnum.optional(),
   orderNumber: z.string().optional(),
-  userId: z.string().optional(),
+  userId: z.string().min(1, { message: "User is required" }),
   trackingNumber: z.string().optional(),
   phoneNumber: z.string().optional(),
   subTotal: z.string().optional(),
@@ -39,7 +39,7 @@ export const orderSchema = z.object({
 
 export const orderItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  quantity: z.string().optional(),
+  quantity: z.string().min(1, "Quantity is required"),
   orderAmount: z.string().optional(),
   packageWeight: z.string().optional(),
   totalWeight: z.string().optional(),

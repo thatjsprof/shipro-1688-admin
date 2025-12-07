@@ -6,7 +6,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { OrderOrigin, OrderType } from "@/interfaces/order.interface";
+import {
+  OrderOrigin,
+  OrderStatus,
+  OrderType,
+} from "@/interfaces/order.interface";
 import { PaymentStatus } from "@/interfaces/payment.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import { useGetOrdersQuery } from "@/services/order.service";
@@ -29,9 +33,13 @@ import { Search, X } from "lucide-react";
 import { debounce } from "lodash";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { MultiSelect } from "@/components/ui/multi-select";
 type LucideIconName = keyof typeof LucideIcons;
 
 const AllOrders = () => {
+  const [statuses, setStatuses] = useState<
+    { value: OrderStatus; label: string }[]
+  >([{ value: OrderStatus.PLACED, label: "Draft" }]);
   const [searchValue, setSearchValue] = useState("");
   const [page, setPage] = useState<number>(1);
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -39,7 +47,7 @@ const AllOrders = () => {
   const { data, isLoading, isFetching } = useGetOrdersQuery(
     {
       search: debouncedValue as string,
-      statuses: [],
+      statuses: statuses.map((status) => status.value),
       page: page - 1,
       types: [OrderType.PURCHASE],
     },
@@ -71,6 +79,17 @@ const AllOrders = () => {
   return (
     <div className="max-w-4xl mt-7">
       <div className="flex items-center gap-3 justify-between mb-8">
+        <MultiSelect<OrderStatus>
+          options={Object.entries(OrderStatus).map(([_, value]) => ({
+            value: value,
+            label: orderStatusInfo[value]?.text ?? "",
+          }))}
+          selected={statuses}
+          onChange={(values) => setStatuses(values)}
+          placeholder="Select statuses"
+          className="h-11"
+          align="start"
+        />
         <Input
           value={searchValue}
           onChange={handleChange}
