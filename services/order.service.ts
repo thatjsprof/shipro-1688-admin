@@ -35,7 +35,10 @@ export const orderApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetOrders", "GetOrderItems"],
+        invalidatesTags: (r) => {
+          if (!r) return [];
+          return ["GetOrders", "GetOrderItems"];
+        },
       }),
       getOrderItems: builder.query<
         ApiResponse<PaginatedResult<IOrderItem[]>>,
