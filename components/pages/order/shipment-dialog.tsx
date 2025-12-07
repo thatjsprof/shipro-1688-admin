@@ -16,7 +16,7 @@ import {
   ShippingType,
 } from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
-import { cn } from "@/lib/utils";
+import { cn, formatNum } from "@/lib/utils";
 import { ShippingFormValues, shippingSchema } from "@/schemas/shipment";
 import { useCreateShipmentMutation } from "@/services/order.service";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -173,11 +173,13 @@ const ShipmentDialog = ({
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">Total Weight</p>
                   <div className="font-semibold">
-                    {Object.values(Array.from(ordersToUse)).reduce(
-                      (acc, cur) =>
-                        (acc += +(cur.packageWeight || cur.totalWeight)),
-                      0
-                    ) || 0}
+                    {formatNum(
+                      Object.values(Array.from(ordersToUse)).reduce(
+                        (acc, cur) =>
+                          (acc += +(cur.packageWeight || cur.totalWeight)),
+                        0
+                      ) || 0
+                    )}
                     kg
                   </div>
                 </div>
