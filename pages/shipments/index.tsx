@@ -156,6 +156,10 @@ const Shipments = () => {
                           Created on{" "}
                           {format(shipment.createdAt, "MM/dd/yyy h:mm a")}
                         </CardDescription>
+                        <p className="text-muted-foreground text-sm flex items-center gap-2 mt-1">
+                          <LucideIcons.User className="w-4 h-4" />
+                          Owned by {shipment.user?.name}
+                        </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {IconComponent && (
