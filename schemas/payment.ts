@@ -9,6 +9,16 @@ export const paymentInputSchema = z
     redirectLink: z.string().min(1, "Redirect Link is required"),
     code: z.union([z.nativeEnum(PaymentCodes), z.literal("")]),
     sendEmail: z.boolean().optional(),
+    paymentBreakdown: z
+      .array(
+        z.object({
+          value: z.string(),
+          calculatedValue: z.string(),
+          label: z.string(),
+          unit: z.string(),
+        })
+      )
+      .min(1, "Payment Breakdown"),
   })
   .refine((data) => data.status !== "", {
     message: "Status is required",

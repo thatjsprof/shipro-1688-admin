@@ -244,8 +244,6 @@ export const Basic = ({ form }: BasicProps) => {
             }}
           />
         </div>
-
-        {/* Total Sold Duration Field */}
         <div>
           <FormLabel>Total Sold Duration</FormLabel>
           <div className="space-y-3 mt-2">
@@ -312,7 +310,12 @@ export const Basic = ({ form }: BasicProps) => {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => append({ duration: "", amount: "" })}
+              onClick={() =>
+                append({
+                  duration: "",
+                  amount: "",
+                })
+              }
               className="w-full h-10 shadow-none"
             >
               <Plus className="h-4 w-4 mr-2" />

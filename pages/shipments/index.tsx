@@ -135,7 +135,6 @@ const Shipments = () => {
                   (p) => p.code === PaymentCodes.SHIPPING_FEE
                 ),
               ];
-              console.log(totalShippingPayments);
               const shippingFee = totalShippingPayments.reduce((acc, cur) => {
                 return (acc += +cur.amount);
               }, 0);

@@ -45,6 +45,8 @@ export interface IOrder {
   paidShippingFee: boolean;
   shippingFee: number;
   createdAt: Date;
+  shippingType: ShippingType;
+  airLocation: AirLocation;
   emailsSent: Record<string, string[]>;
   type: OrderType;
   deliveryAddress: IAddress;

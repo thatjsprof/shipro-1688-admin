@@ -18,6 +18,7 @@ interface InputDropdownProps {
   type?: "textarea" | "input";
   initialValue?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 const InputDropdown: React.FC<InputDropdownProps> = ({
@@ -28,6 +29,7 @@ const InputDropdown: React.FC<InputDropdownProps> = ({
   placeholder = "Type or select...",
   initialValue = "",
   className,
+  disabled,
 }) => {
   const [inputValue, setInputValue] = useState<string>(initialValue);
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -88,6 +90,7 @@ const InputDropdown: React.FC<InputDropdownProps> = ({
           <Input
             type="text"
             value={inputValue}
+            disabled={disabled}
             onChange={handleInputChange}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}
@@ -97,6 +100,7 @@ const InputDropdown: React.FC<InputDropdownProps> = ({
         ) : (
           <Textarea
             value={inputValue}
+            disabled={disabled}
             onChange={handleInputChange}
             onFocus={() => setIsOpen(true)}
             placeholder={placeholder}

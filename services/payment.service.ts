@@ -47,6 +47,7 @@ export const paymentApi = createApi({
           code: PaymentCodes;
           redirectLink: string;
           sendEmail: boolean;
+          paymentBreakdown: Record<string, string>[];
         }>
       >({
         query: (data) => {
@@ -71,6 +72,7 @@ export const paymentApi = createApi({
             code: PaymentCodes;
             redirectLink: string;
             sendEmail: boolean;
+            paymentBreakdown: Record<string, string>[];
           };
         }>
       >({

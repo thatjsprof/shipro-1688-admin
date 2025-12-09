@@ -13,6 +13,7 @@ export interface IPayment {
   link: string;
   providerFees: number;
   description: string;
+  paymentBreakdown: Record<string, string>[];
 }
 
 export enum PaymentModules {
