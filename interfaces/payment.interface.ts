@@ -1,4 +1,5 @@
 import { IOrder } from "./order.interface";
+import { IUser } from "./user.interface";
 
 export interface IPayment {
   id: string;
@@ -13,6 +14,7 @@ export interface IPayment {
   link: string;
   providerFees: number;
   description: string;
+  user: IUser;
   paymentBreakdown: Record<string, string>[];
 }
 

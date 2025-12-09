@@ -142,6 +142,26 @@ const columns = (
     enableHiding: false,
   },
   {
+    accessorKey: "user",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Owner"
+        className="-mb-[1.8px] px-2"
+      />
+    ),
+    cell: ({ row }) => {
+      const user = row.original.user;
+      return (
+        <div className="flex items-center gap-[0.6rem] text-nowrap">
+          {user?.name}
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: "datePaid",
     header: ({ column }) => {
       return (
