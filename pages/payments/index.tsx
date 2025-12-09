@@ -228,7 +228,7 @@ const Payments = () => {
     }),
     [pageIndex, pageSize]
   );
-  const { data, isLoading } = useGetAllPaymentsQuery({
+  const { data, isLoading, isFetching } = useGetAllPaymentsQuery({
     search: debouncedValue,
     statuses: statuses.map((status) => status.value),
     page: pagination.pageIndex - 1,
@@ -305,7 +305,7 @@ const Payments = () => {
           pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}
-          loading={isLoading}
+          loading={isLoading || isFetching}
           pagination={pagination}
           showSelected={false}
           setPagination={setPagination}
