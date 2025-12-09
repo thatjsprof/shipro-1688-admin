@@ -112,6 +112,7 @@ const InputDropdown: React.FC<InputDropdownProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
+          disabled={disabled}
           className="absolute right-0 top-0 h-full px-3 flex items-center text-gray-500 hover:text-gray-700"
         >
           <ChevronDown

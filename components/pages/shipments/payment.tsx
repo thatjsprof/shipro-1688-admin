@@ -137,6 +137,25 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     });
   }, [price, packageWeight]);
 
+  const recalculateWithCurrentSettings = useCallback(() => {
+    const calculated = calculateBreakdownValues();
+
+    calculated.forEach((item, idx) => {
+      setValue(`paymentBreakdown.${idx}.unit`, item.unit, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue(
+        `paymentBreakdown.${idx}.calculatedValue`,
+        item.calculatedValue,
+        {
+          shouldValidate: true,
+          shouldDirty: true,
+        }
+      );
+    });
+  }, [calculateBreakdownValues, setValue]);
+
   useEffect(() => {
     if (!order?.id || payment) return;
 
@@ -272,26 +291,28 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <InputDropdown
-                      items={[
-                        {
-                          label: `Shipping Fee for order ${order?.orderNumber}`,
-                          value: `Shipping Fee for order ${order?.orderNumber}`,
-                        },
-                      ]}
-                      type="textarea"
-                      placeholder="Description"
-                      {...field}
-                      onChange={(v) =>
-                        form.setValue("description", v.value.toString())
-                      }
-                      initialValue={watch("description")}
-                      error={!!form.formState.errors.description}
-                      className="text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <InputDropdown
+                        items={[
+                          {
+                            label: `Shipping Fee for order ${order?.orderNumber}`,
+                            value: `Shipping Fee for order ${order?.orderNumber}`,
+                          },
+                        ]}
+                        type="textarea"
+                        placeholder="Description"
+                        {...field}
+                        onChange={(v) =>
+                          form.setValue("description", v.value.toString())
+                        }
+                        initialValue={watch("description")}
+                        error={!!form.formState.errors.description}
+                        className="text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -301,21 +322,23 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <NumericFormat
-                      prefix="₦"
-                      thousandSeparator=","
-                      decimalSeparator="."
-                      allowNegative={false}
-                      value={field.value ?? ""}
-                      onValueChange={(v) => field.onChange(v.value ?? "")}
-                      onBlur={field.onBlur}
-                      customInput={Input}
-                      className="h-10"
-                      placeholder="Amount"
-                    />
-                  </FormControl>
-                  <FormMessage />
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <NumericFormat
+                        prefix="₦"
+                        thousandSeparator=","
+                        decimalSeparator="."
+                        allowNegative={false}
+                        value={field.value ?? ""}
+                        onValueChange={(v) => field.onChange(v.value ?? "")}
+                        onBlur={field.onBlur}
+                        customInput={Input}
+                        className="h-10"
+                        placeholder="Amount"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -325,25 +348,30 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue
-                          placeholder={
-                            <span className="text-gray-400">Select Code</span>
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(PaymentCodes).map(([key, value]) => (
-                          <SelectItem key={key} value={value}>
-                            {statusTags[value]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue
+                            placeholder={
+                              <span className="text-gray-400">Select Code</span>
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PaymentCodes).map(([key, value]) => (
+                            <SelectItem key={key} value={value}>
+                              {statusTags[value]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -353,32 +381,34 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Redirect Link</FormLabel>
-                  <FormControl>
-                    <InputDropdown
-                      items={[
-                        {
-                          label: "Warehouse",
-                          value: `${process.env.CLIENT_URL}/orders?tab=warehouse`,
-                        },
-                        {
-                          label: "Orders",
-                          value: `${process.env.CLIENT_URL}/orders?tab=placed`,
-                        },
-                        {
-                          label: "Shipments",
-                          value: `${process.env.CLIENT_URL}/orders?tab=shipments`,
-                        },
-                      ]}
-                      type="input"
-                      placeholder="Redirect Link"
-                      {...field}
-                      onChange={(v) =>
-                        form.setValue("redirectLink", v.value.toString())
-                      }
-                      initialValue={watch("redirectLink")}
-                    />
-                  </FormControl>
-                  <FormMessage />
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <InputDropdown
+                        items={[
+                          {
+                            label: "Warehouse",
+                            value: `${process.env.CLIENT_URL}/orders?tab=warehouse`,
+                          },
+                          {
+                            label: "Orders",
+                            value: `${process.env.CLIENT_URL}/orders?tab=placed`,
+                          },
+                          {
+                            label: "Shipments",
+                            value: `${process.env.CLIENT_URL}/orders?tab=shipments`,
+                          },
+                        ]}
+                        type="input"
+                        placeholder="Redirect Link"
+                        {...field}
+                        onChange={(v) =>
+                          form.setValue("redirectLink", v.value.toString())
+                        }
+                        initialValue={watch("redirectLink")}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -388,25 +418,32 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="h-11">
-                        <SelectValue
-                          placeholder={
-                            <span className="text-gray-400">Select Status</span>
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(PaymentStatus).map(([key, value]) => (
-                          <SelectItem key={key} value={value}>
-                            {paymentStatus[value]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue
+                            placeholder={
+                              <span className="text-gray-400">
+                                Select Status
+                              </span>
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(PaymentStatus).map(([key, value]) => (
+                            <SelectItem key={key} value={value}>
+                              {paymentStatus[value]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -437,7 +474,17 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           </div>
           {code === PaymentCodes.SHIPPING_FEE && fields.length > 0 && (
             <div className="mt-6">
-              <FormLabel>Payment Breakdown</FormLabel>
+              <div className="flex items-end justify-between mb-4">
+                <FormLabel>Payment Breakdown</FormLabel>
+                <Button
+                  className="shadow-none"
+                  variant="outline"
+                  type="button"
+                  onClick={recalculateWithCurrentSettings}
+                >
+                  Recalculate
+                </Button>
+              </div>
               <div className="space-y-3 mt-2">
                 {fields.map((field, index) => {
                   const breakdownValue = watch(
@@ -529,16 +576,21 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               </div>
             </div>
           )}
-          <DialogFooter className="mt-6">
+          <DialogFooter className="mt-10">
             <Button
               type="button"
               variant="outline"
+              className="shadow-none"
               onClick={() => setOpen(false)}
               disabled={isLoading || isLoadingUpdate}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || isLoadingUpdate}>
+            <Button
+              type="submit"
+              disabled={isLoading || isLoadingUpdate}
+              className="shadow-none"
+            >
               {(isLoading || isLoadingUpdate) && (
                 <Icons.spinner className="h-3 w-3 animate-spin mr-2" />
               )}
@@ -568,11 +620,17 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                     type="button"
                     variant="outline"
                     size="icon"
+                    className="shadow-none"
                     onClick={() => setPayment(p)}
                   >
                     <Pencil className="size-4" />
                   </Button>
-                  <Button variant="outline" size="icon" type="button">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="shadow-none"
+                  >
                     <Trash className="size-4" />
                   </Button>
                 </div>
