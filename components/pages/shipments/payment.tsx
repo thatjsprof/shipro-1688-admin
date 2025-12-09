@@ -109,9 +109,9 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
 
   const packageWeight = order?.packageWeight ?? 1;
   const price =
-    order?.airLocation === AirLocation.GZ
-      ? settings?.gzPrice
-      : settings?.hkPrice;
+    order?.airLocation === AirLocation.HK
+      ? settings?.hkPrice
+      : settings?.gzPrice;
 
   const calculateBreakdownValues = useCallback(() => {
     return defaultBreakdown.map((b) => {
@@ -133,7 +133,11 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           break;
       }
 
-      return { ...b, unit, calculatedValue };
+      return {
+        ...b,
+        unit,
+        calculatedValue,
+      };
     });
   }, [price, packageWeight]);
 

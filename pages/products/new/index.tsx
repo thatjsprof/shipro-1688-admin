@@ -174,6 +174,8 @@ const Product = () => {
     form.reset(converted);
   }, [productData?.data]);
 
+  console.log(form.formState.errors);
+
   return (
     <div className="py-8">
       <Link href="/products">
