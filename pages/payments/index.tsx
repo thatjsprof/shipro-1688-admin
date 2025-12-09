@@ -320,7 +320,7 @@ const Payments = () => {
           <AdvancedPagination
             initialPage={pagination.pageIndex}
             isLoading={false}
-            totalPages={0}
+            totalPages={totalPages}
             onPageChange={(page) => {
               setPagination((prev) => ({
                 ...prev,
