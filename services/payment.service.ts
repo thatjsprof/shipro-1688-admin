@@ -12,7 +12,7 @@ const baseUrl = "/admin/payment";
 export const paymentApi = createApi({
   reducerPath: "rtk:payment",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetPayments", "GetOrders"],
+  tagTypes: ["GetPayments", "GetOrders", "GetAllPayments", "GetPaymentSums"],
   endpoints: (builder) => {
     return {
       getPayments: builder.query<
@@ -27,12 +27,46 @@ export const paymentApi = createApi({
       >({
         query: (body) => {
           return {
-            url: `${baseUrl}/all`,
+            url: `${baseUrl}/order/all`,
             method: "POST",
             body,
           };
         },
         providesTags: ["GetPayments"],
+      }),
+      getPaymentSums: builder.query<
+        ApiResponse<{
+          pending: number;
+          successful: number;
+        }>,
+        void
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/sums`,
+            method: "GET",
+            body,
+          };
+        },
+        providesTags: ["GetPaymentSums"],
+      }),
+      getAllPayments: builder.query<
+        ApiResponse<PaginatedResult<IPayment[]>>,
+        {
+          limit?: number;
+          page?: number;
+          statuses?: string[];
+          search?: string;
+        }
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/all`,
+            method: "POST",
+            body,
+          };
+        },
+        providesTags: ["GetAllPayments"],
       }),
       createPayment: builder.mutation<
         ApiResponse<IPayment>,
@@ -90,6 +124,8 @@ export const paymentApi = createApi({
 });
 
 export const {
+  useGetAllPaymentsQuery,
+  useGetPaymentSumsQuery,
   useCreatePaymentMutation,
   useUpdatePaymentMutation,
   useGetPaymentsQuery,

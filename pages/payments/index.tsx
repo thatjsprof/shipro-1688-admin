@@ -1,13 +1,24 @@
+import MetricPill from "@/components/shared/metric-pill";
+import { PaymentStatusPill } from "@/components/shared/status-pill";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
-import { IPayment } from "@/interfaces/payment.interface";
+import { IPayment, PaymentStatus } from "@/interfaces/payment.interface";
+import { paymentStatus } from "@/lib/constants";
 import useCopy, { ICopy } from "@/lib/copy";
+import { formatNum } from "@/lib/utils";
+import {
+  useGetAllPaymentsQuery,
+  useGetPaymentSumsQuery,
+} from "@/services/payment.service";
+import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
+import { format } from "date-fns";
 import debounce from "lodash.debounce";
-import { Search, X } from "lucide-react";
+import { ClockArrowUp, Copy, Search, Wallet, X } from "lucide-react";
 import Link from "next/link";
 import {
   ChangeEvent,
@@ -17,23 +28,33 @@ import {
   useMemo,
   useState,
 } from "react";
-
 const columns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void
 ): ColumnDef<IPayment>[] => [
   {
-    accessorKey: "token",
+    accessorKey: "reference",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
-        title="Token"
+        title="Reference"
         className="-mb-[1.8px] px-2"
       />
     ),
     cell: ({ row }) => {
+      const reference = row.getValue<string>("reference");
       return (
         <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
-          ...{row.getValue<string>("token").slice(-5)}
+          <Copy
+            className="size-5"
+            onClick={() =>
+              copyToClipboard({
+                id: "copy-payment-reference",
+                text: reference,
+                message: "Payment reference copied to clipboard",
+              })
+            }
+          />
+          <p>{reference}</p>
         </div>
       );
     },
@@ -41,16 +62,41 @@ const columns = (
     enableHiding: false,
   },
   {
-    accessorKey: "platform",
+    accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader
         column={column}
-        title="Platform"
+        title="Description"
         className="-mb-[1.8px] px-2"
       />
     ),
     cell: ({ row }) => {
-      return <div className="flex items-center gap-[0.6rem] text-nowrap"></div>;
+      const description = row.getValue<string>("description");
+      return (
+        <div className="flex items-center gap-[0.6rem] text-nowrap">
+          {description}
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        column={column}
+        title="Amount"
+        className="-mb-[1.8px] px-2"
+      />
+    ),
+    cell: ({ row }) => {
+      const baseAmount = row.original.baseAmount;
+      return (
+        <div className="flex items-center gap-[0.6rem] text-nowrap">
+          ₦{formatNum(baseAmount)}
+        </div>
+      );
     },
     enableSorting: false,
     enableHiding: false,
@@ -65,9 +111,10 @@ const columns = (
       />
     ),
     cell: ({ row }) => {
+      const status = row.getValue<PaymentStatus>("status");
       return (
         <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
-          {row.getValue("status")}
+          <PaymentStatusPill status={status} />
         </div>
       );
     },
@@ -75,47 +122,83 @@ const columns = (
     enableHiding: false,
   },
   {
-    accessorKey: "createdAt",
-    header: ({ column }) => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const createdAt = row.getValue<Date>("createdAt");
-      return <div className="flex items-center gap-[0.9rem] text-nowrap"></div>;
-    },
-    enableSorting: true,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "expiresAt",
-    header: ({ column }) => {
-      return <div></div>;
-    },
-    cell: ({ row }) => {
-      const expiresAt = row.getValue<number>("expiresAt");
-      return <div className="flex items-center gap-[0.9rem] text-nowrap"></div>;
-    },
-    enableSorting: true,
-    enableHiding: false,
-  },
-  {
-    id: "actions",
+    accessorKey: "provider",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="" className="px-2" />
+      <DataTableColumnHeader
+        column={column}
+        title="Provider"
+        className="-mb-[1.8px] px-2"
+      />
     ),
     cell: ({ row }) => {
-      return <div></div>;
+      const provider = row.getValue<PaymentStatus>("provider");
+      return (
+        <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
+          {provider}
+        </div>
+      );
     },
+    enableSorting: false,
+    enableHiding: false,
   },
+  {
+    accessorKey: "datePaid",
+    header: ({ column }) => {
+      return (
+        <DataTableColumnHeader
+          column={column}
+          title="Date Paid"
+          className="-mb-[1.8px] px-2"
+        />
+      );
+    },
+    cell: ({ row }) => {
+      const datePaid = row.getValue<Date>("datePaid");
+      return (
+        <div className="flex items-center gap-[0.9rem] text-nowrap">
+          {datePaid ? format(datePaid, "dd MMM, yyy, h:mm a") : "---"}
+        </div>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  // {
+  //   accessorKey: "actions",
+  //   header: ({ column }) => {
+  //     return (
+  //       <DataTableColumnHeader
+  //         column={column}
+  //         title=""
+  //         className="-mb-[1.8px] px-2"
+  //       />
+  //     );
+  //   },
+  //   cell: ({ row }) => {
+  //     const status = row.original.status;
+  //     return (
+  //       <div>
+  //         {status === PaymentStatus.PENDING && (
+  //           <Button className="font-semibold text-[.8rem]">Pay Now</Button>
+  //         )}
+  //       </div>
+  //     );
+  //   },
+  //   enableSorting: false,
+  //   enableHiding: false,
+  // },
 ];
 
 const Payments = () => {
   const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
+  const authenticated = useAppSelector((state) => state.user.authenticated);
+  const [statuses, setStatuses] = useState<
+    { value: PaymentStatus; label: string }[]
+  >([{ value: PaymentStatus.SUCCESSFUL, label: PaymentStatus.SUCCESSFUL }]);
   const [debouncedValue, setDebouncedValue] = useState("");
-
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
+    pageIndex: 1,
     pageSize: 10,
   });
   const pagination = useMemo(
@@ -125,6 +208,21 @@ const Payments = () => {
     }),
     [pageIndex, pageSize]
   );
+  const { data, isLoading } = useGetAllPaymentsQuery({
+    search: debouncedValue,
+    statuses: statuses.map((status) => status.value),
+    page: pagination.pageIndex - 1,
+    limit: pagination.pageSize,
+  });
+  const { data: res, isLoading: loadingSum } = useGetPaymentSumsQuery(
+    undefined,
+    {
+      skip: !authenticated,
+    }
+  );
+  const sums = res?.data;
+  const payments = data?.data?.data ?? [];
+  const totalPages = data?.data?.totalPages ?? 0;
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -145,6 +243,15 @@ const Payments = () => {
 
   return (
     <div className="mt-7">
+      <div className="mb-12 mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+        <MetricPill
+          className="px-0"
+          title="All Time Payments"
+          content={`₦${formatNum(sums?.successful ?? 0)}`}
+          icon={<Wallet strokeWidth={1.2} className="size-8" />}
+          isLoading={loadingSum}
+        />
+      </div>
       <div className="flex items-center gap-3 justify-between">
         <Input
           value={searchValue}
@@ -161,16 +268,24 @@ const Payments = () => {
             ) : null
           }
         />
-        <Button className="shadow-none h-11">Create New</Button>
+        <MultiSelect<PaymentStatus>
+          options={Object.entries(PaymentStatus).map(([key, value]) => ({
+            value,
+            label: paymentStatus[value] ?? "",
+          }))}
+          selected={statuses}
+          onChange={(values) => setStatuses(values)}
+          placeholder="Select statuses"
+        />
       </div>
       <div className="grid grid-cols-12 mt-8">
         <DataTable
           columns={columns(copyToClipboard)}
-          data={[]}
-          pageCount={0}
+          data={payments}
+          pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}
-          loading={false}
+          loading={isLoading}
           pagination={pagination}
           showSelected={false}
           setPagination={setPagination}
@@ -178,7 +293,7 @@ const Payments = () => {
           headerRowClassname="hover:bg-transparent"
           headerSubClassname="!px-0"
           wrapperCls="col-span-12 w-full"
-          customEmpty="No secure links found"
+          customEmpty="No payments found"
           className="border-none rounded-none"
         />
         <div className="mt-7">

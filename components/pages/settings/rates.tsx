@@ -1,11 +1,11 @@
 import { useAppSelector } from "@/store/hooks";
-import { Input } from "../ui/input";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { NumericFormat } from "react-number-format";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { notify } from "@/lib/toast";
 import { useUpdateRateMutation } from "@/services/rate.service";
-import { Icons } from "../shared/icons";
+import { Icons } from "@/components/shared/icons";
 import { useUpdateSettingMutation } from "@/services/management.service";
 import { ISetting } from "@/interfaces/app.interface";
 
@@ -123,7 +123,7 @@ const Rates = () => {
                 />
               </div>
               <Button
-                className="shadow-none h-10"
+                className="shadow-none h-10 font-semibold"
                 onClick={() => handleSave(rate.id)}
                 disabled={isLoading[rate.id]}
               >
@@ -171,7 +171,7 @@ const Rates = () => {
             );
           })}
           <Button
-            className="shadow-none h-10 w-fit mt-5"
+            className="shadow-none h-10 w-fit mt-5 font-semibold"
             onClick={handleSettingSave}
             disabled={loadingSetting}
           >
