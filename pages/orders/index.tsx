@@ -99,6 +99,7 @@ const getColumns = (
               <Tooltip
                 contentClassName="max-w-[15rem] py-3 bg-primary text-white"
                 side="top"
+                arrowClassName="bg-primary"
                 mobileVariant="popover"
                 content={
                   <div>
