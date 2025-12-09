@@ -316,7 +316,7 @@ const Payments = () => {
           customEmpty="No payments found"
           className="border-none rounded-none"
         />
-        <div className="mt-7">
+        <div className="mt-7 col-span-12">
           <AdvancedPagination
             initialPage={pagination.pageIndex}
             isLoading={false}
