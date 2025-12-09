@@ -610,7 +610,7 @@ const Orders = () => {
   >([]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 25,
   });
   const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
   const [rowSelection, setRowSelection] = useState<IOrderItem[]>([]);
