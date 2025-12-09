@@ -160,6 +160,7 @@ const NewOrder = () => {
           redirectLink: "",
           code: "",
           sendEmail: false,
+          paymentBreakdown: [],
         },
       ],
     },
