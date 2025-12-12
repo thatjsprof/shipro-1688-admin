@@ -30,6 +30,7 @@ export const statusTags: Record<PaymentCodes, string> = {
   [PaymentCodes.ITEM_FEE]: "Fees Fee",
   [PaymentCodes.SHIPPING_FEE]: "Shipping Fee",
   [PaymentCodes.SOURCING_FEE]: "Sourcing Fee",
+  [PaymentCodes.DELIVERY_FEE]: "Delivery Fee",
 };
 
 export const paymentStatus: Record<PaymentStatus, string> = {
@@ -130,7 +131,7 @@ export const orderStatusInfo: Partial<
   },
   [OrderStatus.IN_NIGERIA]: {
     icon: "Wallet",
-    bgColor: "#6366F1",
+    bgColor: "#10B981",
     color: "#fff",
     text: "In Nigeria",
   },

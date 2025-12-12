@@ -34,6 +34,7 @@ export enum PaymentCodes {
   ITEM_FEE = "ITEM_FEE",
   GOODS_FEE = "GOODS_FEE",
   SHIPPING_FEE = "SHIPPING_FEE",
+  DELIVERY_FEE = "DELIVERY_FEE",
 }
 
 export enum PaymentStatus {

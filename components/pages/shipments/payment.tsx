@@ -165,7 +165,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
 
     const calculated = calculateBreakdownValues();
     form.reset({
-      description: `Shipping Fee for order ${order.orderNumber}`,
+      description: "",
       amount: "",
       status: PaymentStatus.PENDING,
       code: "",
@@ -183,9 +183,8 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       : calculateBreakdownValues();
 
     form.reset({
-      description:
-        payment.description || `Shipping Fee for order ${order?.orderNumber}`,
-      amount: payment.amount.toString(),
+      description: payment.description || "",
+      amount: payment.baseAmount.toString(),
       status: payment.status as PaymentStatus,
       code: (payment.code as PaymentCodes) || "",
       sendEmail: false,
@@ -302,6 +301,10 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                           {
                             label: `Shipping Fee for order ${order?.orderNumber}`,
                             value: `Shipping Fee for order ${order?.orderNumber}`,
+                          },
+                          {
+                            label: `Delivery Fee for order ${order?.orderNumber}`,
+                            value: `Delivery Fee for order ${order?.orderNumber}`,
                           },
                         ]}
                         type="textarea"
@@ -460,12 +463,14 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                   <div className="flex items-center gap-2 mt-2">
                     <FormControl>
                       <Checkbox
+                        name="sendEmail"
                         checked={!!field.value}
                         onCheckedChange={field.onChange}
                         disabled={!watch("status")}
                       />
                     </FormControl>
                     <FormLabel
+                      htmlFor="sendEmail"
                       className="text-nowrap cursor-pointer"
                       onClick={() => field.onChange(!field.value)}
                     >
