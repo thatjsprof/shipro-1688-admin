@@ -37,6 +37,7 @@ const APP_ROUTES = [
   "/users",
   "/payments",
   "/all-orders",
+  "/rmb-purchase",
   "/shipments",
 ];
 

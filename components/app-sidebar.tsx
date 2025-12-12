@@ -2,6 +2,7 @@ import * as React from "react";
 import {
   CalendarArrowUp,
   ChevronRight,
+  Coins,
   Home,
   Package,
   PackageSearch,
@@ -79,6 +80,11 @@ const data: {
           Icon: <Truck className="!size-5" strokeWidth={2.5} />,
         },
       ],
+    },
+    {
+      title: "RMB Purchase",
+      url: "/rmb-purchase",
+      Icon: <Coins className="!size-5" strokeWidth={2.5} />,
     },
     {
       title: "Payments",
