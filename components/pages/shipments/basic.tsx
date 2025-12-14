@@ -1,6 +1,7 @@
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import DatePicker from "@/components/ui/date";
 import { DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
@@ -48,6 +49,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       sendEmail: false,
       addTracking: false,
       status: "",
+      deliveredAt: "",
     },
   });
 
@@ -61,6 +63,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
         data: {
           status: values?.status as OrderStatus,
           trackingNumber: values?.trackingNumber,
+          deliveredAt: values?.deliveredAt,
           packageWeight: values?.packageWeight
             ? +values.packageWeight
             : undefined,
@@ -83,12 +86,14 @@ const Basic = ({ order, setOpen }: IBasic) => {
     if (!order) return;
     const packageWeight = order.packageWeight || "";
     const trackingNumber = order.trackingNumber || "";
+    const deliveredAt = order.deliveredAt || "";
     const sendEmail = false;
     const status = order.status || "";
     form.reset({
       status,
       packageWeight: packageWeight?.toString() ?? "",
       trackingNumber,
+      deliveredAt,
       sendEmail,
     });
   }, [order]);
@@ -161,6 +166,43 @@ const Basic = ({ order, setOpen }: IBasic) => {
                           }}
                         >
                           Generate
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                );
+              }}
+            />
+            <FormField
+              control={form.control}
+              name="deliveredAt"
+              render={({ field }) => {
+                return (
+                  <FormItem>
+                    <FormLabel htmlFor="name">Delivered At</FormLabel>
+                    <div className="flex flex-col space-y-1">
+                      <div className="flex items-center gap-3">
+                        <FormControl>
+                          <DatePicker
+                            {...field}
+                            enableTime
+                            value={
+                              field.value ? new Date(field.value) : undefined
+                            }
+                            buttonClassName="flex-1"
+                            placeholder="Delivered At"
+                            error={!!errors?.deliveredAt?.message}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          className="h-11 shadow-none"
+                          onClick={() => {
+                            form.setValue("deliveredAt", undefined);
+                          }}
+                        >
+                          Clear
                         </Button>
                       </div>
                       <FormMessage />

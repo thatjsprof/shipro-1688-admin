@@ -319,7 +319,7 @@ const Payments = () => {
         <div className="mt-7 col-span-12">
           <AdvancedPagination
             initialPage={pagination.pageIndex}
-            isLoading={false}
+            isLoading={isLoading || isFetching}
             totalPages={totalPages}
             showPageSizeSelector
             pageSize={pagination.pageSize}

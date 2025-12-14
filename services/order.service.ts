@@ -193,6 +193,7 @@ export const orderApi = createApi({
             trackingNumber?: string;
             packageWeight?: number;
             sendEmail?: boolean;
+            deliveredAt?: string | Date;
             addTracking?: boolean;
           };
         }>

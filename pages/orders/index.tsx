@@ -563,7 +563,7 @@ const OrdersTable = ({
       <div className="mt-7">
         <AdvancedPagination
           initialPage={pagination.pageIndex}
-          isLoading={false}
+          isLoading={isLoading || isFetching}
           totalPages={totalPages}
           showPageSizeSelector
           pageSize={pagination.pageSize}

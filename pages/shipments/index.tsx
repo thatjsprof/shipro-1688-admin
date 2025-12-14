@@ -304,7 +304,10 @@ const Shipments = () => {
                             </div>
                             <div className="font-semibold">
                               {shipment.deliveredAt
-                                ? format(shipment.deliveredAt, "MM/dd/yyy")
+                                ? format(
+                                    shipment.deliveredAt,
+                                    "MM/dd/yyy HH:mm a"
+                                  )
                                 : "---"}
                             </div>
                           </div>

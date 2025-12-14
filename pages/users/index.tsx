@@ -281,7 +281,7 @@ const Users = () => {
       <div className="mt-7">
         <AdvancedPagination
           initialPage={pagination.pageIndex}
-          isLoading={false}
+          isLoading={isLoading}
           totalPages={totalPages}
           showPageSizeSelector
           pageSize={pagination.pageSize}

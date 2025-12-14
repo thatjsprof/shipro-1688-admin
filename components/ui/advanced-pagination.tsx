@@ -76,8 +76,6 @@ const AdvancedPagination = ({
   const [visiblePagesCount, setVisiblePagesCount] =
     useState<number>(visiblePgCount);
 
-  console.log(pageSize);
-
   const fetchPageResults = (page: number): void => {
     if (onPageChange) {
       onPageChange(page);
