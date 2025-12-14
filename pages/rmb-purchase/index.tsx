@@ -27,7 +27,7 @@ import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
 import { Copy, Eye, Search, X } from "lucide-react";
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
@@ -138,7 +138,7 @@ const getColumns = (
       enableHiding: false,
     },
     {
-      accessorKey: "details",
+      accessorKey: "aliPayQRcode",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
@@ -371,9 +371,6 @@ const RMBPurchase = () => {
           customEmpty="No orders Found"
           wrapperCls="col-span-12 w-full"
           className="border-none rounded-none"
-          cellStyles={{
-            orderNumber: "w-[13rem]",
-          }}
           rowClickSelectsCheckbox
         />
       </div>
