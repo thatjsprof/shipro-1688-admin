@@ -1,7 +1,6 @@
 import PurchaseSheet from "@/components/pages/rmb/rmb-sheet";
 import { PaymentStatusPill } from "@/components/shared/status-pill";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -27,12 +26,16 @@ import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
 import { Copy, Eye, Search, X } from "lucide-react";
-import { ChangeEvent, useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useState, useEffect } from "react";
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
   onUpdate: (rmb: RMBPurchase, newStatus: PurchaseStatus) => void,
-  onViewClick: (rmb: RMBPurchase) => void
+  onViewClick: (rmb: RMBPurchase) => void,
+  localStatuses: Record<string, PurchaseStatus>,
+  setLocalStatuses: React.Dispatch<
+    React.SetStateAction<Record<string, PurchaseStatus>>
+  >
 ): ColumnDef<RMBPurchase>[] => {
   return [
     {
@@ -232,11 +235,18 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
+        const currentStatus =
+          localStatuses[row.original.id] || row.original.status;
+
         return (
           <div className="flex items-center gap-[0.6rem] text-nowrap">
             <Select
-              defaultValue={row.original.status}
+              value={currentStatus}
               onValueChange={(value: PurchaseStatus) => {
+                setLocalStatuses((prev) => ({
+                  ...prev,
+                  [row.original.id]: value,
+                }));
                 onUpdate(row.original, value);
               }}
             >
@@ -266,6 +276,9 @@ const RMBPurchase = () => {
   const [debouncedValue, setDebouncedValue] = useState("");
   const [order, setOrder] = useState<RMBPurchase | null>(null);
   const [openSheet, setOpenSheet] = useState<boolean>(false);
+  const [localStatuses, setLocalStatuses] = useState<
+    Record<string, PurchaseStatus>
+  >({});
   const [statuses, setStatuses] = useState<
     { value: PurchaseStatus; label: string }[]
   >([]);
@@ -282,6 +295,10 @@ const RMBPurchase = () => {
   });
   const purchases = data?.data.data || [];
   const totalPages = data?.data.totalPages || 0;
+
+  useEffect(() => {
+    setLocalStatuses({});
+  }, [data]);
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -353,10 +370,16 @@ const RMBPurchase = () => {
       </div>
       <div className="grid grid-cols-12 mt-8">
         <DataTable
-          columns={getColumns(copyToClipboard, handleStatusUpdate, (rmb) => {
-            setOrder(rmb);
-            setOpenSheet(true);
-          })}
+          columns={getColumns(
+            copyToClipboard,
+            handleStatusUpdate,
+            (rmb) => {
+              setOrder(rmb);
+              setOpenSheet(true);
+            },
+            localStatuses,
+            setLocalStatuses
+          )}
           data={purchases}
           pageCount={totalPages}
           manualPagination={true}
