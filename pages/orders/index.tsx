@@ -410,7 +410,6 @@ const OrdersTable = ({
 
   const handlePaymentSubmit = async (data: PaymentAltFormData) => {
     if (!selectedOrderItem) return;
-
     setIsSubmittingPayment(true);
     try {
       notify("Payment created successfully", "success");
@@ -571,6 +570,7 @@ const OrdersTable = ({
           onPageSizeChange={(s) =>
             setPagination((prev) => ({
               ...prev,
+              pageIndex: 1,
               pageSize: s,
             }))
           }
