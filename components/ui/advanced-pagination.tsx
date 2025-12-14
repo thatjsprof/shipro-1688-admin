@@ -11,6 +11,13 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import useBreakpointBelow from "@/hooks/use-breakpoint";
+import {
+  Select,
+  SelectItem,
+  SelectContent,
+  SelectValue,
+  SelectTrigger,
+} from "./select";
 
 export interface AdvancedPaginationProps {
   totalPages: number;
@@ -21,6 +28,10 @@ export interface AdvancedPaginationProps {
   showPrevNext?: boolean;
   isLoading?: boolean;
   className?: string;
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (pageSize: number) => void;
+  showPageSizeSelector?: boolean;
 }
 
 const PaginationItemAlt = React.forwardRef<
@@ -54,12 +65,18 @@ const AdvancedPagination = ({
   showFirstAndLast = true,
   showPrevNext = true,
   className = "",
+  pageSize = 10,
+  pageSizeOptions = [10, 20, 50, 100],
+  onPageSizeChange,
+  showPageSizeSelector = false,
 }: AdvancedPaginationProps) => {
   const belowXxs = useBreakpointBelow("xxs");
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
   const [visiblePages, setVisiblePages] = useState<number[]>([]);
   const [visiblePagesCount, setVisiblePagesCount] =
     useState<number>(visiblePgCount);
+
+  console.log(pageSize);
 
   const fetchPageResults = (page: number): void => {
     if (onPageChange) {
@@ -81,6 +98,16 @@ const AdvancedPagination = ({
   const handleNextSet = (): void => {
     const targetPage = visiblePages[visiblePages.length - 1] + 1;
     handlePageChange(targetPage);
+  };
+
+  const handlePageSizeChange = (newPageSize: number): void => {
+    if (onPageSizeChange) {
+      onPageSizeChange(newPageSize);
+    }
+    setCurrentPage(1);
+    if (onPageChange) {
+      onPageChange(1);
+    }
   };
 
   useEffect(() => {
@@ -129,112 +156,136 @@ const AdvancedPagination = ({
   return (
     <Pagination className={className}>
       <PaginationContent className="flex items-center justify-between w-full">
-        <div className="flex">
-          {showFirstAndLast &&
-            currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
-            !visiblePages.includes(1) && (
-              <PaginationItemAlt>
+        <div className="flex items-center gap-4">
+          <div className="flex">
+            {showFirstAndLast &&
+              currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
+              !visiblePages.includes(1) && (
+                <PaginationItemAlt>
+                  <PaginationLink
+                    className={cn(
+                      "cursor-pointer",
+                      isLoading && "opacity-50 pointer-events-none",
+                      isActive(1) && "!border-none"
+                    )}
+                    onClick={() => handlePageChange(1)}
+                  >
+                    1
+                  </PaginationLink>
+                </PaginationItemAlt>
+              )}
+            {currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
+              !visiblePages.includes(2) && (
+                <PaginationItemAlt>
+                  <PaginationEllipsis
+                    onClick={handlePrevSet}
+                    className={cn(
+                      "cursor-pointer",
+                      isLoading && "opacity-50 pointer-events-none"
+                    )}
+                  />
+                </PaginationItemAlt>
+              )}
+            {visiblePages.map((page) => (
+              <PaginationItemAlt key={page}>
                 <PaginationLink
                   className={cn(
-                    "cursor-pointer",
                     isLoading && "opacity-50 pointer-events-none",
-                    isActive(1) && "!border-none"
+                    "cursor-pointer",
+                    isActive(page) && "!bg-primary !text-white",
+                    isActive(page) && "!border-none"
                   )}
-                  onClick={() => handlePageChange(1)}
+                  isActive={isActive(page)}
+                  onClick={() => handlePageChange(page)}
                 >
-                  1
+                  {page}
                 </PaginationLink>
               </PaginationItemAlt>
-            )}
-          {currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
-            !visiblePages.includes(2) && (
-              <PaginationItemAlt>
-                <PaginationEllipsis
-                  onClick={handlePrevSet}
-                  className={cn(
-                    "cursor-pointer",
-                    isLoading && "opacity-50 pointer-events-none"
-                  )}
-                />
-              </PaginationItemAlt>
-            )}
-          {visiblePages.map((page) => (
-            <PaginationItemAlt key={page}>
-              <PaginationLink
-                className={cn(
-                  isLoading && "opacity-50 pointer-events-none",
-                  "cursor-pointer",
-                  isActive(page) && "!bg-primary !text-white",
-                  isActive(page) && "!border-none"
-                )}
-                isActive={isActive(page)}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </PaginationLink>
-            </PaginationItemAlt>
-          ))}
-
-          {currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
-            !visiblePages.includes(totalPages - 1) && (
-              <PaginationItemAlt>
-                <PaginationEllipsis
-                  onClick={handleNextSet}
-                  className={cn(
-                    "cursor-pointer",
-                    isLoading && "opacity-50 pointer-events-none"
-                  )}
-                />
-              </PaginationItemAlt>
-            )}
-
-          {showFirstAndLast &&
-            currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
-            !visiblePages.includes(totalPages) && (
-              <PaginationItemAlt>
-                <PaginationLink
-                  onClick={() => handlePageChange(totalPages)}
-                  className={cn(
-                    "cursor-pointer",
-                    isLoading && "opacity-50 pointer-events-none"
-                  )}
-                >
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItemAlt>
-            )}
+            ))}
+            {currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
+              !visiblePages.includes(totalPages - 1) && (
+                <PaginationItemAlt>
+                  <PaginationEllipsis
+                    onClick={handleNextSet}
+                    className={cn(
+                      "cursor-pointer",
+                      isLoading && "opacity-50 pointer-events-none"
+                    )}
+                  />
+                </PaginationItemAlt>
+              )}
+            {showFirstAndLast &&
+              currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
+              !visiblePages.includes(totalPages) && (
+                <PaginationItemAlt>
+                  <PaginationLink
+                    onClick={() => handlePageChange(totalPages)}
+                    className={cn(
+                      "cursor-pointer",
+                      isLoading && "opacity-50 pointer-events-none"
+                    )}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItemAlt>
+              )}
+          </div>
         </div>
-        <div className="flex gap-2 items-center">
-          {showPrevNext && (
-            <>
-              <PaginationItemAlt>
-                <PaginationPrevious
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  className={cn(
-                    currentPage === 1 || isLoading
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer",
-                    "pr-0 px-3 border"
-                  )}
-                >
-                  <ChevronLeft />
-                </PaginationPrevious>
-              </PaginationItemAlt>
-              <PaginationItemAlt className="">
-                <PaginationNext
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  className={cn(
-                    currentPage === totalPages || isLoading
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer",
-                    "pr-0 px-3 border"
-                  )}
-                >
-                  <ChevronRight />
-                </PaginationNext>
-              </PaginationItemAlt>
-            </>
+        <div className="flex gap-4 items-center">
+          {showPageSizeSelector && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Show</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => handlePageSizeChange(Number(value))}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue placeholder={String(pageSize)} />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageSizeOptions.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">per page</span>
+            </div>
           )}
+          <div className="flex gap-2 items-center">
+            {showPrevNext && (
+              <>
+                <PaginationItemAlt>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className={cn(
+                      currentPage === 1 || isLoading
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer",
+                      "pr-0 px-3 border"
+                    )}
+                  >
+                    <ChevronLeft />
+                  </PaginationPrevious>
+                </PaginationItemAlt>
+                <PaginationItemAlt className="">
+                  <PaginationNext
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className={cn(
+                      currentPage === totalPages || isLoading
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer",
+                      "pr-0 px-3 border"
+                    )}
+                  >
+                    <ChevronRight />
+                  </PaginationNext>
+                </PaginationItemAlt>
+              </>
+            )}
+          </div>
         </div>
       </PaginationContent>
     </Pagination>

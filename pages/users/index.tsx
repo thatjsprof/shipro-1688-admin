@@ -185,10 +185,9 @@ const Users = () => {
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const authenticated = useAppSelector((state) => state.user.authenticated);
-  const user = useAppSelector((state) => state.user.user);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 20,
   });
   const pagination = useMemo(
     () => ({
@@ -284,6 +283,14 @@ const Users = () => {
           initialPage={pagination.pageIndex}
           isLoading={false}
           totalPages={totalPages}
+          showPageSizeSelector
+          pageSize={pagination.pageSize}
+          onPageSizeChange={(s) =>
+            setPagination((prev) => ({
+              ...prev,
+              pageSize: s,
+            }))
+          }
           onPageChange={(page) => {
             setPagination((prev) => ({
               ...prev,

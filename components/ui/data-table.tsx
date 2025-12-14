@@ -251,7 +251,6 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
@@ -311,7 +310,6 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-
       {showPagination && (
         <DataTablePagination table={table} prefetch={prefetch} />
       )}

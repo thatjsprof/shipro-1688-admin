@@ -219,7 +219,7 @@ const Payments = () => {
   const [debouncedValue, setDebouncedValue] = useState("");
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
-    pageSize: 25,
+    pageSize: 20,
   });
   const pagination = useMemo(
     () => ({
@@ -321,6 +321,14 @@ const Payments = () => {
             initialPage={pagination.pageIndex}
             isLoading={false}
             totalPages={totalPages}
+            showPageSizeSelector
+            pageSize={pagination.pageSize}
+            onPageSizeChange={(s) =>
+              setPagination((prev) => ({
+                ...prev,
+                pageSize: s,
+              }))
+            }
             onPageChange={(page) => {
               setPagination((prev) => ({
                 ...prev,

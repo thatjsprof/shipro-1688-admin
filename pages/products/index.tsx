@@ -223,7 +223,7 @@ const Products = () => {
   const authenticated = useAppSelector((state) => state.user.authenticated);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 20,
   });
   const pagination = useMemo(
     () => ({
@@ -316,6 +316,14 @@ const Products = () => {
           initialPage={pagination.pageIndex}
           isLoading={false}
           totalPages={totalPages}
+          showPageSizeSelector
+          pageSize={pagination.pageSize}
+          onPageSizeChange={(s) =>
+            setPagination((prev) => ({
+              ...prev,
+              pageSize: s,
+            }))
+          }
           onPageChange={(page) => {
             setPagination((prev) => ({
               ...prev,

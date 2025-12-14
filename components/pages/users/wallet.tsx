@@ -225,7 +225,7 @@ const Wallet = () => {
   >([]);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
-    pageSize: 10,
+    pageSize: 20,
   });
   const [debitWallet, { isLoading }] = useCreateDebitMutation();
   const form = useForm<DebitWalletFormValues>({
@@ -473,6 +473,14 @@ const Wallet = () => {
             initialPage={pagination.pageIndex}
             isLoading={loadingTrns || isFetching}
             totalPages={totalPages}
+            showPageSizeSelector
+            pageSize={pagination.pageSize}
+            onPageSizeChange={(s) =>
+              setPagination((prev) => ({
+                ...prev,
+                pageSize: s,
+              }))
+            }
             onPageChange={(page) => {
               setPagination((prev) => ({
                 ...prev,
