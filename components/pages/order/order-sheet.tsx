@@ -69,10 +69,9 @@ export function AddressCard({ address }: { address: IAddress }) {
 }
 
 const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-
   if (!item) return null;
 
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const product = item.product;
   const name = item.name || product?.description;
   const items = item?.items ?? [];
@@ -241,7 +240,7 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
               )}
             </div>
             <div>
-              <AddressCard address={item.order.deliveryAddress} />
+              <AddressCard address={deliveryAddress} />
             </div>
           </div>
         </ScrollArea>

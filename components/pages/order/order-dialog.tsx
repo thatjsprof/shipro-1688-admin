@@ -298,6 +298,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                           <FormControl>
                             <DatePicker
                               {...field}
+                              enableTime
                               onChange={(date) => {
                                 field.onChange(date);
                               }}

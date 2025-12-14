@@ -24,6 +24,7 @@ import { productApi } from "@/services/product.service";
 import { walletApi } from "@/services/wallet.service";
 import { cartApi } from "@/services/cart.service";
 import { paymentApi } from "@/services/payment.service";
+import { rmbApi } from "@/services/rmb.service";
 
 const rootPersistConfig = {
   key: "admin:root",
@@ -42,6 +43,7 @@ const allReducers = combineReducers({
   [paymentApi.reducerPath]: paymentApi.reducer,
   [walletApi.reducerPath]: walletApi.reducer,
   [cartApi.reducerPath]: cartApi.reducer,
+  [rmbApi.reducerPath]: rmbApi.reducer,
   [userApi.reducerPath]: userApi.reducer,
   [rateApi.reducerPath]: rateApi.reducer,
   [productApi.reducerPath]: productApi.reducer,
@@ -76,6 +78,7 @@ const store = () =>
         .concat(authApi.middleware)
         .concat(cartApi.middleware)
         .concat(walletApi.middleware)
+        .concat(rmbApi.middleware)
         .concat(rateApi.middleware)
         .concat(productApi.middleware)
         .concat(settingApi.middleware)
