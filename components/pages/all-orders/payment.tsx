@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   FormControl,
@@ -18,6 +19,7 @@ import {
 import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
 import { paymentStatus, statusTags } from "@/lib/constants";
 import { createOrderSchema } from "@/schemas/new-order.schema";
+import { Plus, X } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import z from "zod";
@@ -301,10 +303,36 @@ const Payment = ({ form }: IPaymentProps) => {
                   );
                 }}
               />
+              {fields.length > 1 && (
+                <div
+                  className="absolute right-3 top-3 bg-destructive rounded-full flex items-center justify-center text-white h-6 w-6 cursor-pointer"
+                  onClick={() => remove(idx)}
+                >
+                  <X className="size-4" />
+                </div>
+              )}
             </div>
           </div>
         );
       })}
+      <Button
+        variant="outline"
+        className="h-11 shadow-none w-full mt-2"
+        onClick={() => {
+          append({
+            amount: "",
+            status: PaymentStatus.PENDING,
+            description: "",
+            redirectLink: "",
+            code: "",
+            sendEmail: false,
+            paymentBreakdown: [],
+          });
+        }}
+      >
+        <Plus />
+        Add Payment
+      </Button>
     </div>
   );
 };
