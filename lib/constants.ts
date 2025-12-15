@@ -105,6 +105,12 @@ export const orderStatusInfo: Partial<
     color: "#fff",
     text: "Placed",
   },
+  [OrderStatus.PENDING_PAYMENT]: {
+    icon: "ClockArrowUp",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "Pending Payment",
+  },
   [OrderStatus.PROCESSING]: {
     icon: "ClockArrowUp",
     bgColor: "#F59E0B",
@@ -112,10 +118,10 @@ export const orderStatusInfo: Partial<
     text: "Processing",
   },
   [OrderStatus.SOURCING]: {
-    icon: "ClockArrowUp",
-    bgColor: "#F59E0B",
     color: "#fff",
     text: "Sourcing",
+    bgColor: "#F59E0B",
+    icon: "ClockArrowUp",
   },
   [OrderStatus.PENDING_TRANSIT]: {
     icon: "PackagePlus",

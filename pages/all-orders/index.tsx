@@ -39,9 +39,18 @@ type LucideIconName = keyof typeof LucideIcons;
 const AllOrders = () => {
   const [statuses, setStatuses] = useState<
     { value: OrderStatus; label: string }[]
-  >([{ value: OrderStatus.PLACED, label: "Draft" }]);
-  const [searchValue, setSearchValue] = useState("");
+  >([
+    {
+      value: OrderStatus.PLACED,
+      label: "Placed",
+    },
+    {
+      value: OrderStatus.PENDING_PAYMENT,
+      label: "Pending Payment",
+    },
+  ]);
   const [page, setPage] = useState<number>(1);
+  const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const userId = useAppSelector((state) => state.user.user?.id);
   const { data, isLoading, isFetching } = useGetOrdersQuery(
