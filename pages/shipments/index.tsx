@@ -31,7 +31,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { PaginationState } from "@tanstack/react-table";
 type LucideIconName = keyof typeof LucideIcons;
+
+enum OrderStatus {
+  IN_TRANSIT = "IN_TRANSIT",
+  IN_NIGERIA = "IN_NIGERIA",
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+}
 
 export function AddressCard({ address }: { address: IAddress }) {
   if (!address) return;
@@ -74,18 +84,25 @@ export function AddressCard({ address }: { address: IAddress }) {
 
 const Shipments = () => {
   const { copyToClipboard } = useCopy();
-  const [page, setPage] = useState<number>(1);
   const [open, setOpen] = useState<boolean>(false);
   const [openTracking, setOpenTracking] = useState<boolean>(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const userId = useAppSelector((state) => state.user.user?.id);
+  const [statuses, setStatuses] = useState<
+    { value: OrderStatus; label: string }[]
+  >([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 1,
+    pageSize: 20,
+  });
   const { data, isLoading, isFetching } = useGetOrdersQuery(
     {
       search: debouncedValue,
-      statuses: [],
-      page: page - 1,
+      statuses: statuses.map((s) => s.value),
+      page: pagination.pageIndex - 1,
+      limit: pagination.pageSize,
       types: [OrderType.SHIPMENT],
     },
     {
@@ -129,6 +146,23 @@ const Shipments = () => {
               />
             ) : null
           }
+        />
+
+        <MultiSelect<OrderStatus>
+          options={Object.values(OrderStatus).map((status) => ({
+            value: status,
+            label: orderStatusInfo[status]?.text ?? "",
+          }))}
+          selected={statuses}
+          onChange={(statuses) => {
+            setPagination({
+              pageIndex: 1,
+              pageSize: 10,
+            });
+            setStatuses(statuses);
+          }}
+          className="h-11 border-zinc-300"
+          placeholder="Select order statuses"
         />
       </div>
       <div className="flex flex-col gap-5 space-y-3">
@@ -402,10 +436,24 @@ const Shipments = () => {
       /> */}
         <div className="mt-7">
           <AdvancedPagination
-            initialPage={page}
+            initialPage={pagination.pageIndex}
             isLoading={isLoading || isFetching}
             totalPages={totalPages}
-            onPageChange={setPage}
+            showPageSizeSelector
+            pageSize={pagination.pageSize}
+            onPageSizeChange={(s) =>
+              setPagination((prev) => ({
+                ...prev,
+                pageIndex: 1,
+                pageSize: s,
+              }))
+            }
+            onPageChange={(page) => {
+              setPagination((prev) => ({
+                ...prev,
+                pageIndex: page,
+              }));
+            }}
           />
         </div>
         <UpdateDialog open={open} setOpen={setOpen} order={order} />
