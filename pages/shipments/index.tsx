@@ -312,7 +312,7 @@ const Shipments = () => {
                       </div>
                     </div>
                     {deliveryAddress && (
-                      <div className="px-6 pb-0">
+                      <div className="px-6 pb-0 -mt-1">
                         <Accordion type="single" collapsible className="w-full">
                           <AccordionItem value="address">
                             <AccordionTrigger className="flex items-center gap-2 justify-normal w-fit flex-none cursor-pointer p-0 mb-6 [&[data-state=open]]:mb-3 text-sm text-gray-600">
