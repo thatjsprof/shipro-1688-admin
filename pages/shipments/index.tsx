@@ -10,7 +10,6 @@ import { IOrder, OrderType } from "@/interfaces/order.interface";
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
-import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { orderStatusInfo } from "@/lib/constants";
@@ -25,23 +24,66 @@ import { Search, X } from "lucide-react";
 import debounce from "lodash.debounce";
 import UpdateDialog from "@/components/pages/shipments/update";
 import OrderTrackingDialog from "@/components/pages/shipments/tracking";
+import { IAddress } from "@/interfaces/address.interface";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 type LucideIconName = keyof typeof LucideIcons;
+
+export function AddressCard({ address }: { address: IAddress }) {
+  if (!address) return;
+  const {
+    firstName,
+    lastName,
+    apartment,
+    address: street,
+    city,
+    state,
+    country,
+    postalCode,
+    phoneNumber,
+    isDefault,
+  } = address;
+
+  return (
+    <div className="w-full bg-white">
+      <div className="space-y-1 text-sm text-gray-700">
+        <p>
+          {firstName} {lastName}
+        </p>
+        {apartment && <p>{apartment}</p>}
+        <p>{street}</p>
+        <p>
+          {city}, {state}
+        </p>
+        <p className="capitalize">{country}</p>
+        {postalCode && <p className="font-medium">Postal Code: {postalCode}</p>}
+        <p className="font-medium">Phone: {phoneNumber}</p>
+      </div>
+      {isDefault && (
+        <span className="mt-3 inline-block rounded-md bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
+          Default Address
+        </span>
+      )}
+    </div>
+  );
+}
 
 const Shipments = () => {
   const { copyToClipboard } = useCopy();
-  const router = useRouter();
-  const { search } = router.query;
   const [page, setPage] = useState<number>(1);
   const [open, setOpen] = useState<boolean>(false);
   const [openTracking, setOpenTracking] = useState<boolean>(false);
-  //   const [openPayment, setOpenPayment] = useState(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const userId = useAppSelector((state) => state.user.user?.id);
   const { data, isLoading, isFetching } = useGetOrdersQuery(
     {
-      search: search as string,
+      search: debouncedValue,
       statuses: [],
       page: page - 1,
       types: [OrderType.SHIPMENT],
@@ -113,6 +155,7 @@ const Shipments = () => {
         ) : (
           <>
             {shipments.map((shipment) => {
+              const deliveryAddress = shipment.deliveryAddress;
               const pendingPayments = shipment.payments.filter(
                 (payment) => payment.status === PaymentStatus.PENDING
               );
@@ -175,65 +218,6 @@ const Shipments = () => {
                             </div>
                           </div>
                         )}
-                        {/* {hasPendingPayments && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            className="font-semibold text-[.8rem] h-11"
-                            onClick={() => {
-                              setOpenPayment(true);
-                              setOrder(shipment);
-                            }}
-                          >
-                            Pay Now
-                          </Button>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <LucideIcons.Info className="size-5 cursor-pointer text-gray-400" />
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-xl">
-                              <DialogHeader>
-                                <DialogTitle>Pending Payment(s)</DialogTitle>
-                                <VisuallyHidden>
-                                  <DialogDescription />
-                                </VisuallyHidden>
-                              </DialogHeader>
-                              <div className="pt-4 flex flex-col gap-2">
-                                {totalPendingPayments.map((payment) => {
-                                  return (
-                                    <div
-                                      className="flex items-center justify-between gap-5"
-                                      key={payment.id}
-                                    >
-                                      <p className="text-[.9rem]">
-                                        {payment.description}
-                                      </p>
-                                      <p className="text-[.95rem] font-semibold">
-                                        ₦{formatNum(payment.amount ?? 0)}
-                                      </p>
-                                    </div>
-                                  );
-                                })}
-                                <div className="flex items-center justify-between gap-5 mt-4">
-                                  <p className="text-[.95rem] font-bold">
-                                    Total
-                                  </p>
-                                  <p className="text-[.95rem] font-bold">
-                                    ₦
-                                    {formatNum(
-                                      totalPendingPayments.reduce(
-                                        (acc, cur) => {
-                                          return (acc += cur.amount);
-                                        },
-                                        0
-                                      )
-                                    )}
-                                  </p>
-                                </div>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
-                      )} */}
                         <Button
                           size="sm"
                           variant="outline"
@@ -327,23 +311,21 @@ const Shipments = () => {
                         </div>
                       </div>
                     </div>
+                    {deliveryAddress && (
+                      <div className="px-6 pb-0">
+                        <Accordion type="single" collapsible className="w-full">
+                          <AccordionItem value="address">
+                            <AccordionTrigger className="flex items-center gap-2 justify-normal w-fit flex-none cursor-pointer p-0 mb-6 [&[data-state=open]]:mb-3 text-sm text-gray-600">
+                              View delivery address
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <AddressCard address={deliveryAddress} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </div>
+                    )}
                     <div className="border-t p-6">
-                      {/* <h4 className="font-semibold mb-3 text-gray-900">
-                  Items in Shipment
-                </h4> */}
-                      {/* {sourcePurchaseOrders && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-900">
-                      <span className="font-semibold">
-                        Consolidated from {sourcePurchaseOrders.length}{" "}
-                        purchase orders:
-                      </span>
-                      <span className="block mt-1 text-blue-700">
-                        {sourcePurchaseOrders.join(", ")}
-                      </span>
-                    </p>
-                  </div>
-                )} */}
                       <div className="space-y-2">
                         {shipment.shipmentItems.map((item, idx) => {
                           const images = item.items
