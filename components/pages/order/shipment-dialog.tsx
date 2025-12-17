@@ -40,9 +40,7 @@ const ShipmentDialog = ({
   onOpenChange,
 }: IShipmentDialogProps) => {
   const router = useRouter();
-  const ordersToUse = orders.filter(
-    (i) => i.status === OrderStatus.AT_WAREHOUSE
-  );
+  const ordersToUse = orders;
   const {
     handleSubmit,
     watch,
