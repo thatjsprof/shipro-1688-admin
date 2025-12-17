@@ -18,7 +18,7 @@ export const paymentInputSchema = z
           unit: z.string(),
         })
       )
-      .min(1, "Payment Breakdown"),
+      .optional(),
   })
   .refine((data) => data.status !== "", {
     message: "Status is required",
