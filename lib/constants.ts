@@ -4,7 +4,11 @@ import {
   OrderStatus,
   OrderType,
 } from "@/interfaces/order.interface";
-import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
+import {
+  PaymentCodes,
+  PaymentProviders,
+  PaymentStatus,
+} from "@/interfaces/payment.interface";
 
 export const orderEmailsInfo: Partial<
   Record<
@@ -23,6 +27,14 @@ export const orderEmailsInfo: Partial<
     color: "#fff",
     text: "Warehouse Arrival",
   },
+};
+
+export const paymentProviders: Record<PaymentProviders, string> = {
+  [PaymentProviders.PAYSTACK]: "Paystack",
+  [PaymentProviders.WALLET]: "Wallet",
+  [PaymentProviders.BANK_TRANSFER]: "Bank Transfer",
+  [PaymentProviders.FLUTTERWAVE]: "Flutterwave",
+  [PaymentProviders.KORA]: "Korapay",
 };
 
 export const statusTags: Record<PaymentCodes, string> = {

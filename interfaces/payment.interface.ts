@@ -26,6 +26,9 @@ export enum PaymentModules {
 
 export enum PaymentProviders {
   PAYSTACK = "paystack",
+  FLUTTERWAVE = "flutterwave",
+  KORA = "kora",
+  BANK_TRANSFER = "bank_transfer",
   WALLET = "wallet",
 }
 

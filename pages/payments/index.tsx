@@ -6,8 +6,12 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
-import { IPayment, PaymentStatus } from "@/interfaces/payment.interface";
-import { paymentStatus } from "@/lib/constants";
+import {
+  IPayment,
+  PaymentProviders,
+  PaymentStatus,
+} from "@/interfaces/payment.interface";
+import { paymentProviders, paymentStatus } from "@/lib/constants";
 import useCopy, { ICopy } from "@/lib/copy";
 import { formatNum } from "@/lib/utils";
 import {
@@ -131,10 +135,10 @@ const columns = (
       />
     ),
     cell: ({ row }) => {
-      const provider = row.getValue<PaymentStatus>("provider");
+      const provider = row.getValue<PaymentProviders>("provider");
       return (
         <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
-          {provider}
+          {paymentProviders[provider]}
         </div>
       );
     },
