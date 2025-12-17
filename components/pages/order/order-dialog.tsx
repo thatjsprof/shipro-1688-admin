@@ -64,6 +64,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       arrivedWarehouse: undefined,
       packageWeight: "",
       trackingNumber: "",
+      orderAmount: "",
       sendEmail: false,
       status: "",
       tags: [],
@@ -76,6 +77,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
   const handleSubmit = async (values: z.infer<typeof orderSchema>) => {
     try {
       const weight = values["packageWeight"];
+      const orderAmount = values["orderAmount"];
       const images = values["pictures"] ?? [];
       const tags = (values["tags"] ?? []).map((t) => t.value);
       const updated = await updateItem({
@@ -88,6 +90,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
             images: images.length > 0 ? images : undefined,
           }),
           packageWeight: weight ? +weight : undefined,
+          orderAmount: orderAmount ? +orderAmount : undefined,
           sendEmail: values["sendEmail"],
           tags: tags.length > 0 ? tags : undefined,
         },
@@ -110,6 +113,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       arrivedWarehouse: undefined,
       packageWeight: "",
       trackingNumber: "",
+      orderAmount: "",
       sendEmail: false,
       status: "",
       tags: [],
@@ -124,6 +128,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         ? new Date(order.timeArrivedInWarehouse)
         : undefined;
       const packageWeight = order.packageWeight || "";
+      const orderAmount = order.orderAmount || "";
       const trackingNumber = order.trackingNumber || "";
       const sendEmail = false;
       const status = order.status || "";
@@ -133,6 +138,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         pictures,
         arrivedWarehouse,
         packageWeight: packageWeight?.toString() ?? "",
+        orderAmount: orderAmount?.toString() ?? "",
         trackingNumber,
         sendEmail,
         tags: tags.map((t) => ({
@@ -286,6 +292,41 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                       )}
                     </div>
                   )}
+                  <FormField
+                    control={form.control}
+                    name="orderAmount"
+                    render={({ field }) => {
+                      return (
+                        <FormItem>
+                          <FormLabel>Order Amount</FormLabel>
+                          <FormControl>
+                            <NumericFormat
+                              type="text"
+                              name="orderAmount"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                              placeholder="Order Amount"
+                              prefix="₦"
+                              displayType="input"
+                              decimalSeparator="."
+                              allowNegative={false}
+                              thousandSeparator=","
+                              value={field.value ?? ""}
+                              onValueChange={(values) => {
+                                field.onChange(values.value ?? "");
+                              }}
+                              onBlur={() => {
+                                field.onBlur();
+                              }}
+                              className="h-10"
+                              customInput={Input}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
+                  />
                   <FormField
                     control={form.control}
                     name="arrivedWarehouse"

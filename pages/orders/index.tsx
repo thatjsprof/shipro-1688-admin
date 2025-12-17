@@ -502,7 +502,7 @@ const OrdersTable = ({
                 Send Email
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={!hasSelected || !hasWarehouseItems}
+                disabled={!hasSelected}
                 onClick={() => {
                   setOpenShipment(true);
                   setOrderShipment(rowSelection);

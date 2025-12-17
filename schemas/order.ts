@@ -14,6 +14,7 @@ export const orderSchema = z.object({
   arrivedWarehouse: z.date().optional(),
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
+  orderAmount: z.string().optional(),
   sendEmail: z.boolean().optional(),
   tags: z
     .array(

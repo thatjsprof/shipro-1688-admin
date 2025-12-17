@@ -110,6 +110,7 @@ export const orderApi = createApi({
             }[];
             tags?: string[];
             packageWeight?: number;
+            orderAmount?: number;
             sendEmail?: boolean;
           };
         }>
