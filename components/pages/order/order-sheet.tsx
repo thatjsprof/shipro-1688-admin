@@ -133,11 +133,11 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                   <CarouselContent className="p-0">
                     {allImages.map((image, index) => (
                       <CarouselItem key={index}>
-                        <div className="flex items-center justify-center p-0">
+                        <div className="flex items-center justify-center h-[30rem] w-full overflow-hidden">
                           <img
                             src={`${process.env.SERVER_URL}/proxy?url=${image}`}
                             alt={`Product image ${index + 1}`}
-                            className="h-[30rem] w-full max-w-full object-contain"
+                            className="max-h-full max-w-full object-contain"
                           />
                         </div>
                       </CarouselItem>
