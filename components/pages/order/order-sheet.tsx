@@ -137,7 +137,7 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                           <img
                             src={`${process.env.SERVER_URL}/proxy?url=${image}`}
                             alt={`Product image ${index + 1}`}
-                            className="h-[30rem] w-auto object-center object-cover"
+                            className="h-[30rem] w-full max-w-full object-contain"
                           />
                         </div>
                       </CarouselItem>
