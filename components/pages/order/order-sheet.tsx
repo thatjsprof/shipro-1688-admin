@@ -126,26 +126,28 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
             )}
             <div className="flex-1">
               {allImages.length > 0 && (
-                <Carousel
-                  className="w-full p-0 border mb-7 mt-3 rounded-lg overflow-hidden"
-                  setApi={setCarouselApi}
-                >
-                  <CarouselContent className="p-0">
-                    {allImages.map((image, index) => (
-                      <CarouselItem key={index}>
-                        <div className="flex items-center justify-center h-[30rem] w-full overflow-hidden">
-                          <img
-                            src={`${process.env.SERVER_URL}/proxy?url=${image}`}
-                            alt={`Product image ${index + 1}`}
-                            className="max-h-full max-w-full object-contain"
-                          />
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="left-5" />
-                  <CarouselNext className="right-5" />
-                </Carousel>
+                <div className="w-full mb-7 mt-3">
+                  <Carousel
+                    className="w-full p-0 border rounded-lg overflow-hidden"
+                    setApi={setCarouselApi}
+                  >
+                    <CarouselContent className="p-0 ml-0">
+                      {allImages.map((image, index) => (
+                        <CarouselItem key={index} className="pl-0 basis-full">
+                          <div className="flex items-center justify-center h-[30rem] w-full overflow-hidden">
+                            <img
+                              src={`${process.env.SERVER_URL}/proxy?url=${image}`}
+                              alt={`Product image ${index + 1}`}
+                              className="max-h-full max-w-full object-contain"
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="left-5" />
+                    <CarouselNext className="right-5" />
+                  </Carousel>
+                </div>
               )}
               <h4 className="font-medium text-gray-900">{name}</h4>
               {item?.category && (
