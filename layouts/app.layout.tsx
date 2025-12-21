@@ -37,7 +37,6 @@ const AppLayout = ({ children }: PropsWithChildren) => {
           <SidebarTrigger className="-ml-1" />
           <p className="text-[1.05rem] font-semibold">{title}</p>
         </header>
-
         <div className="flex flex-1 flex-col gap-4 p-4 px-5 sm:px-10">
           <div className="max-w-7xl">{children}</div>
         </div>

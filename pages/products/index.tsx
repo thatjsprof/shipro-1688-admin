@@ -37,6 +37,7 @@ const getColumns = (
               contentClassName="max-w-[15rem] py-3 bg-primary text-white"
               side="top"
               mobileVariant="popover"
+              arrowClassName="fill-primary bg-primary"
               content={
                 <div>
                   <p className="mb-1">{name}</p>
