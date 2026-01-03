@@ -69,7 +69,7 @@ const Details = ({ form }: DetailsProps) => {
                       popoverCls="PopoverContent"
                       externalValue={form.watch("order.userId")!}
                       handleReceiveValue={(val) => {
-                        form.setValue("order.userId", val);
+                        form.setValue("order.userId", val as string);
                         form.clearErrors("order.userId");
                       }}
                       emptyPlaceholder="User not found"
