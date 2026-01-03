@@ -27,7 +27,7 @@ import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
 import DatePicker from "@/components/ui/date";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -38,13 +38,18 @@ import {
 import { orderStatusInfo } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useUpdateItemsMutation } from "@/services/order.service";
+import {
+  useUpdateItemsMutation,
+  useGetOrdersQuery,
+} from "@/services/order.service";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/shared/icons";
 import { notify } from "@/lib/toast";
 import { format } from "date-fns";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Badge } from "@/components/ui/badge";
+import { Combobox } from "@/components/ui/combobox";
+import { Check } from "lucide-react";
 type LucideIconName = keyof typeof LucideIcons;
 
 interface IDialogProps {
@@ -60,6 +65,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
     resolver: zodResolver(orderSchema),
     mode: "onTouched",
     defaultValues: {
+      orders: [],
       pictures: [],
       arrivedWarehouse: undefined,
       packageWeight: "",
@@ -71,16 +77,48 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
     },
   });
 
+  const allUsersSame = useMemo(() => {
+    if (orders.length === 0) return false;
+    const firstUserId = orders[0].order?.user?.id;
+    if (!firstUserId) return false;
+    return orders.every((order) => order.order?.user?.id === firstUserId);
+  }, [orders]);
+
+  const userId =
+    allUsersSame && orders.length > 0 ? orders[0].order?.user?.id : undefined;
+
+  const { data: ordersData } = useGetOrdersQuery(
+    {
+      page: 0,
+      userId: userId,
+      noLimit: true,
+      notStatuses: [OrderStatus.DRAFT],
+    },
+    {
+      skip: !userId || !open || !allUsersSame,
+    }
+  );
+  const availableOrders = ordersData?.data.data || [];
+  const ordersToRender = useMemo(() => {
+    return [...availableOrders].map(({ id, orderNumber, status }) => ({
+      value: id,
+      label: orderNumber,
+      status,
+    }));
+  }, [availableOrders]);
+
   const { watch } = form;
   const { errors } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof orderSchema>) => {
+    console.log("iunfe");
     try {
       const weight = values["packageWeight"];
       const orderAmount = values["orderAmount"];
       const images = values["pictures"] ?? [];
       const tags = (values["tags"] ?? []).map((t) => t.value);
       const updated = await updateItem({
+        orders: values["orders"],
         items: orders.map((order) => order.id),
         data: {
           status: values["status"] || undefined,
@@ -93,7 +131,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           orderAmount: orderAmount ? +orderAmount : undefined,
           sendEmail: values["sendEmail"],
           tags: tags.length > 0 ? tags : undefined,
-        },
+        } as any,
       }).unwrap();
       if (updated.status === 200) {
         onOpenChange(false);
@@ -109,6 +147,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
 
   useEffect(() => {
     form.reset({
+      orders: [],
       pictures: [],
       arrivedWarehouse: undefined,
       packageWeight: "",
@@ -133,7 +172,15 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const sendEmail = false;
       const status = order.status || "";
       const tags = order.tags || [];
+      const orderIds: string[] = [];
+      if (order.orderId) {
+        orderIds.push(order.orderId);
+      }
+      if (order.shipmentOrderId) {
+        orderIds.push(order.shipmentOrderId);
+      }
       form.reset({
+        orders: orderIds,
         status,
         pictures,
         arrivedWarehouse,
@@ -160,9 +207,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         <ScrollArea className="max-h-[90vh] h-full">
           <div className="p-6">
             <DialogHeader>
-              <DialogTitle>Update Order</DialogTitle>
+              <DialogTitle>Update Order Item</DialogTitle>
               <DialogDescription>
-                Manage information regarding this order(s)
+                Manage information regarding this order item(s)
               </DialogDescription>
             </DialogHeader>
             <div className="text-gray-600 text-[.8rem] mt-6 mb-2">
@@ -207,6 +254,81 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)}>
                 <div className="flex flex-col gap-4 py-4">
+                  {allUsersSame && userId && (
+                    <FormField
+                      control={form.control}
+                      name="orders"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Order(s)</FormLabel>
+                          <div className="flex flex-col space-y-1">
+                            <FormControl>
+                              <Combobox<{
+                                value: string;
+                                label: string;
+                                status: OrderStatus;
+                              }>
+                                renderProp={({ item, value }) => {
+                                  const isSelected = value
+                                    ? (value as string[]).some(
+                                        (v) =>
+                                          v.toLowerCase() ===
+                                          item.value.toLowerCase()
+                                      )
+                                    : false;
+                                  const statusInfo =
+                                    orderStatusInfo[item.status];
+                                  return (
+                                    <div className="flex gap-2 items-center justify-between w-full">
+                                      <span>
+                                        {item.label}{" "}
+                                        {statusInfo?.text && (
+                                          <Badge
+                                            style={{
+                                              backgroundColor:
+                                                statusInfo?.bgColor,
+                                              color:
+                                                statusInfo?.color ?? "#fff",
+                                            }}
+                                          >
+                                            {statusInfo?.text}
+                                          </Badge>
+                                        )}
+                                      </span>
+                                      <Check
+                                        className={cn(
+                                          "mr-2 h-4 w-4",
+                                          isSelected
+                                            ? "opacity-100"
+                                            : "opacity-0"
+                                        )}
+                                      />
+                                    </div>
+                                  );
+                                }}
+                                isModal={true}
+                                multiple
+                                items={ordersToRender}
+                                externalValue={field.value ?? []}
+                                lowercaseVal={false}
+                                handleReceiveValue={(value) => {
+                                  field.onChange(value);
+                                }}
+                                buttonProps={{
+                                  ...field,
+                                  className:
+                                    "h-11 px-3 w-full justify-between !bg-transparent !pointer-events-auto",
+                                }}
+                                searchPlaceholder="Search Order(s)"
+                                error={!!errors.orders}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   {orders.length === 1 && (
                     <div className="space-y-3">
                       <FormField

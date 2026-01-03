@@ -2,6 +2,7 @@ import { OrderEmails, OrderStatus } from "@/interfaces/order.interface";
 import { z } from "zod";
 
 export const orderSchema = z.object({
+  orders: z.array(z.string()).optional(),
   pictures: z
     .array(
       z.object({

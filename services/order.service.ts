@@ -39,6 +39,37 @@ export const orderApi = createApi({
           return ["GetOrders", "GetOrderItems"];
         },
       }),
+      createOrderItems: builder.mutation<
+        ApiResponse<IOrderItem[]>,
+        {
+          user: string;
+          orders?: string[];
+          items: {
+            category?: string;
+            items?: any[];
+            name: string;
+            note?: string;
+            orderAmount?: number;
+            packageWeight?: number;
+            quantity: number;
+            status: OrderStatus;
+            trackingNumber?: string;
+            dateOrdered?: Date;
+          }[];
+        }
+      >({
+        query: (data) => {
+          return {
+            url: `${baseUrl}/items`,
+            method: "POST",
+            body: data,
+          };
+        },
+        invalidatesTags: (r) => {
+          if (!r) return [];
+          return ["GetOrderItems"];
+        },
+      }),
       getOrderItems: builder.query<
         ApiResponse<PaginatedResult<IOrderItem[]>>,
         {
@@ -46,6 +77,7 @@ export const orderApi = createApi({
           page?: number;
           statuses?: string[];
           search?: string[];
+          userId?: string;
         }
       >({
         query: (body) => {
@@ -63,9 +95,12 @@ export const orderApi = createApi({
           limit?: number;
           page?: number;
           statuses?: string[];
+          notStatuses?: string[];
           origins?: string[];
           types?: string[];
           search?: string;
+          userId?: string;
+          noLimit?: boolean;
         }
       >({
         query: (body) => {
@@ -98,6 +133,7 @@ export const orderApi = createApi({
       updateItems: builder.mutation<
         ApiResponse<IOrderItem[]>,
         Partial<{
+          orders?: string[];
           items: string[];
           data: {
             status?: OrderStatus;
@@ -118,11 +154,14 @@ export const orderApi = createApi({
         query: (data) => {
           return {
             url: `${baseUrl}/items`,
-            method: "POST",
+            method: "PUT",
             body: data,
           };
         },
-        invalidatesTags: ["GetOrderItems"],
+        invalidatesTags: (r) => {
+          if (!r) return [];
+          return ["GetOrderItems"];
+        },
       }),
       addTrackingUpdate: builder.mutation<
         ApiResponse<IOrderTracking[]>,
@@ -241,4 +280,5 @@ export const {
   useUpdateTrackingMutation,
   useAddTrackingUpdateMutation,
   useGetTrackingUpdatesQuery,
+  useCreateOrderItemsMutation,
 } = orderApi;

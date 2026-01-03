@@ -69,6 +69,7 @@ export interface IOrderItem {
   totalWeight: number;
   orderAmount: number;
   order: IOrder;
+  orderId: string;
   name: string;
   images: {
     filename: string;
@@ -91,6 +92,7 @@ export interface IOrderItem {
     note?: string;
   }[];
   shipmentOrder: IOrder;
+  shipmentOrderId: string;
   payments: IPayment[];
   status: OrderStatus;
 }

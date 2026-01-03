@@ -39,6 +39,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import OrderEmailsDialog from "@/components/pages/order/order-emails";
 import ShipmentDialog from "@/components/pages/order/shipment-dialog";
+import AddOrderDialog from "@/components/pages/order/add-order";
 type LucideIconName = keyof typeof LucideIcons;
 
 const getColumns = (
@@ -746,6 +747,7 @@ const Orders = () => {
           className="h-11 border-zinc-300"
           placeholder="Select order statuses"
         />
+        <AddOrderDialog />
       </div>
       <OrdersTable
         statuses={statuses}

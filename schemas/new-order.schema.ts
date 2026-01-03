@@ -90,3 +90,12 @@ export const createOrderSchema = z.object({
     .array(paymentInputSchema)
     .min(1, "At least one payment is required"),
 });
+
+export const addOrderItemSchema = z.object({
+  orders: z.array(z.string()).optional(),
+  user: z
+    .string()
+    .uuid({ message: "User is required" })
+    .min(1, { message: "User is required" }),
+  items: z.array(orderItemSchema).min(1, "At least one order item is required"),
+});

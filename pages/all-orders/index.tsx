@@ -219,7 +219,7 @@ const AllOrders = () => {
                                   )}
                                   <div className="flex-1">
                                     <p className="font-semibold text-gray-900 max-w-md">
-                                      {product?.description ?? ""}
+                                      {product?.description || item.name || ""}
                                     </p>
                                     <p className="text-sm text-gray-600 mt-1">
                                       {Object.entries<{

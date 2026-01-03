@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Command as CommandPrimitive } from "cmdk";
 import { ScrollArea } from "./scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 export interface IItem {
   value: string;
@@ -32,7 +33,7 @@ export interface IGroupedItems<T = IItem> {
 
 export interface IComboboxProps<T = IItem> {
   items: T[] | IGroupedItems<T>[];
-  externalValue: string;
+  externalValue: string | string[];
   label?: string;
   labelFor?: string;
   searchPlaceholder?: string;
@@ -42,12 +43,15 @@ export interface IComboboxProps<T = IItem> {
   inputProps?: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>;
   buttonProps?: React.ComponentPropsWithoutRef<typeof Button>;
   handleInputChange?: (search: string) => void;
-  handleReceiveValue: (value: string) => void;
+  handleReceiveValue: (value: string | string[]) => void;
   lowercaseVal?: boolean;
   filterFunction?: (value: string, search: string) => number;
   isModal?: boolean;
-  renderProp?: (props: { item: T; value: string }) => React.ReactNode;
-  renderBtn?: (props: { item?: T }) => React.ReactNode;
+  renderProp?: (props: {
+    item: T;
+    value: string | string[];
+  }) => React.ReactNode;
+  renderBtn?: (props: { items?: T[] }) => React.ReactNode;
   commandClassname?: string;
   commandItemClassname?: string;
   commandEmptyCls?: string;
@@ -56,6 +60,8 @@ export interface IComboboxProps<T = IItem> {
   commandInputCls?: string;
   commandInputWrpCls?: string;
   commandGroupClassname?: string;
+  multiple?: boolean;
+  maxSelections?: number;
 }
 
 export function Combobox<T extends IItem = IItem>({
@@ -86,27 +92,21 @@ export function Combobox<T extends IItem = IItem>({
   commandItemClassname,
   commandGroupClassname,
   isModal = false,
-  renderBtn = ({ item }) => {
-    return <span className="flex items-center gap-2">{item?.label}</span>;
-  },
-  renderProp = ({ item, value }) => {
-    return (
-      <>
-        <span className="inline-block ml-[.4rem]">{item.label}</span>
-        <Check
-          className={cn(
-            "mr-2 h-4 w-4",
-            value.toLowerCase() === item.value.toLowerCase()
-              ? "opacity-100"
-              : "opacity-0"
-          )}
-        />
-      </>
-    );
-  },
+  multiple = false,
+  maxSelections,
+  renderBtn,
+  renderProp,
 }: IComboboxProps<T>) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState(externalValue);
+  const [value, setValue] = React.useState<string | string[]>(
+    multiple
+      ? Array.isArray(externalValue)
+        ? externalValue
+        : []
+      : typeof externalValue === "string"
+      ? externalValue
+      : ""
+  );
   const [inputValue, setInputValue] = React.useState("");
 
   const isGrouped = items.length > 0 && "items" in items[0];
@@ -118,15 +118,26 @@ export function Combobox<T extends IItem = IItem>({
   }, [items, isGrouped]);
 
   React.useEffect(() => {
-    if (externalValue !== undefined) setValue(externalValue);
-    else setValue("");
-  }, [externalValue]);
+    if (multiple) {
+      setValue(Array.isArray(externalValue) ? externalValue : []);
+    } else {
+      setValue(typeof externalValue === "string" ? externalValue : "");
+    }
+  }, [externalValue, multiple]);
 
-  const found = React.useMemo(() => {
-    return allItems.find(
-      (item) => item.value.toLowerCase() === value.toLowerCase()
+  const selectedItems = React.useMemo(() => {
+    if (!multiple) {
+      const found = allItems.find(
+        (item) => item.value.toLowerCase() === (value as string).toLowerCase()
+      );
+      return found ? [found] : [];
+    }
+    return allItems.filter((item) =>
+      (value as string[]).some(
+        (v) => v.toLowerCase() === item.value.toLowerCase()
+      )
     );
-  }, [value, allItems]);
+  }, [value, allItems, multiple]);
 
   const filteredItems = React.useMemo(() => {
     if (!inputValue) return items;
@@ -136,7 +147,7 @@ export function Combobox<T extends IItem = IItem>({
         .map((group) => ({
           ...group,
           items: group.items.filter(
-            (item) => filterFunction(item.value, inputValue) > 0
+            (item) => filterFunction(item.label, inputValue) > 0
           ),
         }))
         .filter((group) => group.items.length > 0);
@@ -158,10 +169,113 @@ export function Combobox<T extends IItem = IItem>({
       return mergedGroups;
     }
 
-    return (items as T[]).filter(
-      (item) => filterFunction(item.value, inputValue) > 0
-    );
+    return (items as T[]).filter((item) => {
+      return filterFunction(item.label, inputValue) > 0;
+    });
   }, [items, inputValue, isGrouped, filterFunction]);
+
+  const handleSelect = (currentValue: string) => {
+    const lowercased = currentValue.toLowerCase();
+    const finalValue = lowercaseVal ? lowercased : currentValue;
+
+    if (multiple) {
+      const currentValues = value as string[];
+      const isSelected = currentValues.some(
+        (v) => v.toLowerCase() === lowercased
+      );
+
+      let newValues: string[];
+      if (isSelected) {
+        newValues = currentValues.filter((v) => v.toLowerCase() !== lowercased);
+      } else {
+        if (maxSelections && currentValues.length >= maxSelections) {
+          return;
+        }
+        newValues = [...currentValues, finalValue];
+      }
+
+      setValue(newValues);
+      handleReceiveValue(newValues);
+      setInputValue("");
+    } else {
+      const newValue =
+        (value as string).toLowerCase() === lowercased ? "" : finalValue;
+      setValue(newValue);
+      handleReceiveValue(newValue);
+      setInputValue("");
+      setOpen(false);
+    }
+  };
+
+  const handleRemoveItem = (itemValue: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (multiple) {
+      const currentValues = value as string[];
+      const newValues = currentValues.filter(
+        (v) => v.toLowerCase() !== itemValue.toLowerCase()
+      );
+      setValue(newValues);
+      handleReceiveValue(newValues);
+    }
+  };
+
+  const defaultRenderProp = ({
+    item,
+    value,
+  }: {
+    item: T;
+    value: string | string[];
+  }) => {
+    const isSelected = multiple
+      ? (value as string[]).some(
+          (v) => v.toLowerCase() === item.value.toLowerCase()
+        )
+      : (value as string).toLowerCase() === item.value.toLowerCase();
+
+    return (
+      <div className="flex gap-2 items-center justify-between w-full">
+        <span>{item.label}</span>
+        <Check
+          className={cn(
+            "mr-2 h-4 w-4",
+            isSelected ? "opacity-100" : "opacity-0"
+          )}
+        />
+      </div>
+    );
+  };
+
+  const defaultRenderBtn = ({ items }: { items?: T[] }) => {
+    if (!items || items.length === 0) {
+      return (
+        <span className="text-gray-400 font-normal">
+          {searchPlaceholder || "Select..."}
+        </span>
+      );
+    }
+
+    if (multiple) {
+      return (
+        <div className="flex flex-wrap gap-1 flex-1 min-w-0">
+          {items.map((item) => (
+            <Badge
+              key={item.value}
+              variant="secondary"
+              className="flex items-center gap-1 text-white"
+            >
+              <span className="truncate">{item.label}</span>
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={(e) => handleRemoveItem(item.value, e)}
+              />
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+
+    return <span className="flex items-center gap-2">{items[0]?.label}</span>;
+  };
 
   const renderItems = () => {
     if (isGrouped) {
@@ -179,14 +293,9 @@ export function Combobox<T extends IItem = IItem>({
               )}
               key={item.value}
               value={item.value}
-              onSelect={(currentValue) => {
-                const lowercased = currentValue.toLowerCase();
-                handleReceiveValue(lowercaseVal ? lowercased : currentValue);
-                setInputValue("");
-                setOpen(false);
-              }}
+              onSelect={handleSelect}
             >
-              {renderProp({ item, value })}
+              {(renderProp || defaultRenderProp)({ item, value })}
             </CommandItem>
           ))}
         </CommandGroup>
@@ -205,14 +314,9 @@ export function Combobox<T extends IItem = IItem>({
             )}
             key={item.value}
             value={item.value}
-            onSelect={(currentValue) => {
-              const lowercased = currentValue.toLowerCase();
-              handleReceiveValue(lowercaseVal ? lowercased : currentValue);
-              setInputValue("");
-              setOpen(false);
-            }}
+            onSelect={handleSelect}
           >
-            {renderProp({ item, value })}
+            {(renderProp || defaultRenderProp)({ item, value })}
           </CommandItem>
         ))}
       </CommandGroup>
@@ -239,22 +343,14 @@ export function Combobox<T extends IItem = IItem>({
             aria-expanded={open}
             {...buttonProps}
             className={cn(
-              "w-full justify-between shadow-none data-[state=open]:border-primary data-[state=open]:outline-offset-0 h-11 rounded-md hover:!border-zinc-400 border bg-white px-3 py-1 overflow-hidden disabled:cursor-not-allowed disabled:opacity-50",
+              "w-full justify-between shadow-none data-[state=open]:border-primary data-[state=open]:outline-offset-0 h-auto min-h-11 rounded-md hover:!border-zinc-400 border bg-white px-3 py-2 overflow-hidden disabled:cursor-not-allowed disabled:opacity-50",
               buttonProps?.className,
               error && "!border-destructive"
             )}
           >
-            {value ? (
-              renderBtn({
-                item: found,
-              })
-            ) : searchPlaceholder ? (
-              <span className="text-gray-400 font-normal">
-                {searchPlaceholder}
-              </span>
-            ) : (
-              "Select..."
-            )}
+            {(renderBtn || defaultRenderBtn)({
+              items: selectedItems,
+            })}
             <ChevronsUpDown
               className={cn("ml-2 h-4 w-4 shrink-0 opacity-50", chevronCls)}
             />
