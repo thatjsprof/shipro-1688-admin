@@ -34,6 +34,7 @@ import { debounce } from "lodash";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MultiSelect } from "@/components/ui/multi-select";
+import FadeScrollArea from "@/components/ui/fade-scrollarea";
 type LucideIconName = keyof typeof LucideIcons;
 
 const AllOrders = () => {
@@ -190,241 +191,59 @@ const AllOrders = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-5">
-                  <div className="space-y-4">
-                    {items.map((item) => {
-                      const statusInfo = orderStatusInfo[item.status];
-                      const IconComponent = LucideIcons[
-                        statusInfo?.icon as LucideIconName
-                      ] as LucideIcons.LucideIcon;
-                      const product = item?.product;
-                      const items = Array.isArray(item?.items)
-                        ? item?.items
-                        : [];
+                <CardContent className="p-0">
+                  <FadeScrollArea className="flex gap-3 relative max-h-[30rem]">
+                    <div className="space-y-4 p-5">
+                      {items.map((item) => {
+                        const statusInfo = orderStatusInfo[item.status];
+                        const IconComponent = LucideIcons[
+                          statusInfo?.icon as LucideIconName
+                        ] as LucideIcons.LucideIcon;
+                        const product = item?.product;
+                        const items = Array.isArray(item?.items)
+                          ? item?.items
+                          : [];
 
-                      return (
-                        <div key={item.id}>
-                          {origin === OrderOrigin.NORMAL ? (
-                            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
-                              <div className="flex items-start gap-4">
-                                {product?.image && (
-                                  <div className="text-4xl">
-                                    <img
-                                      src={`${process.env.SERVER_URL}/proxy?url=${product.image}`}
-                                      className="h-16 w-16 object-cover object-center rounded-lg"
-                                    />
-                                  </div>
-                                )}
-                                <div className="flex-1">
-                                  <p className="font-semibold text-gray-900 max-w-md">
-                                    {product?.description ?? ""}
-                                  </p>
-                                  <p className="text-sm text-gray-600 mt-1">
-                                    {Object.entries<{
-                                      normalized: string;
-                                      original: string;
-                                    }>(item.variants ?? {})
-                                      .map(
-                                        ([key, val]) =>
-                                          `${key}: ${val.original.toLowerCase()}`
-                                      )
-                                      .join(", ")}
-                                  </p>
-                                  <div className="flex gap-4 mt-2 text-sm">
-                                    <span className="text-gray-600">
-                                      Qty: {item?.quantity}
-                                    </span>
-                                    <span className="text-gray-600"></span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex flex-col items-end gap-2">
-                                {IconComponent && (
-                                  <div
-                                    className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] font-semibold text-nowrap"
-                                    style={{
-                                      backgroundColor: statusInfo?.bgColor,
-                                      color: statusInfo?.color ?? "#fff",
-                                    }}
-                                  >
-                                    <IconComponent className="size-4" />
-                                    {statusInfo?.text}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            (() => {
-                              const images = items
-                                .map((i) =>
-                                  (i.pictures ?? []).map((p) => p.url)
-                                )
-                                .flat();
-                              const quantity =
-                                items
-                                  .map((i) => i.quantity ?? 0)
-                                  .reduce((acc, cur) => (acc += cur), 0) ||
-                                item.quantity;
-                              const image = images?.[0];
-                              const pictureItems =
-                                items?.filter(
-                                  (item) => item.type === "picture"
-                                ) || [];
-                              const linkItems =
-                                items?.filter((item) => item.type === "link") ||
-                                [];
-                              return (
-                                <div
-                                  key={item.id}
-                                  className="flex flex-col sm:flex-row gap-2 items-start justify-between sm:items-center gap-4 p-4 bg-gray-50 rounded-lg"
-                                >
-                                  <div className="flex items-start gap-4">
-                                    {image && (
-                                      <div className="text-4xl">
-                                        <img
-                                          src={`${process.env.SERVER_URL}/proxy?url=${image}`}
-                                          className="h-16 w-16 object-cover object-center rounded-lg"
-                                        />
-                                      </div>
-                                    )}
-                                    <div className="flex-1">
-                                      <Dialog>
-                                        <DialogTrigger asChild>
-                                          <h4 className="font-semibold text-gray-900 max-w-md line-clamp-2 hover:text-primary duration-200 transition-colors cursor-pointer">
-                                            {item.name}
-                                          </h4>
-                                        </DialogTrigger>
-                                        <DialogContent className="max-h-[90vh] overflow-hidden p-0">
-                                          <ScrollArea className="max-h-[90vh] h-full w-full">
-                                            <div className="p-5">
-                                              <DialogHeader>
-                                                <DialogTitle>
-                                                  Item Information
-                                                </DialogTitle>
-                                              </DialogHeader>
-                                              <div className="flex-1 mt-6">
-                                                <h4 className="font-semibold text-gray-900 max-w-md">
-                                                  {item.name}
-                                                </h4>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                  Category: {item.category}
-                                                </p>
-                                                <p className="text-sm text-gray-600 mt-1">
-                                                  Qty: {quantity}
-                                                </p>
-                                                {item.note && (
-                                                  <div className="text-sm text-gray-600 mt-1">
-                                                    <span className="font-medium">
-                                                      Note:
-                                                    </span>{" "}
-                                                    {(item.note, 150)}
-                                                  </div>
-                                                )}
-                                                {pictureItems.length > 0 && (
-                                                  <div className="mt-4">
-                                                    <strong className="text-sm">
-                                                      Pictures:
-                                                    </strong>
-                                                    {pictureItems.map(
-                                                      (item, itemIndex) => (
-                                                        <div
-                                                          key={itemIndex}
-                                                          className="ml-4 mt-3"
-                                                        >
-                                                          {item.pictures &&
-                                                            item.pictures
-                                                              .length > 0 && (
-                                                              <div className="flex gap-2.5 flex-wrap mb-2">
-                                                                {item.pictures.map(
-                                                                  (
-                                                                    pic,
-                                                                    picIndex
-                                                                  ) => (
-                                                                    <img
-                                                                      key={
-                                                                        picIndex
-                                                                      }
-                                                                      src={
-                                                                        pic.url
-                                                                      }
-                                                                      alt={
-                                                                        pic.filename
-                                                                      }
-                                                                      className="w-[50px] h-[50px] object-cover rounded-[15px] border border-gray-300"
-                                                                    />
-                                                                  )
-                                                                )}
-                                                              </div>
-                                                            )}
-                                                          <div className="text-sm">
-                                                            Qty:{" "}
-                                                            {formatNum(
-                                                              item.quantity
-                                                            )}
-                                                          </div>
-                                                          {item.note && (
-                                                            <div className="text-sm italic text-gray-500 mt-1">
-                                                              {item.note}
-                                                            </div>
-                                                          )}
-                                                        </div>
-                                                      )
-                                                    )}
-                                                  </div>
-                                                )}
-                                                {linkItems.length > 0 && (
-                                                  <div className="mt-4">
-                                                    <strong className="text-sm">
-                                                      Links:
-                                                    </strong>
-                                                    {linkItems.map(
-                                                      (item, itemIndex) => (
-                                                        <div
-                                                          key={itemIndex}
-                                                          className="ml-4 mt-2"
-                                                        >
-                                                          {item.link && (
-                                                            <div className="text-sm">
-                                                              <a
-                                                                href={item.link}
-                                                                className="text-[#fc6320] hover:underline break-all line-clamp-1"
-                                                              >
-                                                                {item.link}
-                                                              </a>
-                                                            </div>
-                                                          )}
-                                                          <div className="text-sm">
-                                                            Qty:{" "}
-                                                            {formatNum(
-                                                              item.quantity
-                                                            )}
-                                                          </div>
-                                                          {item.note && (
-                                                            <div className="text-sm italic text-gray-500 mt-1">
-                                                              {item.note}
-                                                            </div>
-                                                          )}
-                                                        </div>
-                                                      )
-                                                    )}
-                                                  </div>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </ScrollArea>
-                                        </DialogContent>
-                                      </Dialog>
-                                      <p className="text-sm text-gray-600 mt-1">
-                                        Category: {item.category}
-                                      </p>
-                                      <p className="text-sm text-gray-600 mt-1">
-                                        Qty: {quantity}
-                                      </p>
+                        return (
+                          <div key={item.id}>
+                            {origin === OrderOrigin.NORMAL ? (
+                              <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between gap-4 p-4 bg-gray-50 rounded-lg">
+                                <div className="flex items-start gap-4">
+                                  {product?.image && (
+                                    <div className="text-4xl">
+                                      <img
+                                        src={`${process.env.SERVER_URL}/proxy?url=${product.image}`}
+                                        className="h-16 w-16 object-cover object-center rounded-lg"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-gray-900 max-w-md">
+                                      {product?.description ?? ""}
+                                    </p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {Object.entries<{
+                                        normalized: string;
+                                        original: string;
+                                      }>(item.variants ?? {})
+                                        .map(
+                                          ([key, val]) =>
+                                            `${key}: ${val.original.toLowerCase()}`
+                                        )
+                                        .join(", ")}
+                                    </p>
+                                    <div className="flex gap-4 mt-2 text-sm">
+                                      <span className="text-gray-600">
+                                        Qty: {item?.quantity}
+                                      </span>
+                                      <span className="text-gray-600"></span>
                                     </div>
                                   </div>
-                                  <div className="flex flex-col items-end gap-2">
+                                </div>
+                                <div className="flex flex-col items-end gap-2">
+                                  {IconComponent && (
                                     <div
-                                      className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] font-semibold"
+                                      className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] font-semibold text-nowrap"
                                       style={{
                                         backgroundColor: statusInfo?.bgColor,
                                         color: statusInfo?.color ?? "#fff",
@@ -433,15 +252,202 @@ const AllOrders = () => {
                                       <IconComponent className="size-4" />
                                       {statusInfo?.text}
                                     </div>
-                                  </div>
+                                  )}
                                 </div>
-                              );
-                            })()
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                              </div>
+                            ) : (
+                              (() => {
+                                const images = items
+                                  .map((i) =>
+                                    (i.pictures ?? []).map((p) => p.url)
+                                  )
+                                  .flat();
+                                const quantity =
+                                  items
+                                    .map((i) => i.quantity ?? 0)
+                                    .reduce((acc, cur) => (acc += cur), 0) ||
+                                  item.quantity;
+                                const image = images?.[0];
+                                const pictureItems =
+                                  items?.filter(
+                                    (item) => item.type === "picture"
+                                  ) || [];
+                                const linkItems =
+                                  items?.filter(
+                                    (item) => item.type === "link"
+                                  ) || [];
+                                return (
+                                  <div
+                                    key={item.id}
+                                    className="flex flex-col sm:flex-row gap-2 items-start justify-between sm:items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                                  >
+                                    <div className="flex items-start gap-4">
+                                      {image && (
+                                        <div className="text-4xl">
+                                          <img
+                                            src={`${process.env.SERVER_URL}/proxy?url=${image}`}
+                                            className="h-16 w-16 object-cover object-center rounded-lg"
+                                          />
+                                        </div>
+                                      )}
+                                      <div className="flex-1">
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <h4 className="font-semibold text-gray-900 max-w-md line-clamp-2 hover:text-primary duration-200 transition-colors cursor-pointer">
+                                              {item.name}
+                                            </h4>
+                                          </DialogTrigger>
+                                          <DialogContent className="max-h-[90vh] overflow-hidden p-0">
+                                            <ScrollArea className="max-h-[90vh] h-full w-full">
+                                              <div className="p-5">
+                                                <DialogHeader>
+                                                  <DialogTitle>
+                                                    Item Information
+                                                  </DialogTitle>
+                                                </DialogHeader>
+                                                <div className="flex-1 mt-6">
+                                                  <h4 className="font-semibold text-gray-900 max-w-md">
+                                                    {item.name}
+                                                  </h4>
+                                                  <p className="text-sm text-gray-600 mt-1">
+                                                    Category: {item.category}
+                                                  </p>
+                                                  <p className="text-sm text-gray-600 mt-1">
+                                                    Qty: {quantity}
+                                                  </p>
+                                                  {item.note && (
+                                                    <div className="text-sm text-gray-600 mt-1">
+                                                      <span className="font-medium">
+                                                        Note:
+                                                      </span>{" "}
+                                                      {(item.note, 150)}
+                                                    </div>
+                                                  )}
+                                                  {pictureItems.length > 0 && (
+                                                    <div className="mt-4">
+                                                      <strong className="text-sm">
+                                                        Pictures:
+                                                      </strong>
+                                                      {pictureItems.map(
+                                                        (item, itemIndex) => (
+                                                          <div
+                                                            key={itemIndex}
+                                                            className="ml-4 mt-3"
+                                                          >
+                                                            {item.pictures &&
+                                                              item.pictures
+                                                                .length > 0 && (
+                                                                <div className="flex gap-2.5 flex-wrap mb-2">
+                                                                  {item.pictures.map(
+                                                                    (
+                                                                      pic,
+                                                                      picIndex
+                                                                    ) => (
+                                                                      <img
+                                                                        key={
+                                                                          picIndex
+                                                                        }
+                                                                        src={
+                                                                          pic.url
+                                                                        }
+                                                                        alt={
+                                                                          pic.filename
+                                                                        }
+                                                                        className="w-[50px] h-[50px] object-cover rounded-[15px] border border-gray-300"
+                                                                      />
+                                                                    )
+                                                                  )}
+                                                                </div>
+                                                              )}
+                                                            <div className="text-sm">
+                                                              Qty:{" "}
+                                                              {formatNum(
+                                                                item.quantity
+                                                              )}
+                                                            </div>
+                                                            {item.note && (
+                                                              <div className="text-sm italic text-gray-500 mt-1">
+                                                                {item.note}
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        )
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                  {linkItems.length > 0 && (
+                                                    <div className="mt-4">
+                                                      <strong className="text-sm">
+                                                        Links:
+                                                      </strong>
+                                                      {linkItems.map(
+                                                        (item, itemIndex) => (
+                                                          <div
+                                                            key={itemIndex}
+                                                            className="ml-4 mt-2"
+                                                          >
+                                                            {item.link && (
+                                                              <div className="text-sm">
+                                                                <a
+                                                                  href={
+                                                                    item.link
+                                                                  }
+                                                                  className="text-[#fc6320] hover:underline break-all line-clamp-1"
+                                                                >
+                                                                  {item.link}
+                                                                </a>
+                                                              </div>
+                                                            )}
+                                                            <div className="text-sm">
+                                                              Qty:{" "}
+                                                              {formatNum(
+                                                                item.quantity
+                                                              )}
+                                                            </div>
+                                                            {item.note && (
+                                                              <div className="text-sm italic text-gray-500 mt-1">
+                                                                {item.note}
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        )
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </ScrollArea>
+                                          </DialogContent>
+                                        </Dialog>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                          Category: {item.category}
+                                        </p>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                          Qty: {quantity}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                      <div
+                                        className="rounded-full flex items-center gap-2 px-[10px] py-[6px] text-[.82rem] font-semibold"
+                                        style={{
+                                          backgroundColor: statusInfo?.bgColor,
+                                          color: statusInfo?.color ?? "#fff",
+                                        }}
+                                      >
+                                        <IconComponent className="size-4" />
+                                        {statusInfo?.text}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })()
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </FadeScrollArea>
                 </CardContent>
               </Card>
             );
