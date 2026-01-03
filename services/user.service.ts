@@ -20,11 +20,14 @@ export const userApi = createApi({
           noLimit?: boolean;
         }
       >({
-        query: ({ page, limit, search }) => {
+        query: ({ page, limit, noLimit, search }) => {
+          console.log({ noLimit });
           return {
             url: `${baseUrlUser}/all?page=${page}${
               limit ? `&limit=${limit}` : ""
-            }${search ? `&search=${search}` : ""}`,
+            }${search ? `&search=${search}` : ""}${
+              noLimit ? `&noLimit=${noLimit}` : ""
+            }`,
             method: "GET",
           };
         },
