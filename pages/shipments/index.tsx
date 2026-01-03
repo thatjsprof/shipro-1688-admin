@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/accordion";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { PaginationState } from "@tanstack/react-table";
+import FadeScrollArea from "@/components/ui/fade-scrollarea";
 type LucideIconName = keyof typeof LucideIcons;
 
 enum OrderStatus {
@@ -359,66 +360,68 @@ const Shipments = () => {
                         </Accordion>
                       </div>
                     )}
-                    <div className="border-t p-6">
-                      <div className="space-y-2">
-                        {shipment.shipmentItems.map((item, idx) => {
-                          const images = item.items
-                            .map((i) => (i.pictures ?? []).map((p) => p.url))
-                            .flat();
-                          const image = images?.[0] ?? item.product?.image;
-                          const nameToUse =
-                            item.name ?? item.product.description;
-                          const quantityToUse =
-                            item.items
-                              .map((i) => i.quantity ?? 0)
-                              .reduce((acc, cur) => (acc += cur), 0) ||
-                            item.quantity;
+                    <div className="border-t">
+                      <FadeScrollArea className="flex gap-3 relative max-h-[30rem]">
+                        <div className="space-y-2 p-6">
+                          {shipment.shipmentItems.map((item, idx) => {
+                            const images = item.items
+                              .map((i) => (i.pictures ?? []).map((p) => p.url))
+                              .flat();
+                            const image = images?.[0] ?? item.product?.image;
+                            const nameToUse =
+                              item.name ?? item.product.description;
+                            const quantityToUse =
+                              item.items
+                                .map((i) => i.quantity ?? 0)
+                                .reduce((acc, cur) => (acc += cur), 0) ||
+                              item.quantity;
 
-                          return (
-                            <div
-                              key={idx}
-                              className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between gap-5 p-3 bg-gray-50 rounded"
-                            >
-                              <div className="flex items-start gap-3">
-                                {image && (
-                                  <img
-                                    src={`${process.env.SERVER_URL}/proxy?url=${image}`}
-                                    className="h-16 w-16 object-cover object-center rounded-lg flex-shrink-0"
-                                  />
-                                )}
-                                <div>
-                                  <span className="hidden sm:inline-block text-gray-900 font-medium">
-                                    {nameToUse}
-                                  </span>
-                                  <p className="sm:hidden text-[.94rem] font-medium sm:font-medium cursor-pointer">
-                                    {nameToUse}
-                                  </p>
-                                  <span className="text-gray-600 block text-sm">
-                                    Qty: {quantityToUse}
-                                  </span>
+                            return (
+                              <div
+                                key={idx}
+                                className="flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between gap-5 p-3 bg-gray-50 rounded"
+                              >
+                                <div className="flex items-start gap-3">
+                                  {image && (
+                                    <img
+                                      src={`${process.env.SERVER_URL}/proxy?url=${image}`}
+                                      className="h-16 w-16 object-cover object-center rounded-lg flex-shrink-0"
+                                    />
+                                  )}
+                                  <div>
+                                    <span className="hidden sm:inline-block text-gray-900 font-medium">
+                                      {nameToUse}
+                                    </span>
+                                    <p className="sm:hidden text-[.94rem] font-medium sm:font-medium cursor-pointer">
+                                      {nameToUse}
+                                    </p>
+                                    <span className="text-gray-600 block text-sm">
+                                      Qty: {quantityToUse}
+                                    </span>
+                                  </div>
                                 </div>
+                                {item.trackingNumber && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs cursor-pointer"
+                                    onClick={() => {
+                                      copyToClipboard({
+                                        id: item.id,
+                                        text: item.trackingNumber,
+                                        message:
+                                          "Tracking number copied to clipboard",
+                                      });
+                                    }}
+                                  >
+                                    <LucideIcons.Copy className="w-4 h-4" />
+                                    {item.trackingNumber}
+                                  </Badge>
+                                )}
                               </div>
-                              {item.trackingNumber && (
-                                <Badge
-                                  variant="outline"
-                                  className="text-xs cursor-pointer"
-                                  onClick={() => {
-                                    copyToClipboard({
-                                      id: item.id,
-                                      text: item.trackingNumber,
-                                      message:
-                                        "Tracking number copied to clipboard",
-                                    });
-                                  }}
-                                >
-                                  <LucideIcons.Copy className="w-4 h-4" />
-                                  {item.trackingNumber}
-                                </Badge>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      </FadeScrollArea>
                     </div>
                   </CardContent>
                 </Card>
