@@ -12,7 +12,7 @@ import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
-import { Mail, Search, X } from "lucide-react";
+import { Copy, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useMemo, useState } from "react";
@@ -35,10 +35,20 @@ const getColumns = (
       cell: ({ row }) => {
         const name = row.original.name;
         return (
-          <div>
-            <div>
-              <p className="mb-1">{name}</p>
-            </div>
+          <div className="flex items-center gap-[0.7rem] text-nowrap h-8 mb-1">
+            <Copy
+              className="size-4 text-gray-600"
+              onClick={(e) => {
+                copyToClipboard({
+                  id: "copy-name",
+                  text: name,
+                  message: "Name copied to clipboard",
+                });
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            />
+            <p>{name}</p>
           </div>
         );
       },
@@ -57,10 +67,20 @@ const getColumns = (
       cell: ({ row }) => {
         const email = row.original.email;
         return (
-          <div>
-            <div>
-              <p className="mb-1">{email}</p>
-            </div>
+          <div className="flex items-center gap-[0.7rem] text-nowrap h-8 mb-1">
+            <Copy
+              className="size-4 text-gray-600"
+              onClick={(e) => {
+                copyToClipboard({
+                  id: "copy-email",
+                  text: email,
+                  message: "Email copied to clipboard",
+                });
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            />
+            <p>{email}</p>
           </div>
         );
       },
@@ -79,7 +99,19 @@ const getColumns = (
       cell: ({ row }) => {
         const phoneNumber = row.original.phoneNumber;
         return (
-          <div>
+          <div className="flex items-center gap-[0.7rem] text-nowrap h-8 mb-1">
+            <Copy
+              className="size-4 text-gray-600"
+              onClick={(e) => {
+                copyToClipboard({
+                  id: "copy-phone",
+                  text: phoneNumber,
+                  message: "Phone number copied to clipboard",
+                });
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            />
             {phoneNumber ? <p className="mb-1">{phoneNumber}</p> : <p>---</p>}
           </div>
         );

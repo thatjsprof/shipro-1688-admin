@@ -60,7 +60,7 @@ const getColumns = (
       cell: ({ row }) => {
         const trackingNumber = row.getValue<string>("trackingNumber");
         return trackingNumber ? (
-          <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
+          <div className="flex items-center gap-[0.7rem] text-nowrap h-8">
             <Copy
               className="size-4"
               onClick={(e) => {
