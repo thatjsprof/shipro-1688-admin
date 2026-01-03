@@ -1,4 +1,5 @@
 import {
+  AirLocation,
   OrderEmails,
   OrderOrigin,
   OrderStatus,
@@ -86,6 +87,37 @@ export const typeNames: Record<OrderType | string, string> = {
 export const originNames: Record<OrderOrigin | string, string> = {
   [OrderOrigin.NORMAL]: "Normal",
   [OrderOrigin.SOURCING]: "Sourcing",
+};
+
+export const airLocationInfo: Partial<
+  Record<
+    AirLocation | string,
+    {
+      icon: string;
+      bgColor: string;
+      color: string;
+      text: string;
+    }
+  >
+> = {
+  [AirLocation.EXPRESS]: {
+    icon: "PencilLine",
+    bgColor: "#F59E0B",
+    color: "#fff",
+    text: "Express",
+  },
+  [AirLocation.GZ]: {
+    icon: "PackagePlus",
+    bgColor: "#10B981",
+    color: "#fff",
+    text: "GZ",
+  },
+  [AirLocation.HK]: {
+    icon: "PackagePlus",
+    bgColor: "#06B6D4",
+    color: "#fff",
+    text: "HK",
+  },
 };
 
 export const orderStatusInfo: Partial<

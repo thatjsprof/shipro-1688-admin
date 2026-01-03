@@ -255,6 +255,20 @@ const ShipmentDialog = ({
                             GZ
                           </Button>
                         )}
+                        <Button
+                          type="button"
+                          variant={"outline"}
+                          className={cn(
+                            "flex-1 h-11 shadow-none",
+                            airLocation === AirLocation.EXPRESS &&
+                              "!border-primary"
+                          )}
+                          onClick={() =>
+                            handleSelectAirLocation(AirLocation.EXPRESS)
+                          }
+                        >
+                          Express
+                        </Button>
                       </div>
                     </div>
                     {errors.airLocation && (

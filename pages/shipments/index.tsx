@@ -6,17 +6,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IOrder, OrderType } from "@/interfaces/order.interface";
+import {
+  AirLocation,
+  IOrder,
+  OrderType,
+  ShippingType,
+} from "@/interfaces/order.interface";
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
 import { ChangeEvent, useCallback, useState } from "react";
 import * as LucideIcons from "lucide-react";
-import { orderStatusInfo } from "@/lib/constants";
+import { airLocationInfo, orderStatusInfo } from "@/lib/constants";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
-import { formatNum } from "@/lib/utils";
+import { cn, formatNum } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Input } from "@/components/ui/input";
@@ -82,6 +87,19 @@ export function AddressCard({ address }: { address: IAddress }) {
     </div>
   );
 }
+
+const AirTypePill = ({ location }: { location: AirLocation }) => {
+  const dets = airLocationInfo[location];
+  return (
+    <Badge
+      style={{
+        backgroundColor: dets?.bgColor,
+      }}
+    >
+      {dets?.text}
+    </Badge>
+  );
+};
 
 const Shipments = () => {
   const { copyToClipboard } = useCopy();
@@ -237,6 +255,23 @@ const Shipments = () => {
                           <LucideIcons.User className="w-4 h-4" />
                           Owned by {shipment.user?.name}
                         </p>
+                        {shipment.shippingType && (
+                          <div className="mt-2">
+                            {shipment.airLocation ? (
+                              <AirTypePill location={shipment.airLocation} />
+                            ) : shipment.shippingType === ShippingType.SEA ? (
+                              <Badge
+                                style={{
+                                  backgroundColor: "#10B981",
+                                }}
+                              >
+                                Sea
+                              </Badge>
+                            ) : (
+                              ""
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {IconComponent && (

@@ -15,6 +15,7 @@ export enum ShippingType {
 export enum AirLocation {
   HK = "HK",
   GZ = "GZ",
+  EXPRESS = "EXPRESS",
 }
 
 export enum OrderOrigin {
