@@ -79,6 +79,7 @@ export interface IOrderItem {
   emailsSent: Record<OrderStatus, string[]>;
   category: string;
   timeArrivedInWarehouse: Date;
+  dateOrdered: Date;
   note: string;
   items: {
     type: "picture" | "link";

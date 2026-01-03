@@ -138,6 +138,7 @@ export const orderApi = createApi({
           data: {
             status?: OrderStatus;
             timeArrivedInWarehouse?: Date;
+            dateOrdered?: Date;
             trackingNumber?: string;
             images?: {
               filename: string;

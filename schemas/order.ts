@@ -13,6 +13,7 @@ export const orderSchema = z.object({
     )
     .optional(),
   arrivedWarehouse: z.date().optional(),
+  dateOrdered: z.date().optional(),
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
   orderAmount: z.string().optional(),

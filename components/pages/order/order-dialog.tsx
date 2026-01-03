@@ -111,7 +111,6 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
   const { errors } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof orderSchema>) => {
-    console.log("iunfe");
     try {
       const weight = values["packageWeight"];
       const orderAmount = values["orderAmount"];
@@ -123,6 +122,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         data: {
           status: values["status"] || undefined,
           timeArrivedInWarehouse: values["arrivedWarehouse"] || undefined,
+          dateOrdered: values["dateOrdered"] || undefined,
           trackingNumber: values["trackingNumber"] || undefined,
           ...(orders.length === 1 && {
             images: images.length > 0 ? images : undefined,
@@ -150,6 +150,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       orders: [],
       pictures: [],
       arrivedWarehouse: undefined,
+      dateOrdered: undefined,
       packageWeight: "",
       trackingNumber: "",
       orderAmount: "",
@@ -165,6 +166,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const pictures = order.images ?? [];
       const arrivedWarehouse = order.timeArrivedInWarehouse
         ? new Date(order.timeArrivedInWarehouse)
+        : undefined;
+      const dateOrdered = order.dateOrdered
+        ? new Date(order.dateOrdered)
         : undefined;
       const packageWeight = order.packageWeight || "";
       const orderAmount = order.orderAmount || "";
@@ -184,6 +188,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         status,
         pictures,
         arrivedWarehouse,
+        dateOrdered,
         packageWeight: packageWeight?.toString() ?? "",
         orderAmount: orderAmount?.toString() ?? "",
         trackingNumber,
@@ -448,6 +453,29 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                         </FormItem>
                       );
                     }}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dateOrdered"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel htmlFor="dateOrdered">
+                          Date Ordered
+                        </FormLabel>
+                        <div className="flex flex-col space-y-1">
+                          <FormControl>
+                            <DatePicker
+                              {...field}
+                              enableTime
+                              onChange={(date) => {
+                                field.onChange(date);
+                              }}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </div>
+                      </FormItem>
+                    )}
                   />
                   <FormField
                     control={form.control}
