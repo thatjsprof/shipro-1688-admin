@@ -412,13 +412,13 @@ const AddOrderDialog = () => {
                                       <NumericFormat
                                         type="text"
                                         {...field}
-                                        name={`items.${idx}.quantity`}
-                                        autoCapitalize="none"
                                         autoCorrect="off"
                                         placeholder="Quantity"
                                         displayType="input"
                                         decimalSeparator="."
+                                        autoCapitalize="none"
                                         allowNegative={false}
+                                        name={`items.${idx}.quantity`}
                                         error={!!errors?.items?.[idx]?.quantity}
                                         thousandSeparator=","
                                         onValueChange={(values) => {
@@ -496,7 +496,8 @@ const AddOrderDialog = () => {
                                     <FormControl>
                                       <NumericFormat
                                         type="text"
-                                        {...field}
+                                        value={field.value}
+                                        disabled={field.disabled}
                                         name={`items.${idx}.orderAmount`}
                                         autoCapitalize="none"
                                         autoCorrect="off"
@@ -541,7 +542,8 @@ const AddOrderDialog = () => {
                                     <FormControl>
                                       <NumericFormat
                                         type="text"
-                                        {...field}
+                                        value={field.value}
+                                        disabled={field.disabled}
                                         name={`items.${idx}.packageWeight`}
                                         autoCapitalize="none"
                                         autoCorrect="off"
@@ -555,7 +557,9 @@ const AddOrderDialog = () => {
                                         }
                                         thousandSeparator=","
                                         onValueChange={(values) => {
-                                          if (!values.floatValue) return;
+                                          console.log(values);
+
+                                          if (!values.value) return;
                                           form.setValue(
                                             `items.${idx}.packageWeight`,
                                             values.value

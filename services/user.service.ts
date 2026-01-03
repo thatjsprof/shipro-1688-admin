@@ -21,7 +21,6 @@ export const userApi = createApi({
         }
       >({
         query: ({ page, limit, noLimit, search }) => {
-          console.log({ noLimit });
           return {
             url: `${baseUrlUser}/all?page=${page}${
               limit ? `&limit=${limit}` : ""
