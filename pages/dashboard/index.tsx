@@ -19,7 +19,7 @@ const Dashboard = () => {
       </div>
       <div className="mt-10">
         <h2 className="text-lg font-semibold mb-5">Payment Information</h2>
-        <div className="-ml-12">
+        <div className="-ml-8">
           <PaymentChart />
         </div>
       </div>
