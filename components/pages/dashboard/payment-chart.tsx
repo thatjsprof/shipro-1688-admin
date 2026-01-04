@@ -65,7 +65,7 @@ const PaymentChart = () => {
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
-            dataKey="month"
+            dataKey="monthYear"
             stroke="#6b7280"
             style={{ fontSize: "12px" }}
           />
