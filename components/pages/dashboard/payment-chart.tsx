@@ -37,14 +37,23 @@ const CustomTooltip = ({
   label,
 }: TooltipContentProps<ValueType, NameType>) => {
   if (active && payload && payload.length) {
+    const dataPoint = payload[0]?.payload;
+
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
         <p className="font-semibold text-sm mb-1">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} className="text-sm" style={{ color: entry.color }}>
-            {entry.name}: ₦{entry.value.toLocaleString()}
-          </p>
-        ))}
+        {payload.map((entry, index) => {
+          const year =
+            entry.dataKey === "currentAmount"
+              ? dataPoint?.currentYear
+              : dataPoint?.previousYear;
+
+          return (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {label} {year}: ₦{(entry.value as number).toLocaleString()}
+            </p>
+          );
+        })}
       </div>
     );
   }
@@ -56,6 +65,35 @@ const PaymentChart = () => {
   const { data } = useGetPaymentStatsQuery();
   const paymentStats = data?.data || [];
 
+  const getYearRangeLabel = () => {
+    if (paymentStats.length === 0) {
+      const currentYear = new Date().getFullYear();
+      return {
+        current: `${currentYear}`,
+        previous: `${currentYear - 1}`,
+      };
+    }
+
+    const firstMonth = paymentStats[0];
+    const lastMonth = paymentStats[paymentStats.length - 1];
+
+    const currentSpansYears =
+      firstMonth?.currentYear !== lastMonth?.currentYear;
+    const previousSpansYears =
+      firstMonth?.previousYear !== lastMonth?.previousYear;
+
+    return {
+      current: currentSpansYears
+        ? `${firstMonth?.currentYear}-${lastMonth?.currentYear}`
+        : `${lastMonth?.currentYear}`,
+      previous: previousSpansYears
+        ? `${firstMonth?.previousYear}-${lastMonth?.previousYear}`
+        : `${lastMonth?.previousYear}`,
+    };
+  };
+
+  const yearLabels = getYearRangeLabel();
+
   return (
     <div>
       <ResponsiveContainer width="100%" height={belowSm ? 300 : 400}>
@@ -65,7 +103,7 @@ const PaymentChart = () => {
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
-            dataKey="monthYear"
+            dataKey="month"
             stroke="#6b7280"
             style={{ fontSize: "12px" }}
           />
@@ -81,7 +119,7 @@ const PaymentChart = () => {
             dataKey="currentAmount"
             stroke="#3b82f6"
             strokeWidth={2.5}
-            name="Current Year"
+            name={yearLabels.current}
             dot={{ fill: "#3b82f6", r: 4 }}
             activeDot={{ r: 6 }}
           />
@@ -91,7 +129,7 @@ const PaymentChart = () => {
             stroke="#94a3b8"
             strokeWidth={2}
             strokeDasharray="5 5"
-            name="Previous Year"
+            name={yearLabels.previous}
             dot={{ fill: "#94a3b8", r: 3 }}
           />
         </LineChart>

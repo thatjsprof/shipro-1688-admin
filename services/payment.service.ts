@@ -63,6 +63,8 @@ export const paymentApi = createApi({
             currentAmount: number;
             previousAmount: number;
             monthYear: string;
+            currentYear: number;
+            previousYear: number;
           }[]
         >,
         void
