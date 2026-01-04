@@ -2,18 +2,36 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import { ISetting } from "@/interfaces/app.interface";
 
-const baseUrl = "/setting";
+const baseUrl = "/";
 
 export const settingApi = createApi({
   reducerPath: "rtk:setting",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetSettings"],
+  tagTypes: ["GetSettings", "GetStatistics"],
   endpoints: (builder) => {
     return {
+      getDashboard: builder.query<
+        ApiResponse<{
+          thisMonth: number;
+          allTimeOrders: number;
+          pendingOrders: number;
+          allTimeTotalPayments: number;
+        }>,
+        void
+      >({
+        query: (body) => {
+          return {
+            url: `/statistics`,
+            method: "GET",
+            body,
+          };
+        },
+        providesTags: ["GetStatistics"],
+      }),
       getSettings: builder.query<ApiResponse<ISetting>, void>({
         query: (body) => {
           return {
-            url: `${baseUrl}`,
+            url: `/setting`,
             method: "GET",
             body,
           };
@@ -24,7 +42,7 @@ export const settingApi = createApi({
         {
           query: (data) => {
             return {
-              url: `${baseUrl}`,
+              url: `/setting`,
               method: "PATCH",
               body: data,
             };
@@ -39,4 +57,5 @@ export const {
   useGetSettingsQuery,
   useLazyGetSettingsQuery,
   useUpdateSettingMutation,
+  useGetDashboardQuery,
 } = settingApi;
