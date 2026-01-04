@@ -16,6 +16,21 @@ import {
   ValueType,
 } from "recharts/types/component/DefaultTooltipContent";
 
+const formatNaira = (value: number) => {
+  const units = ["", "k", "m", "b", "t"];
+  let unitIndex = 0;
+  let scaled = value;
+
+  while (scaled >= 1000 && unitIndex < units.length - 1) {
+    scaled /= 1000;
+    unitIndex++;
+  }
+
+  return `₦${scaled.toFixed(scaled < 10 && unitIndex > 0 ? 1 : 0)}${
+    units[unitIndex]
+  }`;
+};
+
 const CustomTooltip = ({
   active,
   payload,
@@ -57,7 +72,7 @@ const PaymentChart = () => {
           <YAxis
             stroke="#6b7280"
             style={{ fontSize: "12px" }}
-            tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
+            tickFormatter={(value) => formatNaira(value)}
           />
           <Tooltip content={(props) => <CustomTooltip {...props} />} />
           <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
