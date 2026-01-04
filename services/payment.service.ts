@@ -12,7 +12,13 @@ const baseUrl = "/admin/payment";
 export const paymentApi = createApi({
   reducerPath: "rtk:payment",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetPayments", "GetOrders", "GetAllPayments", "GetPaymentSums"],
+  tagTypes: [
+    "GetPayments",
+    "GetOrders",
+    "GetAllPayments",
+    "GetPaymentSums",
+    "GetPaymentStats",
+  ],
   endpoints: (builder) => {
     return {
       getPayments: builder.query<
@@ -49,6 +55,25 @@ export const paymentApi = createApi({
           };
         },
         providesTags: ["GetPaymentSums"],
+      }),
+      getPaymentStats: builder.query<
+        ApiResponse<
+          {
+            month: string;
+            currentAmount: number;
+            previousAmount: number;
+          }[]
+        >,
+        void
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/statistics`,
+            method: "GET",
+            body,
+          };
+        },
+        providesTags: ["GetPaymentStats"],
       }),
       getAllPayments: builder.query<
         ApiResponse<PaginatedResult<IPayment[]>>,
@@ -129,4 +154,5 @@ export const {
   useCreatePaymentMutation,
   useUpdatePaymentMutation,
   useGetPaymentsQuery,
+  useGetPaymentStatsQuery,
 } = paymentApi;

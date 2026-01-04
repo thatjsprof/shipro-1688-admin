@@ -52,6 +52,7 @@
     "react-number-format": "^5.4.4",
     "react-phone-number-input": "^3.4.12",
     "react-redux": "^9.2.0",
+    "recharts": "^3.6.0",
     "redux-persist": "^6.0.0",
     "shipro-country-state-city": "^0.0.1",
     "tailwind-merge": "^3.3.1",

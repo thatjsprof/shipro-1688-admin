@@ -1,3 +1,5 @@
+import PaymentChart from "@/components/pages/dashboard/payment-chart";
+
 const Dashboard = () => {
   return (
     <div className="mt-6">
@@ -16,7 +18,10 @@ const Dashboard = () => {
         </div>
       </div>
       <div className="mt-10">
-        <h2 className="text-lg font-semibold mb-3 ">Recent Shipments</h2>
+        <h2 className="text-lg font-semibold mb-5">Payment Information</h2>
+        <div className="-ml-12">
+          <PaymentChart />
+        </div>
       </div>
     </div>
   );
