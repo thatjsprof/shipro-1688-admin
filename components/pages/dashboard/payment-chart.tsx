@@ -65,35 +65,6 @@ const PaymentChart = () => {
   const { data } = useGetPaymentStatsQuery();
   const paymentStats = data?.data || [];
 
-  const getYearRangeLabel = () => {
-    if (paymentStats.length === 0) {
-      const currentYear = new Date().getFullYear();
-      return {
-        current: `${currentYear}`,
-        previous: `${currentYear - 1}`,
-      };
-    }
-
-    const firstMonth = paymentStats[0];
-    const lastMonth = paymentStats[paymentStats.length - 1];
-
-    const currentSpansYears =
-      firstMonth?.currentYear !== lastMonth?.currentYear;
-    const previousSpansYears =
-      firstMonth?.previousYear !== lastMonth?.previousYear;
-
-    return {
-      current: currentSpansYears
-        ? `${firstMonth?.currentYear}-${lastMonth?.currentYear}`
-        : `${lastMonth?.currentYear}`,
-      previous: previousSpansYears
-        ? `${firstMonth?.previousYear}-${lastMonth?.previousYear}`
-        : `${lastMonth?.previousYear}`,
-    };
-  };
-
-  const yearLabels = getYearRangeLabel();
-
   return (
     <div>
       <ResponsiveContainer width="100%" height={belowSm ? 300 : 400}>
@@ -119,7 +90,7 @@ const PaymentChart = () => {
             dataKey="currentAmount"
             stroke="#3b82f6"
             strokeWidth={2.5}
-            name={yearLabels.current}
+            name="Current Year"
             dot={{ fill: "#3b82f6", r: 4 }}
             activeDot={{ r: 6 }}
           />
@@ -129,7 +100,7 @@ const PaymentChart = () => {
             stroke="#94a3b8"
             strokeWidth={2}
             strokeDasharray="5 5"
-            name={yearLabels.previous}
+            name="Previous Year"
             dot={{ fill: "#94a3b8", r: 3 }}
           />
         </LineChart>
