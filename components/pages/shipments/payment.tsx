@@ -46,6 +46,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
@@ -78,9 +79,11 @@ const unitsMap: Record<string, { prefix: string; suffix: string }> = {
 const Payment = ({ order, setOpen }: IPaymentComp) => {
   const settings = useAppSelector((state) => state.app.setting);
   const [payment, setPayment] = useState<IPayment | undefined>();
-  const [packageWeight, setPackageWeight] = useState<number>(
-    order?.packageWeight ?? 1
+  const [packageWeight, setPackageWeight] = useState<number | undefined>(
+    order?.packageWeight
   );
+  const hasInitializedRef = useRef(false);
+
   const { data } = useGetPaymentsQuery(
     { noLimit: true, orderId: order?.id ?? "" },
     { skip: !order?.id }
@@ -105,7 +108,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   });
 
   const { control, watch, setValue } = form;
-  const { fields, remove } = useFieldArray({
+  const { fields, remove, replace } = useFieldArray({
     control,
     name: "paymentBreakdown",
   });
@@ -115,13 +118,8 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       ? settings?.hkPrice
       : settings?.gzPrice;
 
-  useEffect(() => {
-    if (order?.packageWeight) {
-      setPackageWeight(order.packageWeight);
-    }
-  }, [order?.packageWeight]);
-
   const calculateBreakdownValues = useCallback(() => {
+    const weight = packageWeight ?? 0;
     return defaultBreakdown.map((b) => {
       let unit = "0";
       let calculatedValue = "0";
@@ -129,11 +127,11 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       switch (b.value) {
         case IBreakdown.freight:
           unit = (price ?? 0).toString();
-          calculatedValue = ((price ?? 0) * packageWeight).toString();
+          calculatedValue = ((price ?? 0) * weight).toString();
           break;
         case IBreakdown.clearance:
           unit = "1000";
-          calculatedValue = (1000 * packageWeight).toString();
+          calculatedValue = (1000 * weight).toString();
           break;
         case IBreakdown.packing_fee:
           unit = "1";
@@ -150,88 +148,128 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   }, [price, packageWeight]);
 
   const recalculateWithCurrentSettings = useCallback(() => {
-    const calculated = calculateBreakdownValues();
+    // Reset to original order package weight
+    if (order?.packageWeight) {
+      setPackageWeight(order.packageWeight);
+    }
+
+    const weight = order?.packageWeight ?? 0;
+    const calculated = defaultBreakdown.map((b) => {
+      let unit = "0";
+      let calculatedValue = "0";
+
+      switch (b.value) {
+        case IBreakdown.freight:
+          unit = (price ?? 0).toString();
+          calculatedValue = ((price ?? 0) * weight).toString();
+          break;
+        case IBreakdown.clearance:
+          unit = "1000";
+          calculatedValue = (1000 * weight).toString();
+          break;
+        case IBreakdown.packing_fee:
+          unit = "1";
+          calculatedValue = "1";
+          break;
+      }
+
+      return {
+        ...b,
+        unit,
+        calculatedValue,
+      };
+    });
 
     calculated.forEach((item, idx) => {
       setValue(`paymentBreakdown.${idx}.unit`, item.unit, {
-        shouldValidate: true,
+        shouldValidate: false,
         shouldDirty: true,
       });
       setValue(
         `paymentBreakdown.${idx}.calculatedValue`,
         item.calculatedValue,
         {
-          shouldValidate: true,
+          shouldValidate: false,
           shouldDirty: true,
         }
       );
     });
-  }, [calculateBreakdownValues, setValue]);
+  }, [order?.packageWeight, price, setValue]);
 
+  // Initialize form only once when order changes
   useEffect(() => {
-    if (!order?.id || payment) return;
+    if (!order?.id) return;
 
-    const calculated = calculateBreakdownValues();
-    form.reset({
-      description: "",
-      amount: "",
-      status: PaymentStatus.PENDING,
-      code: "",
-      sendEmail: false,
-      redirectLink: "",
-      paymentBreakdown: calculated,
-    });
-  }, [order?.id, order?.orderNumber, payment, calculateBreakdownValues, form]);
+    if (payment) {
+      const breakdown = payment.paymentBreakdown?.length
+        ? payment.paymentBreakdown
+        : calculateBreakdownValues();
 
+      form.reset({
+        description: payment.description || "",
+        amount: payment.baseAmount.toString(),
+        status: payment.status as PaymentStatus,
+        code: (payment.code as PaymentCodes) || "",
+        sendEmail: false,
+        redirectLink: "",
+        paymentBreakdown: breakdown,
+      });
+      hasInitializedRef.current = true;
+    } else if (!hasInitializedRef.current) {
+      const calculated = calculateBreakdownValues();
+      form.reset({
+        description: "",
+        amount: "",
+        status: PaymentStatus.PENDING,
+        code: "",
+        sendEmail: false,
+        redirectLink: "",
+        paymentBreakdown: calculated,
+      });
+      hasInitializedRef.current = true;
+    }
+  }, [order?.id, payment]);
+
+  // Update package weight when order changes
   useEffect(() => {
-    if (!payment) return;
+    if (order?.packageWeight) {
+      setPackageWeight(order.packageWeight);
+    }
+  }, [order?.packageWeight]);
 
-    const breakdown = payment.paymentBreakdown?.length
-      ? payment.paymentBreakdown
-      : calculateBreakdownValues();
-
-    form.reset({
-      description: payment.description || "",
-      amount: payment.baseAmount.toString(),
-      status: payment.status as PaymentStatus,
-      code: (payment.code as PaymentCodes) || "",
-      sendEmail: false,
-      redirectLink: "",
-      paymentBreakdown: breakdown,
-    });
-  }, [payment, calculateBreakdownValues, form, order?.orderNumber]);
-
-  const watchedBreakdowns = useWatch({ control, name: "paymentBreakdown" });
   const code = watch("code");
+  const watchedBreakdowns = useWatch({ control, name: "paymentBreakdown" });
 
+  // Auto-calculate breakdown values when unit changes
   useEffect(() => {
     if (code !== PaymentCodes.SHIPPING_FEE || !watchedBreakdowns) return;
 
-    const timer = setTimeout(() => {
-      watchedBreakdowns.forEach((item: any, idx: number) => {
-        const unit = Number(item?.unit);
-        if (!Number.isFinite(unit)) return;
+    const weight = packageWeight ?? 0;
+    watchedBreakdowns.forEach((item: any, idx: number) => {
+      const unit = Number(item?.unit);
+      if (!Number.isFinite(unit)) return;
 
-        let calc = unit;
-        if (
-          item.value === IBreakdown.freight ||
-          item.value === IBreakdown.clearance
-        ) {
-          calc = unit * packageWeight;
-        }
+      let calc = unit;
+      if (
+        item.value === IBreakdown.freight ||
+        item.value === IBreakdown.clearance
+      ) {
+        calc = unit * weight;
+      }
 
-        const newVal = calc.toFixed(2);
-        if (item.calculatedValue !== newVal) {
-          setValue(`paymentBreakdown.${idx}.calculatedValue`, newVal, {
-            shouldValidate: false,
-            shouldDirty: true,
-          });
-        }
-      });
-    }, 100);
+      const newVal = calc.toFixed(2);
+      const currentVal = form.getValues(
+        `paymentBreakdown.${idx}.calculatedValue`
+      );
 
-    return () => clearTimeout(timer);
-  }, [watchedBreakdowns, packageWeight, code, setValue]);
+      if (currentVal !== newVal) {
+        setValue(`paymentBreakdown.${idx}.calculatedValue`, newVal, {
+          shouldValidate: false,
+          shouldDirty: false,
+        });
+      }
+    });
+  }, [watchedBreakdowns, code, packageWeight, setValue, form]);
 
   const getUnits = useCallback(
     (value: string) => unitsMap[value] || { prefix: "", suffix: "" },
@@ -282,6 +320,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           })),
         });
         setPayment(undefined);
+        hasInitializedRef.current = false;
         notify(res.message, "success");
       } else {
         notify(res.message, "error");
@@ -502,8 +541,11 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                       thousandSeparator=","
                       decimalSeparator="."
                       allowNegative={false}
-                      value={packageWeight}
-                      onValueChange={(v) => setPackageWeight(v.floatValue ?? 1)}
+                      decimalScale={2}
+                      value={packageWeight ?? ""}
+                      onValueChange={(v) => {
+                        setPackageWeight(v.floatValue);
+                      }}
                       customInput={Input}
                       className="h-10 w-32"
                       placeholder="Weight"
