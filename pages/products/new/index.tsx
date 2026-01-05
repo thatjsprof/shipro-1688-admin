@@ -174,6 +174,10 @@ const Product = () => {
     form.reset(converted);
   }, [productData?.data]);
 
+  useEffect(() => {
+    document.title = `Product Details | Shipro Africa`;
+  }, []);
+
   return (
     <div className="py-8">
       <Link href="/products">

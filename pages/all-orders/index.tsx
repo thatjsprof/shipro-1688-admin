@@ -15,7 +15,7 @@ import { PaymentStatus } from "@/interfaces/payment.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
-import { ChangeEvent, useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { format } from "date-fns";
 import { formatNum } from "@/lib/utils";
@@ -85,6 +85,10 @@ const AllOrders = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  useEffect(() => {
+    document.title = `All Orders | Shipro Africa`;
+  }, []);
 
   return (
     <div className="max-w-4xl mt-7">

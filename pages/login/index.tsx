@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { signinSchema } from "../../schemas/auth";
@@ -52,6 +52,10 @@ const Login = () => {
       else notify("Sorry, we could not log you in", "error");
     }
   };
+
+  useEffect(() => {
+    document.title = `Login | Shipro Africa`;
+  }, []);
 
   return (
     <div className="flex flex-col gap-6 h-screen items-center justify-center">

@@ -13,7 +13,7 @@ import debounce from "lodash.debounce";
 import { Eye, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChangeEvent, useCallback, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
@@ -264,6 +264,10 @@ const Products = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  useEffect(() => {
+    document.title = `Products | Shipro Africa`;
+  }, []);
 
   return (
     <div className="mt-7">

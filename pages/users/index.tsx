@@ -15,7 +15,7 @@ import debounce from "lodash.debounce";
 import { Copy, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChangeEvent, useCallback, useMemo, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
@@ -262,6 +262,10 @@ const Users = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  useEffect(() => {
+    document.title = `Users | Shipro Africa`;
+  }, []);
 
   return (
     <div className="mt-7">

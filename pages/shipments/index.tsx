@@ -15,7 +15,7 @@ import {
 import useCopy from "@/lib/copy";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
-import { ChangeEvent, useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { airLocationInfo, orderStatusInfo } from "@/lib/constants";
 import { format } from "date-fns";
@@ -147,6 +147,10 @@ const Shipments = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  useEffect(() => {
+    document.title = `Shipments | Shipro Africa`;
+  }, []);
 
   return (
     <div className="max-w-4xl mt-7">

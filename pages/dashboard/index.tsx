@@ -3,10 +3,15 @@ import MetricPill from "@/components/shared/metric-pill";
 import { formatNum } from "@/lib/utils";
 import { useGetDashboardQuery } from "@/services/management.service";
 import { Clock, ShoppingBag, ShoppingBasket, Wallet } from "lucide-react";
+import { useEffect } from "react";
 
 const Dashboard = () => {
   const { data, isLoading } = useGetDashboardQuery();
   const stats = data?.data;
+
+  useEffect(() => {
+    document.title = `Dashboard | Shipro Africa`;
+  }, []);
 
   return (
     <div className="mt-6">

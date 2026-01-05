@@ -340,6 +340,10 @@ const RMBPurchase = () => {
     }
   };
 
+  useEffect(() => {
+    document.title = `RMB Purchase | Shipro Africa`;
+  }, []);
+
   return (
     <div className="mt-7">
       <div className="flex items-center gap-3 justify-between">

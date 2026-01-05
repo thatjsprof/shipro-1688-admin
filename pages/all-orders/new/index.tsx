@@ -233,7 +233,7 @@ const NewOrder = () => {
     TAB_FIELD_MAP[tab].some((fieldPath) => !!getErrorByPath(fieldPath));
 
   useEffect(() => {
-    document.title = `Orders | Shipro Africa`;
+    document.title = `New Order | Shipro Africa`;
   }, []);
 
   return (

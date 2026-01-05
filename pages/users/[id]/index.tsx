@@ -22,7 +22,7 @@ const User = () => {
   });
 
   useEffect(() => {
-    document.title = `Users | Shipro Africa`;
+    document.title = `User Details | Shipro Africa`;
   }, []);
 
   return (

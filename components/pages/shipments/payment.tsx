@@ -78,6 +78,9 @@ const unitsMap: Record<string, { prefix: string; suffix: string }> = {
 const Payment = ({ order, setOpen }: IPaymentComp) => {
   const settings = useAppSelector((state) => state.app.setting);
   const [payment, setPayment] = useState<IPayment | undefined>();
+  const [packageWeight, setPackageWeight] = useState<number>(
+    order?.packageWeight ?? 1
+  );
   const { data } = useGetPaymentsQuery(
     { noLimit: true, orderId: order?.id ?? "" },
     { skip: !order?.id }
@@ -107,11 +110,16 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     name: "paymentBreakdown",
   });
 
-  const packageWeight = order?.packageWeight ?? 1;
   const price =
     order?.airLocation === AirLocation.HK
       ? settings?.hkPrice
       : settings?.gzPrice;
+
+  useEffect(() => {
+    if (order?.packageWeight) {
+      setPackageWeight(order.packageWeight);
+    }
+  }, [order?.packageWeight]);
 
   const calculateBreakdownValues = useCallback(() => {
     return defaultBreakdown.map((b) => {
@@ -483,16 +491,33 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           </div>
           {code === PaymentCodes.SHIPPING_FEE && fields.length > 0 && (
             <div className="mt-6">
-              <div className="flex items-end justify-between mb-4">
+              <div className="flex items-end justify-between mb-4 gap-4">
                 <FormLabel>Payment Breakdown</FormLabel>
-                <Button
-                  className="shadow-none"
-                  variant="outline"
-                  type="button"
-                  onClick={recalculateWithCurrentSettings}
-                >
-                  Recalculate
-                </Button>
+                <div className="flex items-end gap-2">
+                  <div className="flex flex-col gap-1">
+                    <FormLabel className="text-xs">
+                      Package Weight (KG)
+                    </FormLabel>
+                    <NumericFormat
+                      thousandSeparator=","
+                      decimalSeparator="."
+                      allowNegative={false}
+                      value={packageWeight}
+                      onValueChange={(v) => setPackageWeight(v.floatValue ?? 1)}
+                      customInput={Input}
+                      className="h-10 w-32"
+                      placeholder="Weight"
+                    />
+                  </div>
+                  <Button
+                    className="shadow-none h-10"
+                    variant="outline"
+                    type="button"
+                    onClick={recalculateWithCurrentSettings}
+                  >
+                    Recalculate
+                  </Button>
+                </div>
               </div>
               <div className="space-y-3 mt-2">
                 {fields.map((field, index) => {

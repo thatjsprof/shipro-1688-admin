@@ -29,6 +29,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -264,6 +265,10 @@ const Payments = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  useEffect(() => {
+    document.title = `Payments | Shipro Africa`;
+  }, []);
 
   return (
     <div className="mt-7">
