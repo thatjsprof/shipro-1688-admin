@@ -54,14 +54,14 @@ export function NavUser() {
             sideOffset={4}
           >
             <DropdownMenuGroup className="p-0">
-              <DropdownMenuItem className="font-medium h-11 cursor-pointer">
+              <DropdownMenuItem className="font-medium h-11 cursor-pointer rounded-none">
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="p-0 m-0" />
             <DropdownMenuItem
-              className="font-medium h-11 cursor-pointer"
+              className="font-medium h-11 cursor-pointer rounded-none"
               onClick={() => logout()}
             >
               <LogOut />
