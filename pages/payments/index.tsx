@@ -1,7 +1,7 @@
+import { EditPaymentDialog } from "@/components/pages/payment/edit-payment-dialog";
 import MetricPill from "@/components/shared/metric-pill";
 import { PaymentStatusPill } from "@/components/shared/status-pill";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -243,6 +243,9 @@ const Payments = () => {
     { value: PaymentStatus; label: string }[]
   >([{ value: PaymentStatus.SUCCESSFUL, label: PaymentStatus.SUCCESSFUL }]);
   const [debouncedValue, setDebouncedValue] = useState("");
+  const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [paymentToEdit, setPaymentToEdit] = useState<IPayment | null>(null);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
     pageSize: 20,
@@ -286,6 +289,21 @@ const Payments = () => {
     setDebouncedValue("");
     setSearchValue("");
   };
+
+  const handleSelectedRowsChange = useCallback((rows: IPayment[]) => {
+    if (rows.length > 0) {
+      setPaymentToEdit(rows[0]);
+      setEditDialogOpen(true);
+    }
+  }, []);
+
+  const handleEditDialogClose = useCallback((open: boolean) => {
+    setEditDialogOpen(open);
+    if (!open) {
+      setPaymentToEdit(null);
+      setRowSelect({});
+    }
+  }, []);
 
   useEffect(() => {
     document.title = `Payments | Shipro Africa`;
@@ -340,11 +358,21 @@ const Payments = () => {
           showSelected={false}
           setPagination={setPagination}
           showPagination={false}
+          getRowId={(row) => row.id}
+          rowSelection={rowSelect}
+          setRowSelection={setRowSelect}
+          rowClick={(row) => handleSelectedRowsChange([row.original])}
           headerRowClassname="hover:bg-transparent"
           headerSubClassname="!px-0"
           wrapperCls="col-span-12 w-full"
           customEmpty="No payments found"
           className="border-none rounded-none"
+        />
+        <EditPaymentDialog
+          open={editDialogOpen}
+          onOpenChange={handleEditDialogClose}
+          payment={paymentToEdit}
+          onSuccess={() => setRowSelect({})}
         />
         <div className="mt-7 col-span-12">
           <AdvancedPagination

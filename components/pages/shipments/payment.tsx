@@ -44,7 +44,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useMemo,
   useState,
   useRef,
 } from "react";
@@ -294,15 +293,15 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
 
       const res = payment?.id
         ? await updatePayment({
-            id: payment.id,
-            data: {
-              ...payload,
-              paymentBreakdown: payload.paymentBreakdown as Record<
-                string,
-                string
-              >[],
-            },
-          }).unwrap()
+          id: payment.id,
+          data: {
+            ...payload,
+            paymentBreakdown: payload.paymentBreakdown as Record<
+              string,
+              string
+            >[],
+          },
+        }).unwrap()
         : await createPayment({ ...payload, orderId: order?.id }).unwrap();
 
       if (res.status === 200) {

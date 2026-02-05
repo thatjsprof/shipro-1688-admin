@@ -125,17 +125,7 @@ export const paymentApi = createApi({
         ApiResponse<IPayment>,
         Partial<{
           id: string;
-          data: {
-            amount: number;
-            baseAmount: number;
-            module: PaymentModules;
-            status: PaymentStatus;
-            description: string;
-            code: PaymentCodes;
-            redirectLink: string;
-            sendEmail: boolean;
-            paymentBreakdown: Record<string, string>[];
-          };
+          data: Partial<IPayment>
         }>
       >({
         query: (data) => {
@@ -145,7 +135,7 @@ export const paymentApi = createApi({
             body: data.data,
           };
         },
-        invalidatesTags: ["GetPayments", "GetOrders"],
+        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders"],
       }),
     };
   },

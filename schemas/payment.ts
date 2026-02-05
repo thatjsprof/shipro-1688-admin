@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { PaymentStatus, PaymentCodes } from "@/interfaces/payment.interface";
+import {
+  PaymentStatus,
+  PaymentCodes,
+  PaymentProviders,
+} from "@/interfaces/payment.interface";
 
 export const paymentInputSchema = z
   .object({
@@ -103,3 +107,36 @@ export const paymentAltSchema = paymentAltInputSchema
 export type PaymentAltFormData = z.infer<typeof paymentAltSchema>;
 
 export type PaymentAltFormInput = z.input<typeof paymentAltInputSchema>;
+
+export const editPaymentInputSchema = z
+  .object({
+    description: z.string().min(1, "Description is required"),
+    amount: z.string().min(1, "Amount is required"),
+    status: z.nativeEnum(PaymentStatus),
+    provider: z.nativeEnum(PaymentProviders),
+    datePaid: z.date().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      const num = parseFloat(data.amount);
+      return !isNaN(num) && num > 0;
+    },
+    { message: "Amount must be greater than 0", path: ["amount"] }
+  );
+
+export const editPaymentSchema = editPaymentInputSchema
+  .refine(
+    (data) => {
+      const num = parseFloat(data.amount);
+      return !isNaN(num) && num > 0;
+    },
+    { message: "Amount must be greater than 0", path: ["amount"] }
+  )
+  .transform((data) => ({
+    ...data,
+    amount: parseFloat(data.amount),
+    datePaid: data.datePaid ?? undefined,
+  }));
+
+export type EditPaymentFormData = z.infer<typeof editPaymentSchema>;
+export type EditPaymentFormInput = z.input<typeof editPaymentInputSchema>;
