@@ -94,7 +94,6 @@ export const EditPaymentDialog = ({
         id: payment.id,
         data: {
           description: data.description,
-          amount,
           baseAmount: amount,
           status: data.status,
           provider: data.provider,
