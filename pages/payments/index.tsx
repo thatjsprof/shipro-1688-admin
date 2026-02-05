@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
+import { Tooltip } from "@/components/ui/tooltip";
 import {
   IPayment,
   PaymentProviders,
@@ -36,183 +37,203 @@ import {
 const columns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void
 ): ColumnDef<IPayment>[] => [
-  {
-    accessorKey: "reference",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Reference"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const reference = row.getValue<string>("reference");
-      return (
-        <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
-          <Copy
-            className="size-5"
-            onClick={() =>
-              copyToClipboard({
-                id: "copy-payment-reference",
-                text: reference,
-                message: "Payment reference copied to clipboard",
-              })
-            }
-          />
-          <p>{reference}</p>
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "description",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Description"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const description = row.getValue<string>("description");
-      return (
-        <div className="flex items-center gap-[0.6rem] text-nowrap">
-          {description}
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Amount"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const baseAmount = row.original.baseAmount;
-      return (
-        <div className="flex items-center gap-[0.6rem] text-nowrap">
-          ₦{formatNum(baseAmount)}
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Status"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const status = row.getValue<PaymentStatus>("status");
-      return (
-        <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
-          <PaymentStatusPill status={status} />
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "provider",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Provider"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const provider = row.getValue<PaymentProviders>("provider");
-      return (
-        <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
-          {paymentProviders[provider]}
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "user",
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        column={column}
-        title="Owner"
-        className="-mb-[1.8px] px-2"
-      />
-    ),
-    cell: ({ row }) => {
-      const user = row.original.user;
-      return (
-        <div className="flex items-center gap-[0.6rem] text-nowrap">
-          {user?.name}
-        </div>
-      );
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "datePaid",
-    header: ({ column }) => {
-      return (
+    {
+      accessorKey: "reference",
+      header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Date Paid"
+          title="Reference"
           className="-mb-[1.8px] px-2"
         />
-      );
+      ),
+      cell: ({ row }) => {
+        const reference = row.getValue<string>("reference");
+        return (
+          <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
+            <Copy
+              className="size-5"
+              onClick={() =>
+                copyToClipboard({
+                  id: "copy-payment-reference",
+                  text: reference,
+                  message: "Payment reference copied to clipboard",
+                })
+              }
+            />
+            <p>{reference}</p>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    cell: ({ row }) => {
-      const datePaid = row.getValue<Date>("datePaid");
-      return (
-        <div className="flex items-center gap-[0.9rem] text-nowrap">
-          {datePaid ? format(datePaid, "dd MMM, yyy, h:mm a") : "---"}
-        </div>
-      );
+    {
+      accessorKey: "description",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Description"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const description = row.getValue<string>("description");
+        return description ? (
+          <div className="text-nowrap h-8 w-64">
+            <div className="flex items-center gap-[0.6rem] h-full">
+              <Tooltip
+                contentClassName="max-w-[15rem] py-3 bg-primary text-white"
+                side="top"
+                arrowClassName="bg-primary fill-primary"
+                mobileVariant="popover"
+                content={
+                  <div>
+                    <p className="mb-1">{description}</p>
+                  </div>
+                }
+              >
+                <p
+                  className="truncate hover:text-secondary duration-200 transition-colors"
+                >
+                  <span>{description}</span>
+                </p>
+              </Tooltip>
+            </div>
+          </div>
+        ) : (
+          <p>---</p>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
     },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  // {
-  //   accessorKey: "actions",
-  //   header: ({ column }) => {
-  //     return (
-  //       <DataTableColumnHeader
-  //         column={column}
-  //         title=""
-  //         className="-mb-[1.8px] px-2"
-  //       />
-  //     );
-  //   },
-  //   cell: ({ row }) => {
-  //     const status = row.original.status;
-  //     return (
-  //       <div>
-  //         {status === PaymentStatus.PENDING && (
-  //           <Button className="font-semibold text-[.8rem]">Pay Now</Button>
-  //         )}
-  //       </div>
-  //     );
-  //   },
-  //   enableSorting: false,
-  //   enableHiding: false,
-  // },
-];
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Amount"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const baseAmount = row.original.baseAmount;
+        return (
+          <div className="flex items-center gap-[0.6rem] text-nowrap">
+            ₦{formatNum(baseAmount)}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Status"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const status = row.getValue<PaymentStatus>("status");
+        return (
+          <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
+            <PaymentStatusPill status={status} />
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "provider",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Provider"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const provider = row.getValue<PaymentProviders>("provider");
+        return (
+          <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
+            {paymentProviders[provider]}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "user",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Owner"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const user = row.original.user;
+        return (
+          <div className="flex items-center gap-[0.6rem] text-nowrap">
+            {user?.name}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "datePaid",
+      header: ({ column }) => {
+        return (
+          <DataTableColumnHeader
+            column={column}
+            title="Date Paid"
+            className="-mb-[1.8px] px-2"
+          />
+        );
+      },
+      cell: ({ row }) => {
+        const datePaid = row.getValue<Date>("datePaid");
+        return (
+          <div className="flex items-center gap-[0.9rem] text-nowrap">
+            {datePaid ? format(datePaid, "dd MMM, yyy, h:mm a") : "---"}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    // {
+    //   accessorKey: "actions",
+    //   header: ({ column }) => {
+    //     return (
+    //       <DataTableColumnHeader
+    //         column={column}
+    //         title=""
+    //         className="-mb-[1.8px] px-2"
+    //       />
+    //     );
+    //   },
+    //   cell: ({ row }) => {
+    //     const status = row.original.status;
+    //     return (
+    //       <div>
+    //         {status === PaymentStatus.PENDING && (
+    //           <Button className="font-semibold text-[.8rem]">Pay Now</Button>
+    //         )}
+    //       </div>
+    //     );
+    //   },
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
+  ];
 
 const Payments = () => {
   const { copyToClipboard } = useCopy();
