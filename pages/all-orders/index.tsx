@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  IOrder,
   OrderOrigin,
   OrderStatus,
   OrderType,
@@ -35,9 +36,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MultiSelect } from "@/components/ui/multi-select";
 import FadeScrollArea from "@/components/ui/fade-scrollarea";
+import UpdateDialog from "@/components/pages/order/order-payment";
 type LucideIconName = keyof typeof LucideIcons;
 
 const AllOrders = () => {
+  const [open, setOpen] = useState<boolean>(false);
+  const [order, setOrder] = useState<IOrder | null>(null);
   const [statuses, setStatuses] = useState<
     { value: OrderStatus; label: string }[]
   >([
@@ -179,7 +183,7 @@ const AllOrders = () => {
             return (
               <Card key={id} className="overflow-hidden shadow-none p-0 gap-0">
                 <CardHeader className="bg-white border-b p-5 !pb-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className="text-xl">{orderNumber}</CardTitle>
                       {createdAt && (
@@ -192,6 +196,20 @@ const AllOrders = () => {
                         <LucideIcons.User className="w-4 h-4" />
                         Ordered by {order.user?.name}
                       </p>
+                    </div>
+                    <div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="shadow-none h-11"
+                        onClick={() => {
+                          setOrder(order);
+                          setOpen(true);
+                        }}
+                      >
+                        <LucideIcons.Pencil className="w-4 h-4" />
+                        Edit
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -465,6 +483,7 @@ const AllOrders = () => {
             onPageChange={setPage}
           />
         </div>
+        <UpdateDialog open={open} setOpen={setOpen} order={order} />
       </div>
     </div>
   );
