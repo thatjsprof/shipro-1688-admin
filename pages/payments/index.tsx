@@ -52,12 +52,15 @@ const columns = (
           <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
             <Copy
               className="size-5"
-              onClick={() =>
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 copyToClipboard({
                   id: "copy-payment-reference",
                   text: reference,
                   message: "Payment reference copied to clipboard",
                 })
+              }
               }
             />
             <p>{reference}</p>
