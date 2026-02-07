@@ -169,7 +169,7 @@ const getColumns = (
         return (
           <DataTableColumnHeader
             column={column}
-            title="Date Joined"
+            title="Verification Status"
             className="-mb-[1.8px] px-2"
           />
         );
@@ -243,7 +243,7 @@ const Users = () => {
   const columns = getColumns(
     copyToClipboard,
     () => null,
-    () => {}
+    () => { }
   );
 
   const debouncedChangeHandler = useCallback(
