@@ -21,11 +21,13 @@ import {
 
 export interface AdvancedPaginationProps {
   totalPages: number;
+  totalItems?: number;
   initialPage?: number;
   onPageChange?: (page: number) => void;
   visiblePagesCount?: number;
   showFirstAndLast?: boolean;
   showPrevNext?: boolean;
+  showItemRange?: boolean;
   isLoading?: boolean;
   className?: string;
   pageSize?: number;
@@ -38,19 +40,11 @@ const PaginationItemAlt = React.forwardRef<
   HTMLLIElement,
   React.ComponentProps<"li">
 >(({ className, ...props }, ref) => {
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
   return (
     <PaginationItem
       ref={ref}
       {...props}
       className={cn(className)}
-      // onClick={scrollToTop}
     />
   );
 });
@@ -58,12 +52,14 @@ PaginationItemAlt.displayName = "PaginationItemAlt";
 
 const AdvancedPagination = ({
   totalPages = 10,
+  totalItems,
   initialPage = 1,
   onPageChange,
   isLoading,
   visiblePagesCount: visiblePgCount = 5,
   showFirstAndLast = true,
   showPrevNext = true,
+  showItemRange = false,
   className = "",
   pageSize = 10,
   pageSizeOptions = [10, 20, 50, 100],
@@ -75,6 +71,9 @@ const AdvancedPagination = ({
   const [visiblePages, setVisiblePages] = useState<number[]>([]);
   const [visiblePagesCount, setVisiblePagesCount] =
     useState<number>(visiblePgCount);
+  const total = totalItems ?? totalPages * pageSize;
+  const rangeStart = (currentPage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(currentPage * pageSize, total);
 
   const fetchPageResults = (page: number): void => {
     if (onPageChange) {
@@ -155,6 +154,11 @@ const AdvancedPagination = ({
     <Pagination className={className}>
       <PaginationContent className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
+          {showItemRange && (
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              {rangeStart} – {rangeEnd} of {total}
+            </span>
+          )}
           <div className="flex">
             {showFirstAndLast &&
               currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
