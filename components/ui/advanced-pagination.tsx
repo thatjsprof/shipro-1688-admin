@@ -154,11 +154,6 @@ const AdvancedPagination = ({
     <Pagination className={className}>
       <PaginationContent className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
-          {showItemRange && (
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {rangeStart} – {rangeEnd} of {total}
-            </span>
-          )}
           <div className="flex">
             {showFirstAndLast &&
               currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
@@ -232,6 +227,11 @@ const AdvancedPagination = ({
                 </PaginationItemAlt>
               )}
           </div>
+          {showItemRange && (
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              {rangeStart} - {rangeEnd} of {total}
+            </span>
+          )}
         </div>
         <div className="flex gap-4 items-center">
           {showPageSizeSelector && (
