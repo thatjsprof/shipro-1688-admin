@@ -249,6 +249,10 @@ const Users = () => {
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
       setDebouncedValue(value);
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 1,
+      }));
     }, 300),
     []
   );
@@ -303,7 +307,7 @@ const Users = () => {
           showPagination={false}
           headerRowClassname="hover:bg-transparent"
           headerSubClassname="!px-0"
-          customEmpty="No orders Found"
+          customEmpty="No users Found"
           wrapperCls="col-span-12 w-full"
           className="border-none rounded-none"
           cellStyles={{
