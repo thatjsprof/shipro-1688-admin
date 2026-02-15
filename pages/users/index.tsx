@@ -240,6 +240,7 @@ const Users = () => {
   );
   const users = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
+  const totalCount = data?.data.totalCount ?? 0;
   const columns = getColumns(
     copyToClipboard,
     () => null,
@@ -323,6 +324,8 @@ const Users = () => {
           initialPage={pagination.pageIndex}
           isLoading={isLoading}
           totalPages={totalPages}
+          showItemRange
+          totalItems={totalCount}
           showPageSizeSelector
           pageSize={pagination.pageSize}
           onPageSizeChange={(s) =>
