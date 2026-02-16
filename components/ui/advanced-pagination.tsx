@@ -67,10 +67,13 @@ const AdvancedPagination = ({
   showPageSizeSelector = false,
 }: AdvancedPaginationProps) => {
   const belowXxs = useBreakpointBelow("xxs");
+  const belowSm = useBreakpointBelow("sm");
+
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
   const [visiblePages, setVisiblePages] = useState<number[]>([]);
   const [visiblePagesCount, setVisiblePagesCount] =
     useState<number>(visiblePgCount);
+
   const total = totalItems ?? totalPages * pageSize;
   const rangeStart = (currentPage - 1) * pageSize + 1;
   const rangeEnd = Math.min(currentPage * pageSize, total);
@@ -113,8 +116,9 @@ const AdvancedPagination = ({
 
   useEffect(() => {
     if (belowXxs) setVisiblePagesCount(2);
+    else if (belowSm) setVisiblePagesCount(3);
     else setVisiblePagesCount(visiblePgCount);
-  }, [belowXxs]);
+  }, [belowXxs, belowSm, visiblePgCount]);
 
   useEffect(() => {
     let pages: number[] = [];
@@ -149,116 +153,130 @@ const AdvancedPagination = ({
   if (totalPages <= 0) return null;
 
   const isActive = (page: number) => page === currentPage;
+  const hasExtras = showPageSizeSelector || showItemRange;
 
   return (
-    <Pagination className={className}>
-      <PaginationContent className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-4">
-          <div className="flex">
-            {showFirstAndLast &&
-              currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
-              !visiblePages.includes(1) && (
-                <PaginationItemAlt>
-                  <PaginationLink
-                    className={cn(
-                      "cursor-pointer",
-                      isLoading && "opacity-50 pointer-events-none",
-                      isActive(1) && "!border-none"
-                    )}
-                    onClick={() => handlePageChange(1)}
-                  >
-                    1
-                  </PaginationLink>
-                </PaginationItemAlt>
-              )}
-            {currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
-              !visiblePages.includes(2) && (
-                <PaginationItemAlt>
-                  <PaginationEllipsis
-                    onClick={handlePrevSet}
-                    className={cn(
-                      "cursor-pointer",
-                      isLoading && "opacity-50 pointer-events-none"
-                    )}
-                  />
-                </PaginationItemAlt>
-              )}
-            {visiblePages.map((page) => (
-              <PaginationItemAlt key={page}>
+    <Pagination className={cn("w-full", className)}>
+      <PaginationContent
+        className={cn(
+          "w-full flex flex-wrap gap-y-2",
+          "justify-center",
+          hasExtras ? "sm:justify-between sm:flex-nowrap" : "sm:justify-center"
+        )}
+      >
+        <div className="flex items-center gap-0">
+          {showFirstAndLast &&
+            currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
+            !visiblePages.includes(1) && (
+              <PaginationItemAlt>
                 <PaginationLink
                   className={cn(
-                    isLoading && "opacity-50 pointer-events-none",
                     "cursor-pointer",
-                    isActive(page) && "!bg-primary !text-white",
-                    isActive(page) && "!border-none"
+                    isLoading && "opacity-50 pointer-events-none",
+                    isActive(1) && "!border-none"
                   )}
-                  isActive={isActive(page)}
-                  onClick={() => handlePageChange(page)}
+                  onClick={() => handlePageChange(1)}
                 >
-                  {page}
+                  1
                 </PaginationLink>
               </PaginationItemAlt>
-            ))}
-            {currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
-              !visiblePages.includes(totalPages - 1) && (
-                <PaginationItemAlt>
-                  <PaginationEllipsis
-                    onClick={handleNextSet}
-                    className={cn(
-                      "cursor-pointer",
-                      isLoading && "opacity-50 pointer-events-none"
-                    )}
-                  />
-                </PaginationItemAlt>
-              )}
-            {showFirstAndLast &&
-              currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
-              !visiblePages.includes(totalPages) && (
-                <PaginationItemAlt>
-                  <PaginationLink
-                    onClick={() => handlePageChange(totalPages)}
-                    className={cn(
-                      "cursor-pointer",
-                      isLoading && "opacity-50 pointer-events-none"
-                    )}
-                  >
-                    {totalPages}
-                  </PaginationLink>
-                </PaginationItemAlt>
-              )}
-          </div>
-          {showItemRange && (
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              {rangeStart} - {rangeEnd} of {total}
+            )}
+          {currentPage > Math.floor(visiblePagesCount / 2) + 1 &&
+            !visiblePages.includes(2) && (
+              <PaginationItemAlt>
+                <PaginationEllipsis
+                  onClick={handlePrevSet}
+                  className={cn(
+                    "cursor-pointer",
+                    isLoading && "opacity-50 pointer-events-none"
+                  )}
+                />
+              </PaginationItemAlt>
+            )}
+          {visiblePages.map((page) => (
+            <PaginationItemAlt key={page}>
+              <PaginationLink
+                className={cn(
+                  isLoading && "opacity-50 pointer-events-none",
+                  "cursor-pointer",
+                  isActive(page) && "!bg-primary !text-white",
+                  isActive(page) && "!border-none"
+                )}
+                isActive={isActive(page)}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItemAlt>
+          ))}
+          {currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
+            !visiblePages.includes(totalPages - 1) && (
+              <PaginationItemAlt>
+                <PaginationEllipsis
+                  onClick={handleNextSet}
+                  className={cn(
+                    "cursor-pointer",
+                    isLoading && "opacity-50 pointer-events-none"
+                  )}
+                />
+              </PaginationItemAlt>
+            )}
+          {showFirstAndLast &&
+            currentPage < totalPages - Math.floor(visiblePagesCount / 2) &&
+            !visiblePages.includes(totalPages) && (
+              <PaginationItemAlt>
+                <PaginationLink
+                  onClick={() => handlePageChange(totalPages)}
+                  className={cn(
+                    "cursor-pointer",
+                    isLoading && "opacity-50 pointer-events-none"
+                  )}
+                >
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItemAlt>
+            )}
+          {showItemRange && !showPageSizeSelector && (
+            <span className="hidden sm:inline-flex items-center ml-3 text-sm text-muted-foreground whitespace-nowrap">
+              {rangeStart}-{rangeEnd} of {total}
             </span>
           )}
         </div>
-        <div className="flex gap-4 items-center">
-          {showPageSizeSelector && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Show</span>
-              <Select
-                value={String(pageSize)}
-                onValueChange={(value) => handlePageSizeChange(Number(value))}
-                disabled={isLoading}
-              >
-                <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue placeholder={String(pageSize)} />
-                </SelectTrigger>
-                <SelectContent>
-                  {pageSizeOptions.map((size) => (
-                    <SelectItem key={size} value={String(size)}>
-                      {size}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">per page</span>
-            </div>
-          )}
-          <div className="flex gap-2 items-center">
+        {(showPageSizeSelector || showPrevNext || (showItemRange && showPageSizeSelector)) && (
+          <div className="flex items-center gap-2 sm:gap-4">
+            {showItemRange && showPageSizeSelector && (
+              <span className="hidden sm:inline text-sm text-muted-foreground whitespace-nowrap">
+                {rangeStart}–{rangeEnd} of {total}
+              </span>
+            )}
+            {showPageSizeSelector && (
+              <div className="flex items-center gap-1 sm:gap-2">
+                <span className="hidden xs:inline text-sm text-muted-foreground">
+                  Show
+                </span>
+                <Select
+                  value={String(pageSize)}
+                  onValueChange={(value) => handlePageSizeChange(Number(value))}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="h-8 w-[60px] sm:w-[70px]">
+                    <SelectValue placeholder={String(pageSize)} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageSizeOptions.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="hidden xs:inline text-sm text-muted-foreground">
+                  per page
+                </span>
+              </div>
+            )}
             {showPrevNext && (
-              <>
+              <div className="flex gap-1 sm:gap-2 items-center">
                 <PaginationItemAlt>
                   <PaginationPrevious
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -266,29 +284,36 @@ const AdvancedPagination = ({
                       currentPage === 1 || isLoading
                         ? "pointer-events-none opacity-50"
                         : "cursor-pointer",
-                      "pr-0 px-3 border"
+                      "px-2 sm:px-3 border"
                     )}
                   >
-                    <ChevronLeft />
+                    <ChevronLeft className="h-4 w-4" />
                   </PaginationPrevious>
                 </PaginationItemAlt>
-                <PaginationItemAlt className="">
+                <PaginationItemAlt>
                   <PaginationNext
                     onClick={() => handlePageChange(currentPage + 1)}
                     className={cn(
                       currentPage === totalPages || isLoading
                         ? "pointer-events-none opacity-50"
                         : "cursor-pointer",
-                      "pr-0 px-3 border"
+                      "px-2 sm:px-3 border"
                     )}
                   >
-                    <ChevronRight />
+                    <ChevronRight className="h-4 w-4" />
                   </PaginationNext>
                 </PaginationItemAlt>
-              </>
+              </div>
             )}
           </div>
-        </div>
+        )}
+        {showItemRange && !showPageSizeSelector && (
+          <div className="w-full flex justify-center sm:hidden">
+            <span className="text-sm text-muted-foreground">
+              {rangeStart}-{rangeEnd} of {total}
+            </span>
+          </div>
+        )}
       </PaginationContent>
     </Pagination>
   );
