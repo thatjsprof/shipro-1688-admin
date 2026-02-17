@@ -161,7 +161,7 @@ const AdvancedPagination = ({
         className={cn(
           "w-full flex flex-wrap gap-y-2",
           "justify-center",
-          hasExtras ? "sm:justify-between sm:flex-nowrap" : "sm:justify-center"
+          hasExtras ? "sm:justify-between sm:flex-nowrap" : "sm:justify-between"
         )}
       >
         <div className="flex items-center gap-0">
