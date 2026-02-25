@@ -207,11 +207,7 @@ const Items = ({ form }: ItemsProps) => {
                             error={!!errors?.items?.[idx]?.orderAmount}
                             thousandSeparator=","
                             onValueChange={(values) => {
-                              if (!values.floatValue) return;
-                              form.setValue(
-                                `items.${idx}.orderAmount`,
-                                values.value
-                              );
+                              field.onChange(values.value ?? "");
                             }}
                             className="h-11 w-full"
                             customInput={Input}
