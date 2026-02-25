@@ -195,8 +195,8 @@ const Items = ({ form }: ItemsProps) => {
                         <FormControl>
                           <NumericFormat
                             type="text"
-                            {...field}
                             name={`items.${idx}.orderAmount`}
+                            disabled={field.disabled}
                             autoCapitalize="none"
                             autoCorrect="off"
                             placeholder="Order Amount"
@@ -206,8 +206,12 @@ const Items = ({ form }: ItemsProps) => {
                             allowNegative={false}
                             error={!!errors?.items?.[idx]?.orderAmount}
                             thousandSeparator=","
+                            value={field.value ?? ""}
                             onValueChange={(values) => {
                               field.onChange(values.value ?? "");
+                            }}
+                            onBlur={() => {
+                              field.onBlur();
                             }}
                             className="h-11 w-full"
                             customInput={Input}

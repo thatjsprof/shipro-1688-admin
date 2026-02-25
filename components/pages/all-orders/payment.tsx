@@ -62,6 +62,10 @@ const Payment = ({ form }: IPaymentProps) => {
                                   label: `Shipping Fee`,
                                   value: `Shipping Fee`,
                                 },
+                                {
+                                  label: `Goods Fee`,
+                                  value: `Goods Fee`,
+                                },
                               ]}
                               type="textarea"
                               placeholder="Description"
