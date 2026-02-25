@@ -171,6 +171,7 @@ const NewOrder = () => {
       const order = values.order;
       const payments = values.payments;
       const items = values.items;
+      console.log({ values })
       const response = await createOrder({
         order: {
           userId: order.userId,
