@@ -112,8 +112,7 @@ const Payment = ({ form }: IPaymentProps) => {
                               thousandSeparator=","
                               value={field.value ?? ""}
                               onValueChange={(values) => {
-                                if (!values.floatValue) return;
-                                field.onChange(values.floatValue ?? "");
+                                field.onChange(values.value ?? "");
                               }}
                               onBlur={() => {
                                 field.onBlur();
