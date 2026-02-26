@@ -86,12 +86,12 @@ const FileUpload = ({
           <span className="text-gray-400 font-normal">
             {uploading
               ? `Uploading ${files.length} file(s)... ${Math.min(
-                  calculateOverallProgress,
-                  100
-                )}%`
+                calculateOverallProgress,
+                100
+              )}%`
               : files.length > 0
-              ? `${files.length} files selected`
-              : label}
+                ? `${files.length} files selected`
+                : label}
           </span>
         </Button>
         {uploading && (
@@ -204,7 +204,7 @@ const FileUpload = ({
               </Button>
             </div>
           )}
-          <div className="px-5">
+          {outerFiles.length > 0 && <div className="px-5">
             <p className="text-sm font-semibold">Choose from Existing</p>
             <div className="flex items-center flex-wrap gap-2 py-3 pt-3">
               {outerFiles.map((o) => {
@@ -226,6 +226,7 @@ const FileUpload = ({
               })}
             </div>
           </div>
+          }
         </DialogContent>
       </Dialog>
     </div>
