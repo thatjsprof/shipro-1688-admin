@@ -407,7 +407,7 @@ const Shipments = () => {
                               .map((i) => (i.pictures ?? []).map((p) => p.url))
                               .flat();
                             const actImages = (item.images ?? []).map((p) => p.url)
-                            const image = images?.[0] || actImages?.[0] || item.product?.image;
+                            const image = images?.[0] || item.product?.image || actImages?.[0];
                             const nameToUse =
                               item.name ?? item.product.description;
                             const quantityToUse =
