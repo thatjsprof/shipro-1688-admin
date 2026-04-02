@@ -331,11 +331,11 @@ const Shipments = () => {
                             <div className="font-semibold">
                               {formatNum(
                                 shipment.packageWeight ||
-                                  shipment.shipmentItems.reduce(
-                                    (acc, cur) => (acc += cur.packageWeight),
-                                    0
-                                  ) ||
+                                shipment.shipmentItems.reduce(
+                                  (acc, cur) => (acc += cur.packageWeight),
                                   0
+                                ) ||
+                                0
                               )}
                               kg
                             </div>
@@ -363,9 +363,9 @@ const Shipments = () => {
                             <div className="font-semibold">
                               {shipment.deliveredAt
                                 ? format(
-                                    shipment.deliveredAt,
-                                    "MM/dd/yyy HH:mm a"
-                                  )
+                                  shipment.deliveredAt,
+                                  "MM/dd/yyy HH:mm a"
+                                )
                                 : "---"}
                             </div>
                           </div>
@@ -406,7 +406,9 @@ const Shipments = () => {
                             const images = item.items
                               .map((i) => (i.pictures ?? []).map((p) => p.url))
                               .flat();
-                            const image = images?.[0] ?? item.product?.image;
+                            const actImages = (item.images ?? []).map((p) => p.url)
+
+                            const image = images?.[0] || actImages?.[0] || item.product?.image;
                             const nameToUse =
                               item.name ?? item.product.description;
                             const quantityToUse =
