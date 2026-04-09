@@ -331,9 +331,9 @@ const AllOrders = () => {
                                                   <h4 className="font-semibold text-gray-900 max-w-md">
                                                     {item.name}
                                                   </h4>
-                                                  <p className="text-sm text-gray-600 mt-1">
+                                                  {item.category && <p className="text-sm text-gray-600 mt-1">
                                                     Category: {item.category}
-                                                  </p>
+                                                  </p>}
                                                   <p className="text-sm text-gray-600 mt-1">
                                                     Qty: {quantity}
                                                   </p>
