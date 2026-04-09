@@ -441,9 +441,9 @@ const AllOrders = () => {
                                             </ScrollArea>
                                           </DialogContent>
                                         </Dialog>
-                                        <p className="text-sm text-gray-600 mt-1">
+                                        {item.category && <p className="text-sm text-gray-600 mt-1">
                                           Category: {item.category}
-                                        </p>
+                                        </p>}
                                         <p className="text-sm text-gray-600 mt-1">
                                           Qty: {quantity}
                                         </p>
