@@ -285,10 +285,10 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                 renderProp={({ item, value }) => {
                                   const isSelected = value
                                     ? (value as string[]).some(
-                                        (v) =>
-                                          v.toLowerCase() ===
-                                          item.value.toLowerCase()
-                                      )
+                                      (v) =>
+                                        v.toLowerCase() ===
+                                        item.value.toLowerCase()
+                                    )
                                     : false;
                                   const statusInfo =
                                     orderStatusInfo[item.status];
@@ -348,7 +348,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                       <FormField
                         control={form.control}
                         name="pictures"
-                        render={({}) => {
+                        render={({ }) => {
                           return (
                             <FormItem className="w-full space-y-0">
                               <FormLabel className="inline-block">
@@ -549,7 +549,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                     );
                                   }}
                                 >
-                                  <SelectTrigger className="absolute right-1 top-0.5 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                                  <SelectTrigger className="h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -596,7 +596,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                   <FormField
                     control={form.control}
                     name="tags"
-                    render={({}) => {
+                    render={({ }) => {
                       return (
                         <FormItem>
                           <FormLabel htmlFor="name">Tags</FormLabel>

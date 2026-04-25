@@ -514,7 +514,7 @@ const Details = ({ form }: DetailsProps) => {
                           );
                         }}
                       >
-                        <SelectTrigger className="absolute right-1 top-1 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                        <SelectTrigger className="w-20 h-9 px-2 border-l rounded-l-none shadow-none bg-transparent">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
