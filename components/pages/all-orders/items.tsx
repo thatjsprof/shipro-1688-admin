@@ -269,7 +269,7 @@ const Items = ({ form }: ItemsProps) => {
                                   );
                                 }}
                               >
-                                <SelectTrigger className="h-9 w-20 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                                <SelectTrigger className="h-9 w-16 px-2 border-none rounded-l-none shadow-none bg-transparent">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
