@@ -502,7 +502,7 @@ const Details = ({ form }: DetailsProps) => {
                       disabled={field.disabled}
                       className="h-11 w-full pr-[6rem]"
                       customInput={Input}
-                      endClassname="pr-0 translate-none -translate-x-1/2"
+                      endClassname="pr-0 -translate-x-1/2"
                       EndIcon={<Select
                         value={
                           form.watch("order.packageWeightUnit") ??
