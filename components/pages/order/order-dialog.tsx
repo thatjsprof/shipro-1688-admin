@@ -535,7 +535,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                 field.onBlur();
                               }}
                               className="h-10 pr-[6rem]"
-                              endClassname="pr-0 -translate-x-1/2"
+                              endClassname="pr-0 -translate-y-1/2"
                               customInput={Input}
                               EndIcon={
                                 <Select
@@ -550,7 +550,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                     );
                                   }}
                                 >
-                                  <SelectTrigger className="h-9 w-20 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                                  <SelectTrigger className="h-9 w-16 px-2 border-none rounded-l-none shadow-none bg-transparent">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
