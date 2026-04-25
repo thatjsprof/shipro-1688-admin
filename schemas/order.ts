@@ -1,4 +1,8 @@
-import { OrderEmails, OrderStatus } from "@/interfaces/order.interface";
+import {
+  OrderEmails,
+  OrderStatus,
+  PackageWeightUnit,
+} from "@/interfaces/order.interface";
 import { z } from "zod";
 
 export const orderSchema = z.object({
@@ -16,6 +20,7 @@ export const orderSchema = z.object({
   dateOrdered: z.date().optional(),
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
+  packageWeightUnit: z.nativeEnum(PackageWeightUnit).optional(),
   orderAmount: z.string().optional(),
   sendEmail: z.boolean().optional(),
   tags: z
@@ -32,6 +37,7 @@ export const orderSchema = z.object({
 export const shipmentSchema = z.object({
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
+  packageWeightUnit: z.nativeEnum(PackageWeightUnit).optional(),
   sendEmail: z.boolean().optional(),
   deliveredAt: z.union([z.date(), z.string()]).optional(),
   addTracking: z.boolean().optional(),

@@ -20,7 +20,11 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { AirLocation, IOrder } from "@/interfaces/order.interface";
+import {
+  AirLocation,
+  IOrder,
+  PackageWeightUnit,
+} from "@/interfaces/order.interface";
 import {
   IPayment,
   PaymentCodes,
@@ -69,11 +73,19 @@ const defaultBreakdown = [
   { label: "Clearance", value: IBreakdown.clearance },
 ];
 
-const unitsMap: Record<string, { prefix: string; suffix: string }> = {
-  [IBreakdown.freight]: { prefix: "$", suffix: " / KG" },
-  [IBreakdown.clearance]: { prefix: "₦", suffix: " / KG" },
+const getUnitsMap = (
+  packageWeightUnit: PackageWeightUnit
+): Record<string, { prefix: string; suffix: string }> => ({
+  [IBreakdown.freight]: {
+    prefix: "$",
+    suffix: ` / ${packageWeightUnit.toUpperCase()}`,
+  },
+  [IBreakdown.clearance]: {
+    prefix: "₦",
+    suffix: ` / ${packageWeightUnit.toUpperCase()}`,
+  },
   [IBreakdown.packing_fee]: { prefix: "$", suffix: " / Piece" },
-};
+});
 
 const Payment = ({ order, setOpen }: IPaymentComp) => {
   const settings = useAppSelector((state) => state.app.setting);
@@ -82,6 +94,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     order?.packageWeight
   );
   const hasInitializedRef = useRef(false);
+  const packageWeightUnit = order?.packageWeightUnit ?? PackageWeightUnit.KG;
 
   const { data } = useGetPaymentsQuery(
     { noLimit: true, orderId: order?.id ?? "" },
@@ -271,8 +284,9 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   }, [watchedBreakdowns, code, packageWeight, setValue, form]);
 
   const getUnits = useCallback(
-    (value: string) => unitsMap[value] || { prefix: "", suffix: "" },
-    []
+    (value: string) =>
+      getUnitsMap(packageWeightUnit)[value] || { prefix: "", suffix: "" },
+    [packageWeightUnit]
   );
 
   const handleSubmit = async (values: z.infer<typeof paymentInputSchema>) => {
@@ -534,7 +548,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                 <div className="flex items-end gap-2">
                   <div className="flex flex-col gap-1">
                     <FormLabel className="text-xs">
-                      Package Weight (KG)
+                      Package Weight ({packageWeightUnit.toUpperCase()})
                     </FormLabel>
                     <NumericFormat
                       thousandSeparator=","

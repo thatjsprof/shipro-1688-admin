@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   OrderOrigin,
+  PackageWeightUnit,
   OrderStatus,
   OrderType,
 } from "@/interfaces/order.interface";
@@ -80,7 +81,7 @@ const Details = ({ form }: DetailsProps) => {
                         className: cn(
                           "h-11 px-3 w-full justify-between !bg-transparent",
                           !!errors.order?.userId?.message &&
-                            "border-destructive"
+                          "border-destructive"
                         ),
                       }}
                       searchPlaceholder="Select User"
@@ -485,7 +486,6 @@ const Details = ({ form }: DetailsProps) => {
                       autoCorrect="off"
                       placeholder="Package Weight"
                       displayType="input"
-                      suffix="KG"
                       decimalSeparator="."
                       allowNegative={false}
                       error={!!errors.order?.packageWeight?.message}
@@ -500,8 +500,32 @@ const Details = ({ form }: DetailsProps) => {
                       value={field.value}
                       onBlur={field.onBlur}
                       disabled={field.disabled}
-                      className="h-11 w-full"
+                      className="h-11 w-full pr-24"
                       customInput={Input}
+                      EndIcon={<Select
+                        value={
+                          form.watch("order.packageWeightUnit") ??
+                          PackageWeightUnit.KG
+                        }
+                        onValueChange={(value) => {
+                          form.setValue(
+                            "order.packageWeightUnit",
+                            value as PackageWeightUnit
+                          );
+                        }}
+                      >
+                        <SelectTrigger className="absolute right-1 top-1 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={PackageWeightUnit.KG}>
+                            KG
+                          </SelectItem>
+                          <SelectItem value={PackageWeightUnit.CBM}>
+                            CBM
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>}
                     />
                   </FormControl>
                   <FormMessage />

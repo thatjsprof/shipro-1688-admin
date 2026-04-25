@@ -1,6 +1,7 @@
 import {
   AirLocation,
   OrderOrigin,
+  PackageWeightUnit,
   OrderStatus,
   OrderType,
   ShippingType,
@@ -13,6 +14,7 @@ const OrderOriginEnum = z.enum(OrderOrigin);
 const ShippingTypeEnum = z.enum(ShippingType);
 const AirLocationEnum = z.enum(AirLocation);
 const OrderStatusEnum = z.enum(OrderStatus);
+const PackageWeightUnitEnum = z.enum(PackageWeightUnit);
 
 export const orderSchema = z.object({
   type: OrderTypeEnum,
@@ -30,6 +32,7 @@ export const orderSchema = z.object({
   serviceCharge: z.string().optional(),
   totalWeight: z.string().optional(),
   packageWeight: z.string().optional(),
+  packageWeightUnit: PackageWeightUnitEnum.optional(),
   shippingFeeWithinChina: z.string().optional(),
   note: z.string().optional(),
   estimatedDelivery: z.date().optional(),
@@ -42,6 +45,7 @@ export const orderItemSchema = z.object({
   quantity: z.string().min(1, "Quantity is required"),
   orderAmount: z.string().optional(),
   packageWeight: z.string().optional(),
+  packageWeightUnit: PackageWeightUnitEnum.optional(),
   totalWeight: z.string().optional(),
   trackingNumber: z.string().optional(),
   category: z.string().optional(),

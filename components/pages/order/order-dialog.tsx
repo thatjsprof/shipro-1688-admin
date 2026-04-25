@@ -23,7 +23,11 @@ import { orderSchema } from "@/schemas/order";
 import z from "zod";
 import { cn, upperCaseFirst } from "@/lib/utils";
 import { X } from "lucide-react";
-import { IOrderItem, OrderStatus } from "@/interfaces/order.interface";
+import {
+  IOrderItem,
+  OrderStatus,
+  PackageWeightUnit,
+} from "@/interfaces/order.interface";
 import DatePicker from "@/components/ui/date";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
@@ -69,6 +73,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       pictures: [],
       arrivedWarehouse: undefined,
       packageWeight: "",
+      packageWeightUnit: PackageWeightUnit.KG,
       trackingNumber: "",
       orderAmount: "",
       sendEmail: false,
@@ -128,6 +133,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
             images: images.length > 0 ? images : undefined,
           }),
           packageWeight: weight ? +weight : undefined,
+          packageWeightUnit: values["packageWeightUnit"],
           orderAmount: orderAmount ? +orderAmount : undefined,
           sendEmail: values["sendEmail"],
           tags: tags.length > 0 ? tags : undefined,
@@ -152,6 +158,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       arrivedWarehouse: undefined,
       dateOrdered: undefined,
       packageWeight: "",
+      packageWeightUnit: PackageWeightUnit.KG,
       trackingNumber: "",
       orderAmount: "",
       sendEmail: false,
@@ -171,6 +178,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         ? new Date(order.dateOrdered)
         : undefined;
       const packageWeight = order.packageWeight || "";
+      const packageWeightUnit = order.packageWeightUnit || PackageWeightUnit.KG;
       const orderAmount = order.orderAmount || "";
       const trackingNumber = order.trackingNumber || "";
       const sendEmail = false;
@@ -190,6 +198,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         arrivedWarehouse,
         dateOrdered,
         packageWeight: packageWeight?.toString() ?? "",
+        packageWeightUnit,
         orderAmount: orderAmount?.toString() ?? "",
         trackingNumber,
         sendEmail,
@@ -514,7 +523,6 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                               autoCapitalize="none"
                               autoCorrect="off"
                               placeholder="Package Weight"
-                              suffix="KG"
                               displayType="input"
                               decimalSeparator="."
                               allowNegative={false}
@@ -526,8 +534,34 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                               onBlur={() => {
                                 field.onBlur();
                               }}
-                              className="h-10"
+                              className="h-10 pr-24"
                               customInput={Input}
+                              EndIcon={
+                                <Select
+                                  value={
+                                    form.watch("packageWeightUnit") ??
+                                    PackageWeightUnit.KG
+                                  }
+                                  onValueChange={(value) => {
+                                    form.setValue(
+                                      "packageWeightUnit",
+                                      value as PackageWeightUnit
+                                    );
+                                  }}
+                                >
+                                  <SelectTrigger className="absolute right-1 top-0.5 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={PackageWeightUnit.KG}>
+                                      KG
+                                    </SelectItem>
+                                    <SelectItem value={PackageWeightUnit.CBM}>
+                                      CBM
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              }
                             />
                           </FormControl>
                           <FormMessage />

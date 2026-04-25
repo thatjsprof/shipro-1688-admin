@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
 import {
   OrderOrigin,
+  PackageWeightUnit,
   OrderStatus,
   OrderType,
 } from "@/interfaces/order.interface";
@@ -115,6 +116,7 @@ const NewOrder = () => {
         origin: OrderOrigin.SOURCING,
         status: OrderStatus.DRAFT,
         userId: "",
+        packageWeightUnit: PackageWeightUnit.KG,
       },
       items: [
         {
@@ -122,6 +124,7 @@ const NewOrder = () => {
           status: OrderStatus.DRAFT,
           quantity: "",
           packageWeight: "",
+          packageWeightUnit: PackageWeightUnit.KG,
           items: [],
         },
       ],
@@ -142,6 +145,7 @@ const NewOrder = () => {
         origin: OrderOrigin.SOURCING,
         status: OrderStatus.DRAFT,
         userId: "",
+        packageWeightUnit: PackageWeightUnit.KG,
       },
       items: [
         {
@@ -149,6 +153,7 @@ const NewOrder = () => {
           status: OrderStatus.DRAFT,
           quantity: "",
           packageWeight: "",
+          packageWeightUnit: PackageWeightUnit.KG,
           items: [],
         },
       ],
@@ -183,6 +188,8 @@ const NewOrder = () => {
           phoneNumber: order.phoneNumber,
           shippingFeeWithinChina: +(order.shippingFeeWithinChina || 0),
           totalWeight: order.totalWeight,
+          packageWeight: +(order.packageWeight || 0),
+          packageWeightUnit: order.packageWeightUnit,
           status: order.status,
           origin: order.origin,
           items: items.map((i) => {
@@ -192,6 +199,7 @@ const NewOrder = () => {
               status: i.status,
               quantity: +i.quantity,
               packageWeight: +(i.packageWeight || 0),
+              packageWeightUnit: i.packageWeightUnit,
               trackingNumber: i.trackingNumber,
               note: i.note,
               orderAmount: +(i.orderAmount || 0),

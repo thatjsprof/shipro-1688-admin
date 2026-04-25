@@ -19,7 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IOrder, OrderStatus } from "@/interfaces/order.interface";
+import {
+  IOrder,
+  OrderStatus,
+  PackageWeightUnit,
+} from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { generateCode } from "@/lib/utils";
@@ -45,6 +49,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
     mode: "onTouched",
     defaultValues: {
       packageWeight: "",
+      packageWeightUnit: PackageWeightUnit.KG,
       trackingNumber: "",
       sendEmail: false,
       addTracking: false,
@@ -67,6 +72,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
           packageWeight: values?.packageWeight
             ? +values.packageWeight
             : undefined,
+          packageWeightUnit: values?.packageWeightUnit ?? PackageWeightUnit.KG,
           sendEmail: values.sendEmail,
           addTracking: values.addTracking,
         },
@@ -85,6 +91,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
   useEffect(() => {
     if (!order) return;
     const packageWeight = order.packageWeight || "";
+    const packageWeightUnit = order.packageWeightUnit || PackageWeightUnit.KG;
     const trackingNumber = order.trackingNumber || "";
     const deliveredAt = order.deliveredAt || "";
     const sendEmail = false;
@@ -92,6 +99,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
     form.reset({
       status,
       packageWeight: packageWeight?.toString() ?? "",
+      packageWeightUnit,
       trackingNumber,
       deliveredAt,
       sendEmail,
@@ -117,7 +125,6 @@ const Basic = ({ order, setOpen }: IBasic) => {
                         autoCapitalize="none"
                         autoCorrect="off"
                         placeholder="Package Weight"
-                        suffix="KG"
                         displayType="input"
                         decimalSeparator="."
                         allowNegative={false}
@@ -129,8 +136,32 @@ const Basic = ({ order, setOpen }: IBasic) => {
                         onBlur={() => {
                           field.onBlur();
                         }}
-                        className="h-10"
+                        className="h-10 pr-24"
                         customInput={Input}
+                        EndIcon={<Select
+                          value={
+                            form.watch("packageWeightUnit") ??
+                            PackageWeightUnit.KG
+                          }
+                          onValueChange={(value) => {
+                            form.setValue(
+                              "packageWeightUnit",
+                              value as PackageWeightUnit
+                            );
+                          }}
+                        >
+                          <SelectTrigger className="absolute right-1 top-0.5 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={PackageWeightUnit.KG}>
+                              KG
+                            </SelectItem>
+                            <SelectItem value={PackageWeightUnit.CBM}>
+                              CBM
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>}
                       />
                     </FormControl>
                     <FormMessage />

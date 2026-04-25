@@ -6,6 +6,7 @@ import {
   IOrderItem,
   IOrderTracking,
   OrderEmails,
+  PackageWeightUnit,
   OrderStatus,
   ShippingType,
   TrackingStage,
@@ -51,6 +52,7 @@ export const orderApi = createApi({
             note?: string;
             orderAmount?: number;
             packageWeight?: number;
+            packageWeightUnit?: PackageWeightUnit;
             quantity: number;
             status: OrderStatus;
             trackingNumber?: string;
@@ -147,6 +149,7 @@ export const orderApi = createApi({
             }[];
             tags?: string[];
             packageWeight?: number;
+            packageWeightUnit?: PackageWeightUnit;
             orderAmount?: number;
             sendEmail?: boolean;
           };
@@ -233,6 +236,7 @@ export const orderApi = createApi({
             status?: OrderStatus;
             trackingNumber?: string;
             packageWeight?: number;
+            packageWeightUnit?: PackageWeightUnit;
             sendEmail?: boolean;
             deliveredAt?: string | Date;
             addTracking?: boolean;

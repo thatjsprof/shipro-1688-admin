@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { OrderStatus } from "@/interfaces/order.interface";
+import { OrderStatus, PackageWeightUnit } from "@/interfaces/order.interface";
 import { categories, orderStatusInfo } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -74,6 +74,7 @@ const AddOrderDialog = () => {
           status: OrderStatus.DRAFT,
           quantity: "",
           packageWeight: "",
+          packageWeightUnit: PackageWeightUnit.KG,
           items: [],
           dateOrdered: new Date(),
         },
@@ -113,6 +114,7 @@ const AddOrderDialog = () => {
             note: item.note,
             orderAmount: item.orderAmount ? +item.orderAmount : undefined,
             packageWeight: item.packageWeight ? +item.packageWeight : undefined,
+            packageWeightUnit: item.packageWeightUnit,
             quantity: +item.quantity,
             status: item.status,
             trackingNumber: item.trackingNumber,
@@ -146,6 +148,7 @@ const AddOrderDialog = () => {
             status: OrderStatus.DRAFT,
             quantity: "",
             packageWeight: "",
+            packageWeightUnit: PackageWeightUnit.KG,
             items: [],
             dateOrdered: new Date(),
           },
@@ -549,7 +552,6 @@ const AddOrderDialog = () => {
                                         autoCorrect="off"
                                         placeholder="Package Weight"
                                         displayType="input"
-                                        suffix="KG"
                                         decimalSeparator="."
                                         allowNegative={false}
                                         error={
@@ -565,8 +567,39 @@ const AddOrderDialog = () => {
                                             values.value
                                           );
                                         }}
-                                        className="h-11 w-full"
+                                        className="h-11 w-full pr-24"
                                         customInput={Input}
+                                        EndIcon={
+                                          <Select
+                                            value={
+                                              form.watch(
+                                                `items.${idx}.packageWeightUnit`
+                                              ) ?? PackageWeightUnit.KG
+                                            }
+                                            onValueChange={(value) => {
+                                              form.setValue(
+                                                `items.${idx}.packageWeightUnit`,
+                                                value as PackageWeightUnit
+                                              );
+                                            }}
+                                          >
+                                            <SelectTrigger className="absolute right-1 top-1 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem
+                                                value={PackageWeightUnit.KG}
+                                              >
+                                                KG
+                                              </SelectItem>
+                                              <SelectItem
+                                                value={PackageWeightUnit.CBM}
+                                              >
+                                                CBM
+                                              </SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        }
                                       />
                                     </FormControl>
                                     <FormMessage />
@@ -648,6 +681,7 @@ const AddOrderDialog = () => {
                         status: OrderStatus.DRAFT,
                         quantity: "",
                         packageWeight: "",
+                        packageWeightUnit: PackageWeightUnit.KG,
                         items: [],
                       });
                     }}

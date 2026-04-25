@@ -18,6 +18,11 @@ export enum AirLocation {
   EXPRESS = "EXPRESS",
 }
 
+export enum PackageWeightUnit {
+  KG = "kg",
+  CBM = "cbm",
+}
+
 export enum OrderOrigin {
   NORMAL = "NORMAL",
   SOURCING = "SOURCING",
@@ -36,6 +41,7 @@ export interface IOrder {
   shipmentItems: IOrderItem[];
   trackingNumber: string;
   packageWeight: number;
+  packageWeightUnit: PackageWeightUnit;
   orderNumber: string;
   estimatedDelivery: Date;
   deliveredAt: Date;
@@ -66,6 +72,7 @@ export interface IOrderItem {
   trackingNumber: string;
   tags: string[];
   packageWeight: number;
+  packageWeightUnit: PackageWeightUnit;
   totalWeight: number;
   orderAmount: number;
   order: IOrder;

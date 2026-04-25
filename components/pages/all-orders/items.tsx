@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { OrderStatus } from "@/interfaces/order.interface";
+import { OrderStatus, PackageWeightUnit } from "@/interfaces/order.interface";
 import { categories, orderStatusInfo } from "@/lib/constants";
 import { createOrderSchema } from "@/schemas/new-order.schema";
 import { Plus, X } from "lucide-react";
@@ -242,7 +242,6 @@ const Items = ({ form }: ItemsProps) => {
                             autoCorrect="off"
                             placeholder="Package Weight"
                             displayType="input"
-                            suffix="KG"
                             decimalSeparator="."
                             allowNegative={false}
                             error={!!errors?.items?.[idx]?.packageWeight}
@@ -254,8 +253,34 @@ const Items = ({ form }: ItemsProps) => {
                                 values.value
                               );
                             }}
-                            className="h-11 w-full"
+                            className="h-11 w-full pr-24"
                             customInput={Input}
+                            EndIcon={
+                              <Select
+                                value={
+                                  form.watch(`items.${idx}.packageWeightUnit`) ??
+                                  PackageWeightUnit.KG
+                                }
+                                onValueChange={(value) => {
+                                  form.setValue(
+                                    `items.${idx}.packageWeightUnit`,
+                                    value as PackageWeightUnit
+                                  );
+                                }}
+                              >
+                                <SelectTrigger className="absolute right-1 top-1 h-9 w-20 px-2 border-l rounded-l-none shadow-none bg-transparent">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value={PackageWeightUnit.KG}>
+                                    KG
+                                  </SelectItem>
+                                  <SelectItem value={PackageWeightUnit.CBM}>
+                                    CBM
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -333,6 +358,7 @@ const Items = ({ form }: ItemsProps) => {
             status: OrderStatus.DRAFT,
             quantity: "",
             packageWeight: "",
+            packageWeightUnit: PackageWeightUnit.KG,
             items: [],
           });
         }}
