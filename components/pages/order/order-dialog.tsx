@@ -534,7 +534,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                               onBlur={() => {
                                 field.onBlur();
                               }}
-                              className="h-10 pr-24"
+                              className="h-10"
                               customInput={Input}
                               EndIcon={
                                 <Select

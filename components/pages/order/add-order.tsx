@@ -567,7 +567,7 @@ const AddOrderDialog = () => {
                                             values.value
                                           );
                                         }}
-                                        className="h-11 w-full pr-24"
+                                        className="h-11 w-full"
                                         customInput={Input}
                                         EndIcon={
                                           <Select

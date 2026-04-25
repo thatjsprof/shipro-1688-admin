@@ -500,7 +500,7 @@ const Details = ({ form }: DetailsProps) => {
                       value={field.value}
                       onBlur={field.onBlur}
                       disabled={field.disabled}
-                      className="h-11 w-full pr-24"
+                      className="h-11 w-full"
                       customInput={Input}
                       EndIcon={<Select
                         value={
