@@ -567,7 +567,8 @@ const AddOrderDialog = () => {
                                             values.value
                                           );
                                         }}
-                                        className="h-11 w-full"
+                                        className="h-11 w-full pr-[6rem]"
+                                        endClassname="pr-0 translate-none -translate-y-1/2"
                                         customInput={Input}
                                         EndIcon={
                                           <Select

@@ -500,8 +500,9 @@ const Details = ({ form }: DetailsProps) => {
                       value={field.value}
                       onBlur={field.onBlur}
                       disabled={field.disabled}
-                      className="h-11 w-full"
+                      className="h-11 w-full pr-[6rem]"
                       customInput={Input}
+                      endClassname="pr-0 translate-none -translate-y-1/2"
                       EndIcon={<Select
                         value={
                           form.watch("order.packageWeightUnit") ??

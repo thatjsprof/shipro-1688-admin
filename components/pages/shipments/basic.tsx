@@ -136,8 +136,9 @@ const Basic = ({ order, setOpen }: IBasic) => {
                         onBlur={() => {
                           field.onBlur();
                         }}
-                        className="h-10"
+                        className="h-10 pr-[6rem]"
                         customInput={Input}
+                        endClassname="pr-0 translate-none -translate-y-1/2"
                         EndIcon={<Select
                           value={
                             form.watch("packageWeightUnit") ??
