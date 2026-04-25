@@ -584,7 +584,7 @@ const AddOrderDialog = () => {
                                               );
                                             }}
                                           >
-                                            <SelectTrigger className="h-9 w-14 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                                            <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
                                               <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
