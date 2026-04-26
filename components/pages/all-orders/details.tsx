@@ -503,30 +503,36 @@ const Details = ({ form }: DetailsProps) => {
                       className="h-11 w-full pr-[6rem]"
                       customInput={Input}
                       endClassname="pr-0 translate-none -translate-y-1/2"
-                      EndIcon={<Select
-                        value={
-                          form.watch("order.packageWeightUnit") ??
-                          PackageWeightUnit.KG
-                        }
-                        onValueChange={(value) => {
-                          form.setValue(
-                            "order.packageWeightUnit",
-                            value as PackageWeightUnit
-                          );
-                        }}
-                      >
-                        <SelectTrigger className="w-18 h-9 px-2 border-none rounded-l-none shadow-none bg-transparent">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={PackageWeightUnit.KG}>
-                            KG
-                          </SelectItem>
-                          <SelectItem value={PackageWeightUnit.CBM}>
-                            CBM
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>}
+                      EndIcon={
+                        <FormField
+                          control={form.control}
+                          name="order.packageWeightUnit"
+                          render={({ field: unitField }) => (
+                            <Select
+                              value={
+                                unitField.value ?? PackageWeightUnit.KG
+                              }
+                              onValueChange={(value) => {
+                                unitField.onChange(
+                                  value as PackageWeightUnit
+                                );
+                              }}
+                            >
+                              <SelectTrigger className="w-18 h-9 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={PackageWeightUnit.KG}>
+                                  KG
+                                </SelectItem>
+                                <SelectItem value={PackageWeightUnit.CBM}>
+                                  CBM
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
+                        />
+                      }
                     />
                   </FormControl>
                   <FormMessage />

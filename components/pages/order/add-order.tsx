@@ -571,35 +571,43 @@ const AddOrderDialog = () => {
                                         endClassname="pr-0 translate-none -translate-y-1/2"
                                         customInput={Input}
                                         EndIcon={
-                                          <Select
-                                            value={
-                                              form.watch(
-                                                `items.${idx}.packageWeightUnit`
-                                              ) ?? PackageWeightUnit.KG
-                                            }
-                                            onValueChange={(value) => {
-                                              form.setValue(
-                                                `items.${idx}.packageWeightUnit`,
-                                                value as PackageWeightUnit
-                                              );
-                                            }}
-                                          >
-                                            <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem
-                                                value={PackageWeightUnit.KG}
+                                          <FormField
+                                            control={form.control}
+                                            name={`items.${idx}.packageWeightUnit`}
+                                            render={({ field: unitField }) => (
+                                              <Select
+                                                value={
+                                                  unitField.value ??
+                                                  PackageWeightUnit.KG
+                                                }
+                                                onValueChange={(value) => {
+                                                  unitField.onChange(
+                                                    value as PackageWeightUnit
+                                                  );
+                                                }}
                                               >
-                                                KG
-                                              </SelectItem>
-                                              <SelectItem
-                                                value={PackageWeightUnit.CBM}
-                                              >
-                                                CBM
-                                              </SelectItem>
-                                            </SelectContent>
-                                          </Select>
+                                                <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                                                  <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem
+                                                    value={
+                                                      PackageWeightUnit.KG
+                                                    }
+                                                  >
+                                                    KG
+                                                  </SelectItem>
+                                                  <SelectItem
+                                                    value={
+                                                      PackageWeightUnit.CBM
+                                                    }
+                                                  >
+                                                    CBM
+                                                  </SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                            )}
+                                          />
                                         }
                                       />
                                     </FormControl>
