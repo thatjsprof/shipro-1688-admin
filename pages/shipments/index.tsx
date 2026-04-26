@@ -337,7 +337,7 @@ const Shipments = () => {
                                 ) ||
                                 0
                               )}
-                              kg
+                              {shipment.packageWeightUnit || "kg"}
                             </div>
                           </div>
                         </div>

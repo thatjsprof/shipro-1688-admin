@@ -255,7 +255,7 @@ const Items = ({ form }: ItemsProps) => {
                             }}
                             className="h-11 w-full pr-[6rem]"
                             customInput={Input}
-                            endClassname="pr-0 -translate-y-1/2"
+                            endClassname="pr-0 translate-none -translate-y-1/2"
                             EndIcon={
                               <Select
                                 value={
