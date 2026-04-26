@@ -32,7 +32,7 @@ import { useUpdateOrderMutation } from "@/services/order.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Dispatch, SetStateAction, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useController, useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import z from "zod";
 
@@ -57,6 +57,11 @@ const Basic = ({ order, setOpen }: IBasic) => {
       deliveredAt: "",
     },
   });
+  const { field: packageWeightUnitField } = useController({
+    control: form.control,
+    name: "packageWeightUnit",
+    defaultValue: PackageWeightUnit.KG,
+  });
 
   const { watch } = form;
   const { errors } = form.formState;
@@ -72,7 +77,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
           packageWeight: values?.packageWeight
             ? +values.packageWeight
             : undefined,
-          packageWeightUnit: values?.packageWeightUnit ?? PackageWeightUnit.KG,
+          packageWeightUnit: values?.packageWeightUnit,
           sendEmail: values.sendEmail,
           addTracking: values.addTracking,
         },
@@ -91,7 +96,8 @@ const Basic = ({ order, setOpen }: IBasic) => {
   useEffect(() => {
     if (!order) return;
     const packageWeight = order.packageWeight || "";
-    const packageWeightUnit = order.packageWeightUnit || PackageWeightUnit.KG;
+    const packageWeightUnit =
+      order.packageWeightUnit ?? PackageWeightUnit.KG;
     const trackingNumber = order.trackingNumber || "";
     const deliveredAt = order.deliveredAt || "";
     const sendEmail = false;
@@ -104,7 +110,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       deliveredAt,
       sendEmail,
     });
-  }, [order]);
+  }, [order, form]);
 
   return (
     <Form {...form}>
@@ -119,60 +125,50 @@ const Basic = ({ order, setOpen }: IBasic) => {
                   <FormItem>
                     <FormLabel>Package Weight</FormLabel>
                     <FormControl>
-                      <NumericFormat
-                        type="text"
-                        name="packageWeight"
-                        autoCapitalize="none"
-                        autoCorrect="off"
-                        placeholder="Package Weight"
-                        displayType="input"
-                        decimalSeparator="."
-                        allowNegative={false}
-                        thousandSeparator=","
-                        value={field.value ?? ""}
-                        onValueChange={(values) => {
-                          field.onChange(values.value ?? "");
-                        }}
-                        onBlur={() => {
-                          field.onBlur();
-                        }}
-                        className="h-10 pr-[6rem]"
-                        customInput={Input}
-                        endClassname="pr-0 translate-none -translate-y-1/2"
-                        EndIcon={
-                          <FormField
-                            control={form.control}
-                            name="packageWeightUnit"
-                            render={({ field: unitField }) => {
-                              console.log(unitField.value, "unit field value")
-                              return (
-                                <Select
-                                  value={
-                                    unitField.value ?? PackageWeightUnit.KG
-                                  }
-                                  onValueChange={(value) => {
-                                    unitField.onChange(
-                                      value as PackageWeightUnit
-                                    );
-                                  }}
-                                >
-                                  <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={PackageWeightUnit.KG}>
-                                      KG
-                                    </SelectItem>
-                                    <SelectItem value={PackageWeightUnit.CBM}>
-                                      CBM
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )
+                      <div className="relative">
+                        <NumericFormat
+                          type="text"
+                          name="packageWeight"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          placeholder="Package Weight"
+                          displayType="input"
+                          decimalSeparator="."
+                          allowNegative={false}
+                          thousandSeparator=","
+                          value={field.value ?? ""}
+                          onValueChange={(values) => {
+                            field.onChange(values.value ?? "");
+                          }}
+                          onBlur={() => {
+                            field.onBlur();
+                          }}
+                          className="h-10 pr-[6rem]"
+                          customInput={Input}
+                        />
+                        <div className="absolute right-1 top-0 h-full flex items-center">
+                          <Select
+                            value={packageWeightUnitField.value}
+                            onValueChange={(value) => {
+                              packageWeightUnitField.onChange(
+                                value as PackageWeightUnit
+                              );
                             }}
-                          />
-                        }
-                      />
+                          >
+                            <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={PackageWeightUnit.KG}>
+                                KG
+                              </SelectItem>
+                              <SelectItem value={PackageWeightUnit.CBM}>
+                                CBM
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
