@@ -559,8 +559,6 @@ const AddOrderDialog = () => {
                                         }
                                         thousandSeparator=","
                                         onValueChange={(values) => {
-                                          console.log(values);
-
                                           if (!values.value) return;
                                           form.setValue(
                                             `items.${idx}.packageWeight`,

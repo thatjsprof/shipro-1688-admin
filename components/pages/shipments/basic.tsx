@@ -115,7 +115,6 @@ const Basic = ({ order, setOpen }: IBasic) => {
               control={form.control}
               name="packageWeight"
               render={({ field }) => {
-                console.log({ field })
                 return (
                   <FormItem>
                     <FormLabel>Package Weight</FormLabel>

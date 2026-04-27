@@ -25,8 +25,6 @@ interface IupdateDialog {
 const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
   const [tab, setTab] = useState<string>(ITabs.Basic);
 
-  console.log(order)
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="p-0">
