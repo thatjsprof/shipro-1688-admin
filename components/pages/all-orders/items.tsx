@@ -267,9 +267,8 @@ const Items = ({ form }: ItemsProps) => {
                                       PackageWeightUnit.KG
                                     }
                                     onValueChange={(value) => {
-                                      unitField.onChange(
-                                        value as PackageWeightUnit
-                                      );
+                                      if (!value) return
+                                      unitField.onChange(value)
                                     }}
                                   >
                                     <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">

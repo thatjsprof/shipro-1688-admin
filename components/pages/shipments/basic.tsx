@@ -145,14 +145,16 @@ const Basic = ({ order, setOpen }: IBasic) => {
                             control={form.control}
                             name="packageWeightUnit"
                             render={({ field: unitField }) => {
-                              console.log(unitField.value, "unit field value")
                               return (
                                 <Select
                                   {...unitField}
                                   value={
                                     unitField.value ?? PackageWeightUnit.KG
                                   }
-                                  onValueChange={unitField.onChange}
+                                  onValueChange={(value) => {
+                                    if (!value) return
+                                    unitField.onChange(value)
+                                  }}
                                 >
                                   <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
                                     <SelectValue />
