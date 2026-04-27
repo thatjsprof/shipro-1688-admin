@@ -152,10 +152,11 @@ const Basic = ({ order, setOpen }: IBasic) => {
                                   value={
                                     unitField.value ?? PackageWeightUnit.KG
                                   }
-                                  onValueChange={(value) => {
-                                    unitField.onChange(
-                                      value as PackageWeightUnit
-                                    );
+                                  onValueChange={(values) => {
+                                    console.log(values)
+                                    // unitField.onChange(
+                                    //   values as PackageWeightUnit
+                                    // );
                                   }}
                                 >
                                   <SelectTrigger className="h-9 w-18 px-2 border-none rounded-l-none shadow-none bg-transparent">
