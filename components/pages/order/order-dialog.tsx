@@ -130,7 +130,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           dateOrdered: values["dateOrdered"] || undefined,
           trackingNumber: values["trackingNumber"] || undefined,
           ...(orders.length === 1 && {
-            images: images.length > 0 ? images : undefined,
+            images: images.length > 0 ? images : [],
           }),
           packageWeight: weight ? +weight : undefined,
           packageWeightUnit: values["packageWeightUnit"],
