@@ -279,11 +279,11 @@ const AllOrders = () => {
                               </div>
                             ) : (
                               (() => {
-                                const images = items
+                                const images = [...item.images.map((p) => p.url), ...items
                                   .map((i) =>
                                     (i.pictures ?? []).map((p) => p.url)
                                   )
-                                  .flat();
+                                  .flat()]
                                 const quantity =
                                   items
                                     .map((i) => i.quantity ?? 0)

@@ -359,12 +359,12 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                       <InputDropdown
                         items={[
                           {
-                            label: `Shipping Fee for order ${order?.orderNumber}`,
-                            value: `Shipping Fee for order ${order?.orderNumber}`,
+                            label: `International Shipping Fee for order ${order?.orderNumber}`,
+                            value: `International Shipping Fee for order ${order?.orderNumber}`,
                           },
                           {
-                            label: `Delivery Fee for order ${order?.orderNumber}`,
-                            value: `Delivery Fee for order ${order?.orderNumber}`,
+                            label: `Domestic Delivery Fee for order ${order?.orderNumber}`,
+                            value: `Domestic Delivery Fee for order ${order?.orderNumber}`,
                           },
                         ]}
                         type="textarea"
