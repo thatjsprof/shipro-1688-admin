@@ -279,17 +279,16 @@ const AllOrders = () => {
                               </div>
                             ) : (
                               (() => {
-                                const images = [...item.images.map((p) => p.url), ...items
-                                  .map((i) =>
-                                    (i.pictures ?? []).map((p) => p.url)
-                                  )
-                                  .flat()]
                                 const quantity =
                                   items
                                     .map((i) => i.quantity ?? 0)
                                     .reduce((acc, cur) => (acc += cur), 0) ||
                                   item.quantity;
-                                const image = images?.[0];
+                                const images = item.items
+                                  .map((i) => (i.pictures ?? []).map((p) => p.url))
+                                  .flat();
+                                const actImages = (item.images ?? []).map((p) => p.url)
+                                const image = actImages?.[0] || images?.[0] || item.product?.image;
                                 const pictureItems =
                                   items?.filter(
                                     (item) => item.type === "picture"
