@@ -239,29 +239,29 @@ const ShipmentDialog = ({
                         >
                           HK
                         </Button>
-                        {!hasSensitiveItems && (
-                          <Button
-                            type="button"
-                            variant={"outline"}
-                            className={cn(
-                              "flex-1 h-11 shadow-none",
-                              airLocation === AirLocation.GZ &&
-                                "!border-primary"
-                            )}
-                            onClick={() =>
-                              handleSelectAirLocation(AirLocation.GZ)
-                            }
-                          >
-                            GZ
-                          </Button>
-                        )}
+                        {/* {!hasSensitiveItems && ( */}
+                        <Button
+                          type="button"
+                          variant={"outline"}
+                          className={cn(
+                            "flex-1 h-11 shadow-none",
+                            airLocation === AirLocation.GZ &&
+                            "!border-primary"
+                          )}
+                          onClick={() =>
+                            handleSelectAirLocation(AirLocation.GZ)
+                          }
+                        >
+                          GZ
+                        </Button>
+                        {/* )} */}
                         <Button
                           type="button"
                           variant={"outline"}
                           className={cn(
                             "flex-1 h-11 shadow-none",
                             airLocation === AirLocation.EXPRESS &&
-                              "!border-primary"
+                            "!border-primary"
                           )}
                           onClick={() =>
                             handleSelectAirLocation(AirLocation.EXPRESS)
