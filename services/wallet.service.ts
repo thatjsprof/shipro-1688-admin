@@ -77,6 +77,30 @@ export const walletApi = createApi({
           ];
         },
       }),
+      createCredit: builder.mutation<
+        ApiResponse<IWallet>,
+        Partial<{
+          userId: string;
+          amount: number;
+          description: string;
+        }>
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}/credit`,
+            method: "POST",
+            body,
+          };
+        },
+        invalidatesTags: (result) => {
+          if (!result) return [];
+          return [
+            "GetWalletTransactionsSum",
+            "GetWalletTransactions",
+            "GetWallet",
+          ];
+        },
+      }),
     };
   },
 });
@@ -85,6 +109,7 @@ export const {
   useGetWalletQuery,
   useLazyGetWalletQuery,
   useCreateDebitMutation,
+  useCreateCreditMutation,
   useGetWalletTransactionsQuery,
   useGetWalletTransactionsSumQuery,
 } = walletApi;

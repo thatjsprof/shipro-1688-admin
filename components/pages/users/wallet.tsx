@@ -9,7 +9,6 @@ import {
 import useCopy, { ICopy } from "@/lib/copy";
 import { cn, formatNum } from "@/lib/utils";
 import {
-  useCreateDebitMutation,
   useGetWalletQuery,
   useGetWalletTransactionsQuery,
   useGetWalletTransactionsSumQuery,
@@ -31,31 +30,9 @@ import { ChangeEvent, useCallback, useMemo, useState } from "react";
 import { PaymentStatusPill, walletStatusInfo } from "./pills";
 import { format } from "date-fns";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
-import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { notify } from "@/lib/toast";
-import { Icons } from "@/components/shared/icons";
-
-const debitWalletSchema = z.object({
-  note: z.string().min(1, "Note is required"),
-  amount: z.string().min(1, "Amount is required"),
-});
-
-type DebitWalletFormValues = z.infer<typeof debitWalletSchema>;
+import WalletAdjustment from "@/components/pages/users/wallet-adjustment";
 
 const columns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void
@@ -227,16 +204,6 @@ const Wallet = () => {
     pageIndex: 1,
     pageSize: 20,
   });
-  const [debitWallet, { isLoading }] = useCreateDebitMutation();
-  const form = useForm<DebitWalletFormValues>({
-    resolver: zodResolver(debitWalletSchema),
-    mode: "onTouched",
-    defaultValues: {
-      note: "",
-      amount: "",
-    },
-  });
-
   const allowedStatuses = [
     WalletTransactionStatus.PENDING,
     WalletTransactionStatus.SUCCESSFUL,
@@ -301,26 +268,6 @@ const Wallet = () => {
     setDebouncedValue("");
   };
 
-  const onSubmit = async (data: DebitWalletFormValues) => {
-    try {
-      const response = await debitWallet({
-        description: data.note,
-        amount: +data.amount,
-        userId,
-      }).unwrap();
-      if (response.status === 200) {
-        notify(response.message, "success");
-        form.setValue("amount", "");
-        form.setValue("note", "");
-      } else {
-        notify(response.message, "error");
-      }
-    } catch (err: any) {
-      console.log(err);
-      notify(err?.data?.message || "Wallet could not be debited", "error");
-    }
-  };
-
   return (
     <div className="space-y-4 max-w-5xl">
       <div className="mb-12 mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
@@ -346,84 +293,7 @@ const Wallet = () => {
           isLoading={loadingSum}
         />
       </div>
-      <div className="mt-14 border rounded-lg p-8 px-7 pt-6">
-        <h2 className="font-semibold mb-4">Debit Wallet</h2>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="note"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="note">Notes</FormLabel>
-                  <div className="flex flex-col space-y-1">
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        id="note"
-                        rows={5}
-                        error={!!form.formState.errors.note}
-                        className="!bg-transparent hover:border-zinc-400 placeholder:text-gray-400 shadow-none"
-                        placeholder="e.g Additional notes about this debit"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="amount">Amount</FormLabel>
-                  <div className="flex flex-col space-y-1">
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <NumericFormat
-                          type="text"
-                          autoCapitalize="none"
-                          autoCorrect="off"
-                          placeholder="Amount"
-                          displayType="input"
-                          decimalSeparator="."
-                          allowNegative={false}
-                          thousandSeparator=","
-                          prefix="₦"
-                          onValueChange={(values) => {
-                            if (values.floatValue)
-                              field.onChange(
-                                values.floatValue?.toString() ?? ""
-                              );
-                          }}
-                          className="h-11 !bg-transparent hover:border-zinc-400 placeholder:text-gray-400 shadow-none"
-                          customInput={Input}
-                          error={!!form.formState.errors.amount}
-                          onBlur={field.onBlur}
-                          value={field.value}
-                          name="amount"
-                        />
-                      </FormControl>
-                      <Button
-                        type="submit"
-                        className="shadow-none h-11 font-semibold"
-                        disabled={isLoading}
-                      >
-                        {isLoading && (
-                          <Icons.spinner className="h-3 w-3 animate-spin" />
-                        )}
-                        Debit Wallet
-                      </Button>
-                    </div>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
-      </div>
+      {userId && <WalletAdjustment userId={userId} />}
       <div className="mt-14">
         <h2 className="font-semibold mb-6">Wallet Transactions</h2>
         <div className="flex items-center gap-2 mb-7">
