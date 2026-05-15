@@ -104,7 +104,7 @@ const WalletAdjustment = ({ userId }: WalletAdjustmentProps) => {
 
   return (
     <div className="mt-14 border rounded-lg p-8 px-7 pt-6">
-      <h2 className="font-semibold mb-4">Adjust Wallet</h2>
+      <h2 className="font-semibold mb-4">Update Wallet</h2>
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
