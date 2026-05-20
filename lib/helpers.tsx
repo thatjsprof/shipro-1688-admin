@@ -10,6 +10,7 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     isMoment,
     pinTrending,
     outOfStock,
+    archived,
     ...productFields
   } = form;
   const formData = productFields as FormFormat;
@@ -101,8 +102,9 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     stock: outOfStock ? 0 : parseInt(formData.stock, 10),
     moq: parseInt(formData.moq, 10),
     soldOut: outOfStock ?? false,
-    isMoment: isMoment ?? true,
-    pinTrending: (isMoment ?? true) && (pinTrending ?? false),
+    archived: archived ?? false,
+    isMoment: archived ? false : (isMoment ?? true),
+    pinTrending: archived ? false : (isMoment ?? true) && (pinTrending ?? false),
     attrs,
     location: formData.location,
     deliveryFeeYen: parseFloat(formData.deliveryFeeYen),
@@ -128,6 +130,7 @@ export function apiToForm(
   isMoment: boolean;
   pinTrending: boolean;
   outOfStock: boolean;
+  archived: boolean;
   quickAddText?: string;
 } {
   const variantProperties = (product.propsOrder ?? []).map((propKey) => {
@@ -228,5 +231,6 @@ export function apiToForm(
     isMoment: product.isMoment ?? true,
     pinTrending: product.pinTrending ?? false,
     outOfStock: product.soldOut ?? false,
+    archived: product.archived ?? false,
   };
 }

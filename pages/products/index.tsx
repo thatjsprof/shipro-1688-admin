@@ -226,6 +226,26 @@ const getColumns = (
       enableHiding: false,
     },
     {
+      accessorKey: "archived",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Archived"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const archived = row.original.archived ?? false;
+        return (
+          <div className="w-20 text-nowrap h-8 flex items-center">
+            <p>{archived ? "Yes" : "No"}</p>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "moq",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -329,6 +349,7 @@ const Products = () => {
       page: pageIndex - 1,
       limit: pageSize,
       search: debouncedValue,
+      includeArchived: true,
     },
     {
       skip: !authenticated,

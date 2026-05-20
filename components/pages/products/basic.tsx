@@ -16,6 +16,7 @@ import { NumericFormat } from "react-number-format";
 import useRate from "@/hooks/use-rate";
 import { useEffect } from "react";
 import ListingSettings from "@/components/pages/products/listing-settings";
+import { clearOutOfStockIfStockUpdated } from "@/lib/product-listing";
 
 interface BasicProps {
   form: UseFormReturn<ProductFormInput>;
@@ -29,7 +30,6 @@ export const Basic = ({ form }: BasicProps) => {
     watch,
     formState: { errors },
   } = form;
-  const outOfStock = watch("outOfStock") ?? false;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -93,15 +93,16 @@ export const Basic = ({ form }: BasicProps) => {
                           autoCorrect="off"
                           placeholder="Stock"
                           displayType="input"
-                          disabled={outOfStock}
                           decimalSeparator="."
                           allowNegative={false}
                           thousandSeparator=","
                           error={!!errors.stock?.message}
                           onValueChange={(values) => {
-                            if (outOfStock) return;
-                            if (!values.floatValue) return;
                             form.setValue("stock", values.value);
+                            clearOutOfStockIfStockUpdated(
+                              form,
+                              values.floatValue ?? values.value
+                            );
                           }}
                           className="h-11 w-full"
                           customInput={Input}

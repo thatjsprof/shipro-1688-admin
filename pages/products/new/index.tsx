@@ -26,7 +26,6 @@ import {
   QUICK_PRODUCT_TEMPLATE,
 } from "@/lib/parse-quick-product";
 import { applyQuickTextToForm } from "@/lib/quick-product-to-form";
-import { applyOutOfStockToForm } from "@/lib/product-listing";
 import { useRouter } from "next/router";
 import {
   useCreateProductMutation,
@@ -120,6 +119,7 @@ const Product = () => {
       isMoment: true,
       pinTrending: false,
       outOfStock: false,
+      archived: false,
     },
   });
 
@@ -193,17 +193,15 @@ const Product = () => {
       const isMoment = form.getValues("isMoment") ?? true;
       const pinTrending = form.getValues("pinTrending") ?? false;
       const outOfStock = form.getValues("outOfStock") ?? false;
+      const archived = form.getValues("archived") ?? false;
       form.reset({
         ...validated.data,
         quickAddText,
         isMoment,
         pinTrending,
         outOfStock,
+        archived,
       });
-
-      if (outOfStock) {
-        applyOutOfStockToForm(form);
-      }
 
       const toSave = formToApi(form.getValues());
       const response = await createProduct(toSave).unwrap();

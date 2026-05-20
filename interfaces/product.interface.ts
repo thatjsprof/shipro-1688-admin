@@ -64,6 +64,7 @@ export interface IProduct {
   location: string;
   url: string;
   soldOut: boolean;
+  archived?: boolean;
   prices: IPrice[];
   unit: string;
   totalSold: number;

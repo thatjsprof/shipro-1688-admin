@@ -5,10 +5,6 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import {
-  applyOutOfStockToForm,
-  clearOutOfStockOnForm,
-} from "@/lib/product-listing";
 import { ProductFormInput } from "@/schemas/product";
 import { UseFormReturn } from "react-hook-form";
 
@@ -18,6 +14,7 @@ type ListingSettingsProps = {
 
 export default function ListingSettings({ form }: ListingSettingsProps) {
   const isMoment = form.watch("isMoment") ?? true;
+  const archived = form.watch("archived") ?? false;
   const outOfStock = form.watch("outOfStock") ?? false;
 
   return (
@@ -31,6 +28,7 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
             <FormControl>
               <Switch
                 checked={field.value ?? true}
+                disabled={archived}
                 onCheckedChange={(checked) => {
                   field.onChange(checked);
                   if (!checked) {
@@ -52,8 +50,8 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
           <FormItem className="flex items-center gap-3">
             <FormControl>
               <Switch
-                checked={Boolean(field.value) && isMoment}
-                disabled={!isMoment}
+                checked={Boolean(field.value) && isMoment && !archived}
+                disabled={!isMoment || archived}
                 onCheckedChange={field.onChange}
               />
             </FormControl>
@@ -71,14 +69,7 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
             <FormControl>
               <Switch
                 checked={field.value ?? false}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    applyOutOfStockToForm(form);
-                  } else {
-                    clearOutOfStockOnForm(form);
-                    field.onChange(false);
-                  }
-                }}
+                onCheckedChange={field.onChange}
               />
             </FormControl>
             <FormLabel className="!mt-0 font-medium cursor-pointer">
@@ -87,10 +78,32 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
           </FormItem>
         )}
       />
-      {outOfStock && (
+      <FormField
+        control={form.control}
+        name="archived"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-3">
+            <FormControl>
+              <Switch
+                checked={field.value ?? false}
+                onCheckedChange={(checked) => {
+                  field.onChange(checked);
+                  if (checked) {
+                    form.setValue("isMoment", false);
+                    form.setValue("pinTrending", false);
+                  }
+                }}
+              />
+            </FormControl>
+            <FormLabel className="!mt-0 font-medium cursor-pointer">
+              Archive product
+            </FormLabel>
+          </FormItem>
+        )}
+      />
+      {archived && (
         <p className="text-xs text-zinc-500">
-          Sets product stock to 0, marks as sold out, and zeros all variant
-          stock.
+          Archived products are hidden from search and public product lists.
         </p>
       )}
     </div>

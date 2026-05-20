@@ -14,6 +14,7 @@ import { NumericFormat } from "react-number-format";
 import FileUploadButton from "@/hooks/use-file";
 import { useEffect, useRef, useState } from "react";
 import { IFile } from "@/interfaces/file.interface";
+import { clearOutOfStockIfStockUpdated } from "@/lib/product-listing";
 
 interface IVariantProps {
   form: UseFormReturn<ProductFormInput>;
@@ -478,6 +479,10 @@ const Variant = ({ form }: IVariantProps) => {
                                     value={field.value ?? ""}
                                     onValueChange={(values) => {
                                       field.onChange(values.value ?? "");
+                                      clearOutOfStockIfStockUpdated(
+                                        form,
+                                        values.floatValue ?? values.value
+                                      );
                                     }}
                                     onBlur={() => {
                                       field.onBlur();
