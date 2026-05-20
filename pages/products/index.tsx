@@ -186,6 +186,46 @@ const getColumns = (
       enableHiding: false,
     },
     {
+      accessorKey: "pinTrending",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Pinned"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const pinTrending = row.original.pinTrending ?? false;
+        return (
+          <div className="w-20 text-nowrap h-8 flex items-center">
+            <p>{pinTrending ? "Yes" : "No"}</p>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "soldOut",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Out of stock"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const soldOut = row.original.soldOut ?? false;
+        return (
+          <div className="w-24 text-nowrap h-8 flex items-center">
+            <p>{soldOut ? "Yes" : "No"}</p>
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "moq",
       header: ({ column }) => (
         <DataTableColumnHeader

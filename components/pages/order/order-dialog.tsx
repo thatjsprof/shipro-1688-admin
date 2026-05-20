@@ -97,6 +97,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       page: 0,
       userId: userId,
       noLimit: true,
+      minimal: true,
       notStatuses: [OrderStatus.DRAFT],
     },
     {

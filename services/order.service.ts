@@ -103,6 +103,7 @@ export const orderApi = createApi({
           search?: string;
           userId?: string;
           noLimit?: boolean;
+          minimal?: boolean;
         }
       >({
         query: (body) => {

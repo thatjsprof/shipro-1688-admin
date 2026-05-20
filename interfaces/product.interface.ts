@@ -49,6 +49,7 @@ export interface IProduct {
   companyId: string;
   internalProduct: boolean;
   isMoment?: boolean;
+  pinTrending?: boolean;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   stock: number;

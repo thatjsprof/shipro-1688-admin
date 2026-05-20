@@ -63,6 +63,7 @@ const AllOrders = () => {
       search: debouncedValue as string,
       statuses: statuses.map((status) => status.value),
       page: page - 1,
+      limit: 20,
       types: [OrderType.PURCHASE],
     },
     {
@@ -280,11 +281,11 @@ const AllOrders = () => {
                             ) : (
                               (() => {
                                 const quantity =
-                                  items
+                                  (items ?? [])
                                     .map((i) => i.quantity ?? 0)
                                     .reduce((acc, cur) => (acc += cur), 0) ||
                                   item.quantity;
-                                const images = item.items
+                                const images = (item.items ?? [])
                                   .map((i) => (i.pictures ?? []).map((p) => p.url))
                                   .flat();
                                 const actImages = (item.images ?? []).map((p) => p.url)

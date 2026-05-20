@@ -6,8 +6,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import ListingSettings from "@/components/pages/products/listing-settings";
 import { Icons } from "@/components/shared/icons";
 import { IFile } from "@/interfaces/file.interface";
 import { parseQuickProduct } from "@/lib/parse-quick-product";
@@ -110,23 +110,7 @@ export default function QuickAdd({
         )}
       </div>
 
-      <FormField
-        control={form.control}
-        name="isMoment"
-        render={({ field }) => (
-          <FormItem className="flex items-center gap-3">
-            <FormControl>
-              <Switch
-                checked={field.value ?? true}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <FormLabel className="!mt-0 font-medium cursor-pointer">
-              Show in Moments
-            </FormLabel>
-          </FormItem>
-        )}
-      />
+      <ListingSettings form={form} />
 
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Pictures</h3>

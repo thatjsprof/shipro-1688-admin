@@ -216,7 +216,7 @@ const Shipments = () => {
               const pendingPayments = shipment.payments.filter(
                 (payment) => payment.status === PaymentStatus.PENDING
               );
-              const pendingItemsPayments = shipment.shipmentItems.map((item) =>
+              const pendingItemsPayments = (shipment.shipmentItems ?? []).map((item) =>
                 item.payments.filter((i) => i.status === PaymentStatus.PENDING)
               );
               const totalPendingPayments = [
@@ -402,16 +402,17 @@ const Shipments = () => {
                     <div className="border-t">
                       <FadeScrollArea className="flex gap-3 relative max-h-[30rem]">
                         <div className="space-y-2 p-6">
-                          {shipment.shipmentItems.map((item, idx) => {
-                            const images = item.items
+                          {(shipment.shipmentItems ?? []).map((item, idx) => {
+                            const lineItems = item.items ?? [];
+                            const images = lineItems
                               .map((i) => (i.pictures ?? []).map((p) => p.url))
                               .flat();
                             const actImages = (item.images ?? []).map((p) => p.url)
                             const image = actImages?.[0] || images?.[0] || item.product?.image;
                             const nameToUse =
-                              item.name ?? item.product.description;
+                              item.name ?? item.product?.description ?? "";
                             const quantityToUse =
-                              item.items
+                              lineItems
                                 .map((i) => i.quantity ?? 0)
                                 .reduce((acc, cur) => (acc += cur), 0) ||
                               item.quantity;

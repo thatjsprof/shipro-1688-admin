@@ -86,6 +86,7 @@ const AddOrderDialog = () => {
       page: 0,
       userId: form.watch("user"),
       noLimit: true,
+      minimal: true,
       notStatuses: [OrderStatus.DRAFT],
     },
     {

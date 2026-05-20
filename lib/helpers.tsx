@@ -5,7 +5,13 @@ import z from "zod";
 type FormFormat = z.infer<typeof productSchema>;
 
 export function formToApi(form: ProductFormInput): Partial<IProduct> {
-  const { quickAddText: _quickAddText, isMoment, ...productFields } = form;
+  const {
+    quickAddText: _quickAddText,
+    isMoment,
+    pinTrending,
+    outOfStock,
+    ...productFields
+  } = form;
   const formData = productFields as FormFormat;
   const getSKUKey = (
     combination: Array<{ id: string; value: string }>
@@ -74,11 +80,14 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     const skuKey = getSKUKey(combination);
     const formSkuKey = combination.map((item) => item.id).join("_");
     const skuData = formData.skus[formSkuKey];
+    const skuStock = outOfStock
+      ? 0
+      : parseInt(skuData?.stock || "0", 10);
 
     skus[skuKey] = {
       id: String(idx + 1),
       price: parseFloat(skuData?.price || "0"),
-      stock: parseInt(skuData?.stock || "0", 10),
+      stock: skuStock,
     };
   });
 
@@ -89,15 +98,17 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
   return {
     images: formData.images,
     description: formData.description,
-    stock: parseInt(formData.stock, 10),
+    stock: outOfStock ? 0 : parseInt(formData.stock, 10),
     moq: parseInt(formData.moq, 10),
+    soldOut: outOfStock ?? false,
+    isMoment: isMoment ?? true,
+    pinTrending: (isMoment ?? true) && (pinTrending ?? false),
     attrs,
     location: formData.location,
     deliveryFeeYen: parseFloat(formData.deliveryFeeYen),
     deliveryFeeNaira: formData.deliveryFeeNaira
       ? parseFloat(formData.deliveryFeeNaira)
       : undefined,
-    isMoment: isMoment ?? true,
     variants,
     skuPropRows,
     skuPropHeaders,
@@ -113,7 +124,12 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
 
 export function apiToForm(
   product: IProduct
-): FormFormat & { isMoment: boolean; quickAddText?: string } {
+): FormFormat & {
+  isMoment: boolean;
+  pinTrending: boolean;
+  outOfStock: boolean;
+  quickAddText?: string;
+} {
   const variantProperties = (product.propsOrder ?? []).map((propKey) => {
     const variantValues = product.variants[propKey] || [];
     return {
@@ -210,5 +226,7 @@ export function apiToForm(
     skus: skusRecord,
     attributes,
     isMoment: product.isMoment ?? true,
+    pinTrending: product.pinTrending ?? false,
+    outOfStock: product.soldOut ?? false,
   };
 }
