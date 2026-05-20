@@ -7,17 +7,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { productSchema } from "@/schemas/product";
+import { ProductFormInput } from "@/schemas/product";
 import { Plus, Trash2, X } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
-import z from "zod";
 import FileUploadButton from "@/hooks/use-file";
 import { useEffect, useRef, useState } from "react";
 import { IFile } from "@/interfaces/file.interface";
 
 interface IVariantProps {
-  form: UseFormReturn<z.infer<typeof productSchema>>;
+  form: UseFormReturn<ProductFormInput>;
 }
 
 const Variant = ({ form }: IVariantProps) => {
@@ -288,14 +287,14 @@ const Variant = ({ form }: IVariantProps) => {
                                               `variantProperties.${propIndex}.values.${valueIndex}.image`
                                             )
                                               ? ([
-                                                  form.watch(
-                                                    `variantProperties.${propIndex}.values.${valueIndex}.image`
-                                                  ),
-                                                ]?.map((picture) => ({
-                                                  url: picture?.url,
-                                                  fileName: picture?.fileName,
-                                                  key: picture?.key,
-                                                })) as IFile[])
+                                                form.watch(
+                                                  `variantProperties.${propIndex}.values.${valueIndex}.image`
+                                                ),
+                                              ]?.map((picture) => ({
+                                                url: picture?.url,
+                                                fileName: picture?.fileName,
+                                                key: picture?.key,
+                                              })) as IFile[])
                                               : []
                                           }
                                           outerFiles={

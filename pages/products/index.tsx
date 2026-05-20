@@ -9,7 +9,9 @@ import useCopy, { ICopy } from "@/lib/copy";
 import { useGetProductsQuery } from "@/services/product.service";
 import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
+import { formatNum } from "@/lib/utils";
 import debounce from "lodash.debounce";
+import { format } from "date-fns";
 import { Eye, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -32,7 +34,7 @@ const getColumns = (
       cell: ({ row }) => {
         const name = row.original.description;
         return (
-          <div className="w-110">
+          <div className="max-w-80 w-80">
             <Tooltip
               contentClassName="max-w-[15rem] py-3 bg-primary text-white"
               side="top"
@@ -102,12 +104,13 @@ const getColumns = (
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Price Range"
+          title="Price"
           className="-mb-[1.8px] px-2"
         />
       ),
       cell: ({ row }) => {
         const priceRange = row.original.priceRange ?? [];
+        const amountNaira = row.original.amountNaira;
         return (
           <div className="w-32">
             {priceRange.length > 0 ? (
@@ -116,7 +119,7 @@ const getColumns = (
                 return (
                   <div className="flex items-center gap-[0.5rem] text-nowrap h-8">
                     <p>¥{min}</p>
-                    {max && (
+                    {max != null && max !== min && (
                       <>
                         <span>-</span>
                         <p>¥{max}</p>
@@ -125,9 +128,57 @@ const getColumns = (
                   </div>
                 );
               })()
+            ) : amountNaira != null && amountNaira > 0 ? (
+              <div className="flex items-center text-nowrap h-8">
+                <p>₦{formatNum(amountNaira)}</p>
+              </div>
             ) : (
               <p>---</p>
             )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Date Created"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const createdAt = row.original.createdAt;
+        return (
+          <div className="w-40 text-nowrap h-8 flex items-center">
+            {createdAt ? (
+              <p>{format(new Date(createdAt), "dd MMM, yyy, h:mm a")}</p>
+            ) : (
+              <p>---</p>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "isMoment",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Moment"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const isMoment = row.original.isMoment ?? false;
+        return (
+          <div className="w-20 text-nowrap h-8 flex items-center">
+            <p>{isMoment ? "Yes" : "No"}</p>
           </div>
         );
       },

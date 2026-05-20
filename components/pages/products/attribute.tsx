@@ -7,13 +7,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { productSchema } from "@/schemas/product";
+import { ProductFormInput } from "@/schemas/product";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import z from "zod";
 
 interface IAttributesProps {
-  form: UseFormReturn<z.infer<typeof productSchema>>;
+  form: UseFormReturn<ProductFormInput>;
 }
 
 const Attributes = ({ form }: IAttributesProps) => {

@@ -71,3 +71,11 @@ export const productSchema = z.object({
     )
     .min(1, "At least one attribute is required"),
 });
+
+export const productFormSchema = productSchema.extend({
+  quickAddText: z.string().optional(),
+  isMoment: z.boolean(),
+});
+
+export type ProductFormInput = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;

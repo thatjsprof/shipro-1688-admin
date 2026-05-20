@@ -10,14 +10,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { productSchema } from "@/schemas/product";
+import { ProductFormInput } from "@/schemas/product";
 import z from "zod";
 import { NumericFormat } from "react-number-format";
 import useRate from "@/hooks/use-rate";
 import { useEffect } from "react";
 
 interface BasicProps {
-  form: UseFormReturn<z.infer<typeof productSchema>>;
+  form: UseFormReturn<ProductFormInput>;
 }
 
 export const Basic = ({ form }: BasicProps) => {

@@ -48,6 +48,9 @@ export interface IProduct {
   company: string;
   companyId: string;
   internalProduct: boolean;
+  isMoment?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   stock: number;
   moq: number;
   category: string;

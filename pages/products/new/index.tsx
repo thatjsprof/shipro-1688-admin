@@ -6,15 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
 import { Basic } from "@/components/pages/products/basic";
-import { IProduct, ProductFormValues } from "@/interfaces/product.interface";
-import { productSchema } from "@/schemas/product";
+import { IProduct } from "@/interfaces/product.interface";
+import {
+  productFormSchema,
+  productSchema,
+  ProductFormInput,
+} from "@/schemas/product";
 import Picture from "@/components/pages/products/pictures";
 import Variant from "@/components/pages/products/variant";
 import Attribute from "@/components/pages/products/attribute";
+import QuickAdd from "@/components/pages/products/quick-add";
 import { cn } from "@/lib/utils";
 import { useFileUpload } from "@/hooks/use-upload";
 import { IFile } from "@/interfaces/file.interface";
 import { apiToForm, formToApi } from "@/lib/helpers";
+import { quickProductToForm } from "@/lib/quick-product-to-form";
+import {
+  parseQuickProduct,
+  QUICK_PRODUCT_TEMPLATE,
+} from "@/lib/parse-quick-product";
+import { applyQuickTextToForm } from "@/lib/quick-product-to-form";
 import { useRouter } from "next/router";
 import {
   useCreateProductMutation,
@@ -23,11 +34,12 @@ import {
 } from "@/services/product.service";
 import { Icons } from "@/components/shared/icons";
 import { notify } from "@/lib/toast";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 enum ITabs {
+  Quick = "quick",
   Basic = "basic",
   Variant = "variant",
   Picture = "picture",
@@ -35,14 +47,15 @@ enum ITabs {
 }
 
 const TAB_VALUES = [
+  ITabs.Quick,
   ITabs.Basic,
   ITabs.Picture,
   ITabs.Variant,
   ITabs.Attribute,
 ] as const;
-const DEFAULT_TAB = ITabs.Basic;
 
 const TAB_FIELD_MAP: Record<ITabs, string[]> = {
+  [ITabs.Quick]: [],
   [ITabs.Basic]: [
     "description",
     "stock",
@@ -63,15 +76,26 @@ const Product = () => {
   const [updateProduct, { isLoading: isLoadingUpdate }] =
     useUpdateProductMutation();
   const { data: productData } = useGetProductQuery(id as string, { skip: !id });
+  const isEditMode = Boolean(id);
+  const tabValues = isEditMode
+    ? (TAB_VALUES.filter((t) => t !== ITabs.Quick) as [
+        typeof ITabs.Basic,
+        typeof ITabs.Picture,
+        typeof ITabs.Variant,
+        typeof ITabs.Attribute,
+      ])
+    : TAB_VALUES;
+
   const { activeTab, handleTabChange } = useQueryTabs({
-    tabValues: TAB_VALUES,
-    defaultValue: DEFAULT_TAB,
+    tabValues,
+    defaultValue: isEditMode ? ITabs.Basic : ITabs.Quick,
   });
 
-  const form = useForm<z.infer<typeof productSchema>>({
-    resolver: zodResolver(productSchema),
+  const form = useForm<ProductFormInput>({
+    resolver: zodResolver(productFormSchema),
     mode: "onTouched",
     defaultValues: {
+      quickAddText: QUICK_PRODUCT_TEMPLATE,
       description: "",
       location: "",
       stock: "",
@@ -92,10 +116,21 @@ const Product = () => {
         },
       ],
       skus: {},
+      isMoment: true,
     },
   });
 
   const images = form.watch("images") as IFile[];
+
+  const handleTabChangeWithSync = useCallback(
+    (nextTab: string) => {
+      if (activeTab === ITabs.Quick && nextTab !== ITabs.Quick) {
+        applyQuickTextToForm(form);
+      }
+      handleTabChange(nextTab);
+    },
+    [activeTab, form, handleTabChange]
+  );
 
   const {
     isDragging,
@@ -132,7 +167,48 @@ const Product = () => {
     isMultiple: true,
   });
 
-  const onSubmit = async (values: z.infer<typeof productSchema>) => {
+  const handleQuickCreate = async () => {
+    try {
+      const quickAddText = form.getValues("quickAddText") ?? "";
+      const parseResult = parseQuickProduct(quickAddText);
+      if (!parseResult.success) {
+        notify(parseResult.errors[0] ?? "Invalid quick add input", "error");
+        return;
+      }
+
+      const images = (form.getValues("images") ?? []) as IFile[];
+      const values = quickProductToForm(parseResult.fields, images);
+      const validated = productSchema.safeParse(values);
+
+      if (!validated.success) {
+        const message =
+          validated.error.issues[0]?.message ?? "Validation failed";
+        notify(message, "error");
+        return;
+      }
+
+      const isMoment = form.getValues("isMoment") ?? true;
+      form.reset({
+        ...validated.data,
+        quickAddText,
+        isMoment,
+      });
+
+      const toSave = formToApi(form.getValues());
+      const response = await createProduct(toSave).unwrap();
+
+      if (response.status === 200) {
+        notify(response.message, "success");
+        router.push("/products");
+      } else {
+        notify(response.message, "error");
+      }
+    } catch {
+      notify("Failed to create product", "error");
+    }
+  };
+
+  const onSubmit = async (values: ProductFormInput) => {
     try {
       const toSave = formToApi(values);
       let response: ApiResponse<IProduct>;
@@ -191,8 +267,11 @@ const Product = () => {
       </h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <Tabs value={activeTab} onValueChange={handleTabChangeWithSync}>
             <TabsList className="gap-1">
+              {!isEditMode && (
+                <TabsTrigger value={ITabs.Quick}>Quick add</TabsTrigger>
+              )}
               <TabsTrigger
                 value={ITabs.Basic}
                 className={cn(tabHasErrors(ITabs.Basic) && "text-destructive")}
@@ -236,6 +315,22 @@ const Product = () => {
                 )}
               </TabsTrigger>
             </TabsList>
+            {!isEditMode && (
+              <TabsContent value={ITabs.Quick} className="pt-5">
+                <QuickAdd
+                  form={form}
+                  isDragging={isDragging}
+                  fileInputRef={fileInputRef}
+                  setFileContainerRef={setFileContainerRef}
+                  handleFileInputChange={handleFileInputChange}
+                  uploading={uploading}
+                  files={files}
+                  calculateOverallProgress={calculateOverallProgress}
+                  onCreate={handleQuickCreate}
+                  isLoading={isLoading}
+                />
+              </TabsContent>
+            )}
             <TabsContent value={ITabs.Basic} className="pt-5">
               <Basic form={form} />
             </TabsContent>
@@ -258,16 +353,18 @@ const Product = () => {
               <Attribute form={form} />
             </TabsContent>
           </Tabs>
-          <Button
-            type="submit"
-            disabled={isLoading || isLoadingUpdate}
-            className="h-14 font-semibold px-6 shadow-none mt-[3rem]"
-          >
-            {(isLoading || isLoadingUpdate) && (
-              <Icons.spinner className="h-3 w-3 animate-spin" />
-            )}
-            Save Product
-          </Button>
+          {activeTab !== ITabs.Quick && (
+            <Button
+              type="submit"
+              disabled={isLoading || isLoadingUpdate}
+              className="h-14 font-semibold px-6 shadow-none mt-[3rem]"
+            >
+              {(isLoading || isLoadingUpdate) && (
+                <Icons.spinner className="h-3 w-3 animate-spin" />
+              )}
+              Save Product
+            </Button>
+          )}
         </form>
       </Form>
     </div>

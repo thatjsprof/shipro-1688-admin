@@ -1,10 +1,12 @@
 import { IProduct } from "@/interfaces/product.interface";
-import { productSchema } from "@/schemas/product";
+import { ProductFormInput, productSchema } from "@/schemas/product";
 import z from "zod";
 
 type FormFormat = z.infer<typeof productSchema>;
 
-export function formToApi(form: FormFormat): Partial<IProduct> {
+export function formToApi(form: ProductFormInput): Partial<IProduct> {
+  const { quickAddText: _quickAddText, isMoment, ...productFields } = form;
+  const formData = productFields as FormFormat;
   const getSKUKey = (
     combination: Array<{ id: string; value: string }>
   ): string => {
@@ -42,9 +44,9 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     return combinations;
   };
 
-  const combinations = generateCombinations(form.variantProperties);
+  const combinations = generateCombinations(formData.variantProperties);
   const variants: Record<string, Array<{ id: string; text: string }>> = {};
-  form.variantProperties.forEach((prop) => {
+  formData.variantProperties.forEach((prop) => {
     const propKey = prop.name.toLowerCase().replace(/\s+/g, "");
     variants[propKey] = prop.values.map((val, idx) => ({
       id: String(idx),
@@ -58,7 +60,7 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     }));
   });
 
-  const skuPropHeaders = form.variantProperties.map((prop) =>
+  const skuPropHeaders = formData.variantProperties.map((prop) =>
     prop.name.toLowerCase().replace(/\s+/g, "")
   );
 
@@ -71,7 +73,7 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
   combinations.forEach((combination, idx) => {
     const skuKey = getSKUKey(combination);
     const formSkuKey = combination.map((item) => item.id).join("_");
-    const skuData = form.skus[formSkuKey];
+    const skuData = formData.skus[formSkuKey];
 
     skus[skuKey] = {
       id: String(idx + 1),
@@ -80,35 +82,38 @@ export function formToApi(form: FormFormat): Partial<IProduct> {
     };
   });
 
-  const attrs = form.attributes.map((attr) => ({
+  const attrs = formData.attributes.map((attr) => ({
     [attr.key]: attr.value,
   }));
 
   return {
-    images: form.images,
-    description: form.description,
-    stock: parseInt(form.stock, 10),
-    moq: parseInt(form.moq, 10),
+    images: formData.images,
+    description: formData.description,
+    stock: parseInt(formData.stock, 10),
+    moq: parseInt(formData.moq, 10),
     attrs,
-    location: form.location,
-    deliveryFeeYen: parseFloat(form.deliveryFeeYen),
-    deliveryFeeNaira: form.deliveryFeeNaira
-      ? parseFloat(form.deliveryFeeNaira)
+    location: formData.location,
+    deliveryFeeYen: parseFloat(formData.deliveryFeeYen),
+    deliveryFeeNaira: formData.deliveryFeeNaira
+      ? parseFloat(formData.deliveryFeeNaira)
       : undefined,
+    isMoment: isMoment ?? true,
     variants,
     skuPropRows,
     skuPropHeaders,
     skus,
     propsOrder,
     propsInfoTable,
-    totalSoldDuration: form.totalSoldDuration?.reduce((acc, item) => {
+    totalSoldDuration: formData.totalSoldDuration?.reduce((acc, item) => {
       acc[item.duration] = parseFloat(item.amount);
       return acc;
     }, {} as Record<string, number>),
   };
 }
 
-export function apiToForm(product: IProduct): FormFormat {
+export function apiToForm(
+  product: IProduct
+): FormFormat & { isMoment: boolean; quickAddText?: string } {
   const variantProperties = (product.propsOrder ?? []).map((propKey) => {
     const variantValues = product.variants[propKey] || [];
     return {
@@ -204,5 +209,6 @@ export function apiToForm(product: IProduct): FormFormat {
     variantProperties,
     skus: skusRecord,
     attributes,
+    isMoment: product.isMoment ?? true,
   };
 }
