@@ -74,10 +74,11 @@ export default function QuickAdd({
           Quick add
         </h3>
         <p className="text-sm text-gray-500 mb-4">
-          Enter one field per line as <code className="text-xs">key: value</code>
-          (e.g. description, stock, price, variant_name, variant_value).
-          delivery_fee is optional. Semicolons on the same line are also supported. The
-          first uploaded picture is used as the variant image.
+          Enter fields as <code className="text-xs">key: value</code> (e.g.
+          description, stock, price, variant_name, variant_value). Values can span
+          multiple lines until the next key. delivery_fee is optional. Semicolons on
+          the same line are also supported. The first uploaded picture is used as the
+          variant image.
         </p>
         <FormField
           control={form.control}

@@ -47,15 +47,28 @@ function normalizeKey(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, "_");
 }
 
-function parseLine(line: string): { key: string; value: string } | null {
-  const colonIndex = line.indexOf(":");
+export function normalizeNumericInput(value: string): string {
+  return value.replace(/,/g, "").replace(/\s+/g, "").trim();
+}
+
+function parseNumericValue(value: string): number | null {
+  const normalized = normalizeNumericInput(value);
+  if (!normalized) return null;
+  const n = parseFloat(normalized);
+  return Number.isNaN(n) ? null : n;
+}
+
+function tryParseFieldHeader(
+  segment: string
+): { fieldKey: keyof QuickProductFields; valuePart: string } | null {
+  const colonIndex = segment.indexOf(":");
   if (colonIndex === -1) return null;
 
-  const key = line.slice(0, colonIndex).trim();
-  const value = line.slice(colonIndex + 1).trim();
-  if (!key) return null;
+  const key = segment.slice(0, colonIndex).trim();
+  const fieldKey = FIELD_ALIASES[normalizeKey(key)];
+  if (!fieldKey) return null;
 
-  return { key, value };
+  return { fieldKey, valuePart: segment.slice(colonIndex + 1) };
 }
 
 export type ParseQuickProductResult =
@@ -68,31 +81,55 @@ export function extractQuickProductFields(text: string): {
 } {
   const fields: Partial<QuickProductFields> = {};
   const unknownKeys: string[] = [];
-
   const lines = text.split(/\r?\n/);
+
+  let currentField: keyof QuickProductFields | null = null;
+  const valueParts: string[] = [];
+
+  const flush = () => {
+    if (!currentField) return;
+    const value = valueParts.join("\n").trim();
+    if (value) {
+      fields[currentField] = value;
+    }
+    currentField = null;
+    valueParts.length = 0;
+  };
 
   for (const rawLine of lines) {
     const segments = rawLine.includes(";")
       ? rawLine.split(";").map((s) => s.trim())
-      : [rawLine.trim()];
+      : [rawLine];
 
     for (const segment of segments) {
-      if (!segment) continue;
+      const trimmed = segment.trim();
+      if (!trimmed) continue;
 
-      const parsed = parseLine(segment);
-      if (!parsed) continue;
-
-      const normalizedKey = normalizeKey(parsed.key);
-      const fieldKey = FIELD_ALIASES[normalizedKey];
-
-      if (!fieldKey) {
-        if (parsed.value) unknownKeys.push(parsed.key);
+      const header = tryParseFieldHeader(trimmed);
+      if (header) {
+        flush();
+        currentField = header.fieldKey;
+        const initial = header.valuePart.trim();
+        if (initial) {
+          valueParts.push(initial);
+        }
         continue;
       }
 
-      fields[fieldKey] = parsed.value;
+      if (currentField) {
+        valueParts.push(trimmed);
+        continue;
+      }
+
+      const unknown = tryParseFieldHeader(`${trimmed}:`);
+      if (!unknown && trimmed.includes(":")) {
+        const key = trimmed.slice(0, trimmed.indexOf(":")).trim();
+        if (key) unknownKeys.push(key);
+      }
     }
   }
+
+  flush();
 
   return { fields, unknownKeys };
 }
@@ -118,20 +155,32 @@ export function parseQuickProduct(text: string): ParseQuickProductResult {
     errors.push("Description must be at least 10 characters");
   }
 
-  const stock = fields.stock?.trim() ?? "";
-  if (stock && (!/^\d+$/.test(stock) || parseInt(stock, 10) < 0)) {
+  const stockRaw = fields.stock?.trim() ?? "";
+  const stock = normalizeNumericInput(stockRaw);
+  if (
+    stock &&
+    (!/^\d+$/.test(stock) || parseInt(stock, 10) < 0)
+  ) {
     errors.push("Stock must be a non-negative whole number");
   }
 
-  const price = fields.price?.trim() ?? "";
-  if (price && (isNaN(parseFloat(price)) || parseFloat(price) <= 0)) {
+  const priceRaw = fields.price?.trim() ?? "";
+  const price = normalizeNumericInput(priceRaw);
+  const priceNum = price ? parseNumericValue(priceRaw) : null;
+  if (price && (priceNum === null || priceNum <= 0)) {
     errors.push("Price must be a positive number");
   }
 
-  const deliveryFee = fields.deliveryFee?.trim() ?? "";
+  const deliveryFeeRaw = fields.deliveryFee?.trim() ?? "";
+  const deliveryFee = deliveryFeeRaw
+    ? normalizeNumericInput(deliveryFeeRaw)
+    : "";
+  const deliveryFeeNum = deliveryFee
+    ? parseNumericValue(deliveryFeeRaw)
+    : null;
   if (
     deliveryFee &&
-    (isNaN(parseFloat(deliveryFee)) || parseFloat(deliveryFee) < 0)
+    (deliveryFeeNum === null || deliveryFeeNum < 0)
   ) {
     errors.push("Delivery fee must be a non-negative number");
   }
@@ -144,10 +193,10 @@ export function parseQuickProduct(text: string): ParseQuickProductResult {
     success: true,
     fields: {
       description: fields.description!.trim(),
-      stock: fields.stock!.trim(),
-      price: fields.price!.trim(),
-      ...(fields.deliveryFee?.trim() && {
-        deliveryFee: fields.deliveryFee.trim(),
+      stock,
+      price,
+      ...(deliveryFee && {
+        deliveryFee,
       }),
       variantName: fields.variantName!.trim(),
       variantValue: fields.variantValue!.trim(),

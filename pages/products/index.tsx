@@ -4,9 +4,16 @@ import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { Tooltip } from "@/components/ui/tooltip";
+import {
+  buildListingPatch,
+  ProductListingSwitchCell,
+} from "@/components/pages/products/product-listing-switch-cell";
 import { IProduct } from "@/interfaces/product.interface";
-import useCopy, { ICopy } from "@/lib/copy";
-import { useGetProductsQuery } from "@/services/product.service";
+import { notify } from "@/lib/toast";
+import {
+  useGetProductsQuery,
+  useUpdateProductMutation,
+} from "@/services/product.service";
 import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { formatNum } from "@/lib/utils";
@@ -18,8 +25,12 @@ import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 const getColumns = (
-  copyToClipboard: ({ id, text, message, style }: ICopy) => void,
-  onViewClick: (row: IProduct) => void
+  onListingChange: (
+    product: IProduct,
+    field: "isMoment" | "pinTrending" | "archived",
+    checked: boolean
+  ) => void,
+  updatingId: string | null
 ): ColumnDef<IProduct>[] => {
   return [
     {
@@ -110,7 +121,7 @@ const getColumns = (
       ),
       cell: ({ row }) => {
         const priceRange = row.original.priceRange ?? [];
-        const amountNaira = row.original.amountNaira;
+        const amountYen = row.original.amountYen;
         return (
           <div className="w-32">
             {priceRange.length > 0 ? (
@@ -118,19 +129,19 @@ const getColumns = (
                 const [min, max] = priceRange;
                 return (
                   <div className="flex items-center gap-[0.5rem] text-nowrap h-8">
-                    <p>¥{min}</p>
+                    <p>¥{formatNum(min)}</p>
                     {max != null && max !== min && (
                       <>
                         <span>-</span>
-                        <p>¥{max}</p>
+                        <p>¥{formatNum(max)}</p>
                       </>
                     )}
                   </div>
                 );
               })()
-            ) : amountNaira != null && amountNaira > 0 ? (
+            ) : amountYen != null && amountYen > 0 ? (
               <div className="flex items-center text-nowrap h-8">
-                <p>₦{formatNum(amountNaira)}</p>
+                <p>¥{formatNum(amountYen)}</p>
               </div>
             ) : (
               <p>---</p>
@@ -175,11 +186,17 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
-        const isMoment = row.original.isMoment ?? false;
+        const product = row.original;
+        const isMoment = product.isMoment ?? false;
+        const archived = product.archived ?? false;
         return (
-          <div className="w-20 text-nowrap h-8 flex items-center">
-            <p>{isMoment ? "Yes" : "No"}</p>
-          </div>
+          <ProductListingSwitchCell
+            checked={isMoment}
+            disabled={archived || updatingId === product.id}
+            onCheckedChange={(checked) =>
+              onListingChange(product, "isMoment", checked)
+            }
+          />
         );
       },
       enableSorting: false,
@@ -195,11 +212,18 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
-        const pinTrending = row.original.pinTrending ?? false;
+        const product = row.original;
+        const pinTrending = product.pinTrending ?? false;
+        const isMoment = product.isMoment ?? false;
+        const archived = product.archived ?? false;
         return (
-          <div className="w-20 text-nowrap h-8 flex items-center">
-            <p>{pinTrending ? "Yes" : "No"}</p>
-          </div>
+          <ProductListingSwitchCell
+            checked={pinTrending}
+            disabled={!isMoment || archived || updatingId === product.id}
+            onCheckedChange={(checked) =>
+              onListingChange(product, "pinTrending", checked)
+            }
+          />
         );
       },
       enableSorting: false,
@@ -235,11 +259,16 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
-        const archived = row.original.archived ?? false;
+        const product = row.original;
+        const archived = product.archived ?? false;
         return (
-          <div className="w-20 text-nowrap h-8 flex items-center">
-            <p>{archived ? "Yes" : "No"}</p>
-          </div>
+          <ProductListingSwitchCell
+            checked={archived}
+            disabled={updatingId === product.id}
+            onCheckedChange={(checked) =>
+              onListingChange(product, "archived", checked)
+            }
+          />
         );
       },
       enableSorting: false,
@@ -329,7 +358,6 @@ const getColumns = (
 
 const Products = () => {
   const router = useRouter();
-  const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const authenticated = useAppSelector((state) => state.user.authenticated);
@@ -357,8 +385,35 @@ const Products = () => {
   );
   const products = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
+  const [updateProduct] = useUpdateProductMutation();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const columns = getColumns(copyToClipboard, () => null);
+  const handleListingChange = useCallback(
+    async (
+      product: IProduct,
+      field: "isMoment" | "pinTrending" | "archived",
+      checked: boolean
+    ) => {
+      setUpdatingId(product.id);
+      try {
+        const patch = buildListingPatch(product, field, checked);
+        const res = await updateProduct({ id: product.id, data: patch }).unwrap();
+        if (res.status !== 200) {
+          notify(res.message ?? "Failed to update product", "error");
+        }
+      } catch {
+        notify("Failed to update product", "error");
+      } finally {
+        setUpdatingId(null);
+      }
+    },
+    [updateProduct]
+  );
+
+  const columns = useMemo(
+    () => getColumns(handleListingChange, updatingId),
+    [handleListingChange, updatingId]
+  );
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
