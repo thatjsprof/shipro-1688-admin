@@ -1,8 +1,8 @@
 export const QUICK_PRODUCT_TEMPLATE = `description:
-stock:
+stock: 1
 price:
 delivery_fee:
-variant_name:
+variant_name: Info
 variant_value:`;
 
 export type QuickProductFields = {

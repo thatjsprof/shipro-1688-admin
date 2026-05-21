@@ -101,11 +101,6 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
           </FormItem>
         )}
       />
-      {archived && (
-        <p className="text-xs text-zinc-500">
-          Archived products are hidden from search and public product lists.
-        </p>
-      )}
     </div>
   );
 }
