@@ -76,6 +76,13 @@ export const productApi = createApi({
           return ["GetProducts", "GetProduct"];
         },
       }),
+      deleteProduct: builder.mutation<ApiResponse<void>, string>({
+        query: (id) => ({
+          url: `${baseUrl}/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["GetProducts", "GetProduct"],
+      }),
     };
   },
 });
@@ -84,5 +91,6 @@ export const {
   useCreateProductMutation,
   useGetProductsQuery,
   useUpdateProductMutation,
+  useDeleteProductMutation,
   useGetProductQuery,
 } = productApi;

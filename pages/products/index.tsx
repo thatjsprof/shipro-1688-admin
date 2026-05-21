@@ -9,8 +9,10 @@ import {
   ProductListingSwitchCell,
 } from "@/components/pages/products/product-listing-switch-cell";
 import { IProduct } from "@/interfaces/product.interface";
+import ActionAlert from "@/components/ui/action-alert";
 import { notify } from "@/lib/toast";
 import {
+  useDeleteProductMutation,
   useGetProductsQuery,
   useUpdateProductMutation,
 } from "@/services/product.service";
@@ -19,7 +21,7 @@ import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { formatNum } from "@/lib/utils";
 import debounce from "lodash.debounce";
 import { format } from "date-fns";
-import { Eye, Search, X } from "lucide-react";
+import { Eye, Search, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -30,6 +32,7 @@ const getColumns = (
     field: "isMoment" | "pinTrending" | "archived",
     checked: boolean
   ) => void,
+  onRequestDelete: (product: IProduct) => void,
   updatingId: string | null
 ): ColumnDef<IProduct>[] => {
   return [
@@ -336,17 +339,30 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
+        const product = row.original;
         return (
-          <div>
+          <div
+            className="flex items-center gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Link
-              href={`${process.env.CLIENT_URL}/products/${row.original.id}`}
+              href={`${process.env.CLIENT_URL}/products/${product.id}`}
               target="_blank"
             >
-              <Button className="shadow-none">
+              <Button type="button" variant="outline" className="shadow-none">
                 <Eye />
                 View
               </Button>
             </Link>
+            <Button
+              type="button"
+              variant="outline"
+              className="shadow-none text-destructive hover:text-destructive"
+              onClick={() => onRequestDelete(product)}
+            >
+              <Trash2 />
+              Delete
+            </Button>
           </div>
         );
       },
@@ -386,7 +402,10 @@ const Products = () => {
   const products = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
   const [updateProduct] = useUpdateProductMutation();
+  const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<IProduct | null>(null);
 
   const handleListingChange = useCallback(
     async (
@@ -410,9 +429,30 @@ const Products = () => {
     [updateProduct]
   );
 
+  const handleRequestDelete = useCallback((product: IProduct) => {
+    setProductToDelete(product);
+    setDeleteOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!productToDelete) return;
+    try {
+      const res = await deleteProduct(productToDelete.id).unwrap();
+      if (res.status === 200) {
+        notify(res.message ?? "Product deleted", "success");
+        setDeleteOpen(false);
+        setProductToDelete(null);
+      } else {
+        notify(res.message ?? "Failed to delete product", "error");
+      }
+    } catch {
+      notify("Failed to delete product", "error");
+    }
+  }, [deleteProduct, productToDelete]);
+
   const columns = useMemo(
-    () => getColumns(handleListingChange, updatingId),
-    [handleListingChange, updatingId]
+    () => getColumns(handleListingChange, handleRequestDelete, updatingId),
+    [handleListingChange, handleRequestDelete, updatingId]
   );
 
   const debouncedChangeHandler = useCallback(
@@ -483,6 +523,28 @@ const Products = () => {
           }}
         />
       </div>
+      <ActionAlert
+        open={deleteOpen}
+        setOpen={setDeleteOpen}
+        title="Delete product?"
+        body={
+          productToDelete ? (
+            <span>
+              This permanently removes{" "}
+              <strong className="font-medium">
+                {productToDelete.description}
+              </strong>
+              . This cannot be undone.
+            </span>
+          ) : (
+            "This permanently removes the product. This cannot be undone."
+          )
+        }
+        actionText="Delete product"
+        loading={isDeleting}
+        handleAction={handleConfirmDelete}
+        closeCls="shadow-none"
+      />
       <div className="mt-7">
         <AdvancedPagination
           initialPage={pagination.pageIndex}
