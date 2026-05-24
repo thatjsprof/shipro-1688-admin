@@ -6,6 +6,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Textarea } from "@/components/ui/textarea";
 import ListingSettings from "@/components/pages/products/listing-settings";
 import { Icons } from "@/components/shared/icons";
@@ -54,7 +55,13 @@ export default function QuickAdd({
 
   const handleCreate = async () => {
     const quickAddText = form.getValues("quickAddText") ?? "";
-    const result = parseQuickProduct(quickAddText);
+    const description = form.getValues("description") ?? "";
+    const variantValue =
+      form.getValues("variantProperties")?.[0]?.values?.[0]?.value ?? "";
+    const result = parseQuickProduct(quickAddText, {
+      description,
+      variantValue,
+    });
     if (!result.success) {
       setParseErrors(result.errors);
       return;
@@ -70,21 +77,58 @@ export default function QuickAdd({
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Quick add
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick add</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Enter fields as <code className="text-xs">key: value</code> (e.g.
-          description, stock, price, variant_name, variant_value). Values can span
-          multiple lines until the next key. delivery_fee is optional. Semicolons on
-          the same line are also supported. The first uploaded picture is used as the
-          variant image.
+          Use the editors for description and variant value. Enter stock, price,
+          and other fields below as <code className="text-xs">key: value</code>.
+          The first uploaded picture is used as the variant image.
         </p>
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-4">
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <RichTextEditor
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  placeholder="Description of this product"
+                  error={!!fieldState.error}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="variantProperties.0.values.0.value"
+          render={({ field, fieldState }) => (
+            <FormItem className="mb-4">
+              <FormLabel>Variant value</FormLabel>
+              <FormControl>
+                <RichTextEditor
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  compact
+                  placeholder="Variant value"
+                  error={!!fieldState.error}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="quickAddText"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Other fields</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
@@ -93,8 +137,8 @@ export default function QuickAdd({
                     field.onChange(e);
                     setParseErrors([]);
                   }}
-                  rows={8}
-                  className="font-mono text-sm resize-y min-h-[12rem]"
+                  rows={6}
+                  className="font-mono text-sm resize-y min-h-[9rem]"
                   spellCheck={false}
                 />
               </FormControl>

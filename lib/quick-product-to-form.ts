@@ -7,6 +7,7 @@ import {
   extractQuickProductFields,
   QuickProductFields,
 } from "@/lib/parse-quick-product";
+import { hasRichTextContent, isRichTextEmpty, sanitizeRichHtml } from "@/lib/rich-text";
 import { UseFormReturn } from "react-hook-form";
 
 function generateVariantValueId(): string {
@@ -30,9 +31,9 @@ function attributesFromVariantFields(
   fields: Partial<QuickProductFields>
 ): { key: string; value: string }[] {
   const name = fields.variantName?.trim();
-  const value = fields.variantValue?.trim();
-  if (name && value) {
-    return [{ key: name, value }];
+  const value = fields.variantValue ?? "";
+  if (name && hasRichTextContent(value)) {
+    return [{ key: name, value: sanitizeRichHtml(value) }];
   }
   return [{ key: "", value: "" }];
 }
@@ -45,8 +46,14 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
   const current = form.getValues();
   const images = (current.images ?? []) as IFile[];
 
-  if (fields.description?.trim()) {
-    form.setValue("description", fields.description.trim(), {
+  const currentDescription = form.getValues("description") ?? "";
+
+  if (
+    fields.description &&
+    hasRichTextContent(fields.description) &&
+    isRichTextEmpty(currentDescription)
+  ) {
+    form.setValue("description", sanitizeRichHtml(fields.description), {
       shouldDirty: true,
     });
   }
@@ -85,11 +92,9 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
           values: [
             {
               id: valueId,
-              value: (
-                fields.variantValue ??
-                existing?.values?.[0]?.value ??
-                ""
-              ).trim(),
+              value: sanitizeRichHtml(
+                fields.variantValue ?? existing?.values?.[0]?.value ?? ""
+              ),
               ...(variantImage && { image: variantImage }),
             },
           ],
@@ -110,7 +115,10 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
       { shouldDirty: true }
     );
 
-    if (fields.variantName?.trim() && fields.variantValue?.trim()) {
+    if (
+      fields.variantName?.trim() &&
+      hasRichTextContent(fields.variantValue ?? "")
+    ) {
       form.setValue("attributes", attributesFromVariantFields(fields), {
         shouldDirty: true,
       });
@@ -126,7 +134,7 @@ export function quickProductToForm(
   const variantImage = images[0] ?? null;
 
   return {
-    description: fields.description,
+    description: sanitizeRichHtml(fields.description),
     stock: fields.stock,
     moq: "1",
     location: "",
@@ -140,7 +148,7 @@ export function quickProductToForm(
         values: [
           {
             id: valueId,
-            value: fields.variantValue,
+            value: sanitizeRichHtml(fields.variantValue),
             ...(variantImage && { image: variantImage }),
           },
         ],

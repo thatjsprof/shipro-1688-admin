@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ProductFormInput } from "@/schemas/product";
@@ -59,11 +60,9 @@ export const Basic = ({ form }: BasicProps) => {
                 <FormLabel htmlFor="name">Description</FormLabel>
                 <div className="flex flex-col space-y-1">
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      id={"description"}
-                      rows={5}
-                      className="!bg-transparent hover:border-zinc-400 placeholder:text-gray-400 shadow-none"
+                    <RichTextEditor
+                      value={field.value ?? ""}
+                      onChange={field.onChange}
                       placeholder="Description of this product"
                       error={!!errors?.description?.message}
                     />

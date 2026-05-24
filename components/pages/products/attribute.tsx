@@ -6,6 +6,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { cn } from "@/lib/utils";
 import { ProductFormInput } from "@/schemas/product";
 import { Plus, Trash2 } from "lucide-react";
@@ -83,11 +84,12 @@ const Attributes = ({ form }: IAttributesProps) => {
                 <FormItem className="flex-1">
                   <div className="space-y-1">
                     <FormControl>
-                      <Input
-                        {...field}
+                      <RichTextEditor
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                        compact
                         placeholder="Value"
                         error={!!formState.errors.attributes?.[idx]?.value}
-                        className="px-4 py-2"
                       />
                     </FormControl>
                     <FormMessage />

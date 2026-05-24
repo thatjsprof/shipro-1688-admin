@@ -31,7 +31,7 @@ export const productApi = createApi({
             method: "GET",
           };
         },
-        providesTags: ["GetProducts"],
+        providesTags: () => [{ type: "GetProducts", id: "LIST" }],
       }),
       getProduct: builder.query<ApiResponse<IProduct>, string>({
         query: (id) => {
@@ -40,7 +40,7 @@ export const productApi = createApi({
             method: "GET",
           };
         },
-        providesTags: ["GetProduct"],
+        providesTags: (_result, _error, id) => [{ type: "GetProduct", id }],
       }),
       createProduct: builder.mutation<ApiResponse<IProduct>, Partial<IProduct>>(
         {
@@ -51,10 +51,7 @@ export const productApi = createApi({
               body,
             };
           },
-          invalidatesTags: (result) => {
-            if (!result) return [];
-            return ["GetProducts", "GetProduct"];
-          },
+          invalidatesTags: () => [{ type: "GetProducts", id: "LIST" }],
         }
       ),
       updateProduct: builder.mutation<
@@ -71,17 +68,20 @@ export const productApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: (result) => {
-          if (!result) return [];
-          return ["GetProducts", "GetProduct"];
-        },
+        invalidatesTags: (_result, _error, { id }) => [
+          { type: "GetProducts", id: "LIST" },
+          { type: "GetProduct", id },
+        ],
       }),
-      deleteProduct: builder.mutation<ApiResponse<void>, string>({
+      deleteProduct: builder.mutation<ApiResponse<{ id: string }>, string>({
         query: (id) => ({
           url: `${baseUrl}/${id}`,
           method: "DELETE",
         }),
-        invalidatesTags: ["GetProducts", "GetProduct"],
+        invalidatesTags: (_result, _error, id) => [
+          { type: "GetProducts", id: "LIST" },
+          { type: "GetProduct", id },
+        ],
       }),
     };
   },

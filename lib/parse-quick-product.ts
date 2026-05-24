@@ -1,9 +1,9 @@
-export const QUICK_PRODUCT_TEMPLATE = `description:
-stock: 1
+import { richTextPlainLength } from "@/lib/rich-text";
+
+export const QUICK_PRODUCT_TEMPLATE = `stock: 1
 price:
 delivery_fee:
-variant_name: Info
-variant_value:`;
+variant_name: Info`;
 
 export type QuickProductFields = {
   description: string;
@@ -26,12 +26,11 @@ const FIELD_ALIASES: Record<string, keyof QuickProductFields> = {
   variantvalue: "variantValue",
 };
 
-const REQUIRED_FIELDS: Array<keyof QuickProductFields> = [
-  "description",
+
+const REQUIRED_PARSER_FIELDS: Array<keyof QuickProductFields> = [
   "stock",
   "price",
   "variantName",
-  "variantValue",
 ];
 
 const FIELD_LABELS: Record<keyof QuickProductFields, string> = {
@@ -134,7 +133,10 @@ export function extractQuickProductFields(text: string): {
   return { fields, unknownKeys };
 }
 
-export function parseQuickProduct(text: string): ParseQuickProductResult {
+export function parseQuickProduct(
+  text: string,
+  options?: { description?: string; variantValue?: string }
+): ParseQuickProductResult {
   const { fields, unknownKeys } = extractQuickProductFields(text);
 
   const errors: string[] = [];
@@ -143,16 +145,25 @@ export function parseQuickProduct(text: string): ParseQuickProductResult {
     errors.push(`Unknown field(s): ${unknownKeys.join(", ")}`);
   }
 
-  for (const field of REQUIRED_FIELDS) {
+  for (const field of REQUIRED_PARSER_FIELDS) {
     const value = fields[field]?.trim();
     if (!value) {
       errors.push(`Missing required field: ${FIELD_LABELS[field]}`);
     }
   }
 
-  const description = fields.description?.trim() ?? "";
-  if (description && description.length < 10) {
+  const description = (options?.description ?? fields.description ?? "").trim();
+  if (!description || richTextPlainLength(description) < 10) {
     errors.push("Description must be at least 10 characters");
+  }
+
+  const variantValue = (
+    options?.variantValue ??
+    fields.variantValue ??
+    ""
+  ).trim();
+  if (!variantValue || richTextPlainLength(variantValue) < 1) {
+    errors.push("Missing required field: variant_value");
   }
 
   const stockRaw = fields.stock?.trim() ?? "";
@@ -192,14 +203,14 @@ export function parseQuickProduct(text: string): ParseQuickProductResult {
   return {
     success: true,
     fields: {
-      description: fields.description!.trim(),
+      description,
       stock,
       price,
       ...(deliveryFee && {
         deliveryFee,
       }),
       variantName: fields.variantName!.trim(),
-      variantValue: fields.variantValue!.trim(),
+      variantValue,
     },
   };
 }

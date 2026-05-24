@@ -6,7 +6,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import RichTextEditor from "@/components/ui/rich-text-editor";
 import { cn } from "@/lib/utils";
+import { hasRichTextContent } from "@/lib/rich-text";
 import { ProductFormInput } from "@/schemas/product";
 import { Plus, Trash2, X } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -90,7 +92,7 @@ const Variant = ({ form }: IVariantProps) => {
 
       const prop = variantProperties[depth];
       for (const valueObj of prop.values) {
-        if (valueObj.value.trim()) {
+        if (hasRichTextContent(valueObj.value)) {
           current.push(valueObj);
           generate(current, depth + 1);
           current.pop();
@@ -240,15 +242,16 @@ const Variant = ({ form }: IVariantProps) => {
                                 <div className="flex items-center gap-3">
                                   <div className="flex items-start gap-3 flex-1">
                                     <FormControl className="flex-1">
-                                      <Input
-                                        {...field}
+                                      <RichTextEditor
+                                        value={field.value ?? ""}
+                                        onChange={field.onChange}
+                                        compact
                                         placeholder="Value"
                                         error={
                                           !!formState.errors
                                             .variantProperties?.[propIndex]
                                             ?.values?.[valueIndex]?.value
                                         }
-                                        className="flex-1"
                                       />
                                     </FormControl>
                                     <div className="ml-0 max-w-[15rem] w-full">

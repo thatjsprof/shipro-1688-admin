@@ -1,5 +1,10 @@
 import { IProduct } from "@/interfaces/product.interface";
 import { ProductFormInput, productSchema } from "@/schemas/product";
+import {
+  hasRichTextContent,
+  sanitizeRichHtml,
+  stripRichHtml,
+} from "@/lib/rich-text";
 import z from "zod";
 
 type FormFormat = z.infer<typeof productSchema>;
@@ -18,7 +23,7 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     combination: Array<{ id: string; value: string }>
   ): string => {
     return combination
-      .map((item) => item.value.replace(/\s+/g, "").toLowerCase())
+      .map((item) => stripRichHtml(item.value).replace(/\s+/g, "").toLowerCase())
       .join("_");
   };
 
@@ -39,7 +44,7 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
 
       const prop = properties[depth];
       for (const valueObj of prop.values) {
-        if (valueObj.value.trim()) {
+        if (hasRichTextContent(valueObj.value)) {
           current.push(valueObj);
           generate(current, depth + 1);
           current.pop();
@@ -57,7 +62,7 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     const propKey = prop.name.toLowerCase().replace(/\s+/g, "");
     variants[propKey] = prop.values.map((val, idx) => ({
       id: String(idx),
-      text: val.value,
+      text: sanitizeRichHtml(val.value),
       ...(val.image && {
         image: {
           ...val.image,
@@ -93,12 +98,12 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
   });
 
   const attrs = formData.attributes.map((attr) => ({
-    [attr.key]: attr.value,
+    [attr.key]: sanitizeRichHtml(attr.value),
   }));
 
   return {
     images: formData.images,
-    description: formData.description,
+    description: sanitizeRichHtml(formData.description),
     stock: outOfStock ? 0 : parseInt(formData.stock, 10),
     moq: parseInt(formData.moq, 10),
     soldOut: outOfStock ?? false,

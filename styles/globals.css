@@ -162,3 +162,33 @@ body {
 .PopoverContent {
   width: var(--radix-popover-trigger-width);
 }
+
+.rich-text ul,
+.rich-text-editor ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.rich-text ol,
+.rich-text-editor ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.rich-text p,
+.rich-text-editor p {
+  margin: 0.25rem 0;
+}
+
+.rich-text a {
+  color: var(--primary, #fc6320);
+  text-decoration: underline;
+}
+
+.rich-text-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}

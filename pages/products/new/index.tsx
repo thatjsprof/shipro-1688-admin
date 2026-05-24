@@ -173,7 +173,13 @@ const Product = () => {
   const handleQuickCreate = async () => {
     try {
       const quickAddText = form.getValues("quickAddText") ?? "";
-      const parseResult = parseQuickProduct(quickAddText);
+      const description = form.getValues("description") ?? "";
+      const variantValue =
+        form.getValues("variantProperties")?.[0]?.values?.[0]?.value ?? "";
+      const parseResult = parseQuickProduct(quickAddText, {
+        description,
+        variantValue,
+      });
       if (!parseResult.success) {
         notify(parseResult.errors[0] ?? "Invalid quick add input", "error");
         return;

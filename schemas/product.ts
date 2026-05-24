@@ -1,9 +1,15 @@
+import { hasRichTextContent, richTextPlainLength } from "@/lib/rich-text";
 import z from "zod";
 
 export const productSchema = z.object({
   stock: z.string().min(1, "Stock is required"),
   moq: z.string().min(1, "MOQ is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .refine((value) => richTextPlainLength(value) >= 10, {
+      message: "Description must be at least 10 characters",
+    }),
   location: z.string().optional(),
   deliveryFeeYen: z.string().min(1, "Delivery fee is required"),
   deliveryFeeNaira: z.string().optional(),
@@ -33,7 +39,11 @@ export const productSchema = z.object({
           .array(
             z.object({
               id: z.string(),
-              value: z.string().min(1, "Value cannot be empty"),
+              value: z
+                .string()
+                .refine((value) => hasRichTextContent(value), {
+                  message: "Value cannot be empty",
+                }),
               image: z
                 .object({
                   url: z.string().min(1, { message: "Url is required" }),
@@ -66,7 +76,11 @@ export const productSchema = z.object({
     .array(
       z.object({
         key: z.string().min(1, "Key is required"),
-        value: z.string().min(1, "Value is required"),
+        value: z
+          .string()
+          .refine((value) => hasRichTextContent(value), {
+            message: "Value is required",
+          }),
       })
     )
     .min(1, "At least one attribute is required"),

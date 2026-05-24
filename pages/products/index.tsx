@@ -11,6 +11,7 @@ import {
 import { IProduct } from "@/interfaces/product.interface";
 import ActionAlert from "@/components/ui/action-alert";
 import { notify } from "@/lib/toast";
+import { stripRichHtml } from "@/lib/rich-text";
 import {
   useDeleteProductMutation,
   useGetProductsQuery,
@@ -47,6 +48,7 @@ const getColumns = (
       ),
       cell: ({ row }) => {
         const name = row.original.description;
+        const plainName = stripRichHtml(name);
         return (
           <div className="max-w-80 w-80">
             <Tooltip
@@ -56,15 +58,15 @@ const getColumns = (
               arrowClassName="fill-primary bg-primary"
               content={
                 <div>
-                  <p className="mb-1">{name}</p>
+                  <p className="mb-1">{plainName}</p>
                 </div>
               }
             >
-              {name ? (
+              {plainName ? (
                 <div className="text-nowrap h-8">
                   <div className="flex items-center gap-[0.6rem] h-full">
                     <p className="truncate">
-                      <span>{name}</span>
+                      <span>{plainName}</span>
                     </p>
                   </div>
                 </div>
@@ -388,7 +390,7 @@ const Products = () => {
     }),
     [pageIndex, pageSize]
   );
-  const { data, isLoading } = useGetProductsQuery(
+  const { data, isLoading, isFetching, refetch } = useGetProductsQuery(
     {
       page: pageIndex - 1,
       limit: pageSize,
@@ -438,17 +440,23 @@ const Products = () => {
     if (!productToDelete) return;
     try {
       const res = await deleteProduct(productToDelete.id).unwrap();
-      if (res.status === 200) {
-        notify(res.message ?? "Product deleted", "success");
-        setDeleteOpen(false);
-        setProductToDelete(null);
+      notify(res.message ?? "Product deleted", "success");
+      setDeleteOpen(false);
+      setProductToDelete(null);
+
+      const isLastOnPage = products.length === 1;
+      if (isLastOnPage && pageIndex > 1) {
+        setPagination((prev) => ({
+          ...prev,
+          pageIndex: prev.pageIndex - 1,
+        }));
       } else {
-        notify(res.message ?? "Failed to delete product", "error");
+        await refetch();
       }
     } catch {
       notify("Failed to delete product", "error");
     }
-  }, [deleteProduct, productToDelete]);
+  }, [deleteProduct, productToDelete, products.length, pageIndex, refetch]);
 
   const columns = useMemo(
     () => getColumns(handleListingChange, handleRequestDelete, updatingId),
@@ -505,7 +513,7 @@ const Products = () => {
           pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}
-          loading={isLoading}
+          loading={isLoading || isFetching}
           pagination={pagination}
           showSelected={false}
           setPagination={setPagination}
@@ -532,7 +540,7 @@ const Products = () => {
             <span>
               This permanently removes{" "}
               <strong className="font-medium">
-                {productToDelete.description}
+                {stripRichHtml(productToDelete.description)}
               </strong>
               . This cannot be undone.
             </span>
@@ -548,7 +556,7 @@ const Products = () => {
       <div className="mt-7">
         <AdvancedPagination
           initialPage={pagination.pageIndex}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
           totalPages={totalPages}
           showPageSizeSelector
           pageSize={pagination.pageSize}
