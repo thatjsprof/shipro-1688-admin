@@ -12,10 +12,9 @@ import ListingSettings from "@/components/pages/products/listing-settings";
 import { Icons } from "@/components/shared/icons";
 import { IFile } from "@/interfaces/file.interface";
 import { parseQuickProduct } from "@/lib/parse-quick-product";
-import { syncVariantImageFromFirst } from "@/lib/quick-product-to-form";
 import ProductImageGrid from "@/components/pages/products/product-image-grid";
 import { ProductFormInput } from "@/schemas/product";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { UppyFile, Meta } from "@uppy/core";
 
@@ -47,12 +46,6 @@ export default function QuickAdd({
   const [parseErrors, setParseErrors] = useState<string[]>([]);
   const images = (form.watch("images") ?? []) as IFile[];
 
-  useEffect(() => {
-    if (images.length > 0) {
-      syncVariantImageFromFirst(form);
-    }
-  }, [images, form]);
-
   const handleCreate = async () => {
     const quickAddText = form.getValues("quickAddText") ?? "";
     const description = form.getValues("description") ?? "";
@@ -79,11 +72,9 @@ export default function QuickAdd({
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick add</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Use the editors for description and variant value. Enter stock, price,
-          and other fields below as <code className="text-xs">key: value</code>.
-          The first uploaded picture is used as the variant image.
+          Use the editors for description and info. Enter stock, price, and other
+          fields below as <code className="text-xs">key: value</code>.
         </p>
-
         <FormField
           control={form.control}
           name="description"
@@ -91,12 +82,13 @@ export default function QuickAdd({
             <FormItem className="mb-4">
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <RichTextEditor
+                <Textarea
+                  {...field}
                   value={field.value ?? ""}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  placeholder="Description of this product"
-                  error={!!fieldState.error}
+                  rows={7}
+                  className="text-sm min-h-[6rem]"
+                  spellCheck={false}
+                  placeholder="Enter product description"
                 />
               </FormControl>
               <FormMessage />
@@ -109,14 +101,13 @@ export default function QuickAdd({
           name="variantProperties.0.values.0.value"
           render={({ field, fieldState }) => (
             <FormItem className="mb-4">
-              <FormLabel>Variant value</FormLabel>
+              <FormLabel>Info</FormLabel>
               <FormControl>
                 <RichTextEditor
                   value={field.value ?? ""}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
-                  compact
-                  placeholder="Variant value"
+                  placeholder="Product info"
                   error={!!fieldState.error}
                 />
               </FormControl>
@@ -163,7 +154,6 @@ export default function QuickAdd({
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Pictures</h3>
         <ProductImageGrid
           form={form}
-          showVariantBadge
           isDragging={isDragging}
           fileInputRef={fileInputRef}
           setFileContainerRef={setFileContainerRef}
@@ -171,7 +161,6 @@ export default function QuickAdd({
           uploading={uploading}
           files={files}
           calculateOverallProgress={calculateOverallProgress}
-          onImagesReordered={() => syncVariantImageFromFirst(form)}
         />
       </div>
 

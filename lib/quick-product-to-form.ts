@@ -4,6 +4,7 @@ import {
 } from "@/schemas/product";
 import { IFile } from "@/interfaces/file.interface";
 import {
+  DEFAULT_QUICK_ADD_VARIANT_NAME,
   extractQuickProductFields,
   QuickProductFields,
 } from "@/lib/parse-quick-product";
@@ -14,26 +15,17 @@ function generateVariantValueId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 }
 
-export function syncVariantImageFromFirst(
-  form: UseFormReturn<ProductFormInput>
-): void {
-  const images = (form.getValues("images") ?? []) as IFile[];
-  const first = images[0];
-  const valueId = form.getValues("variantProperties")?.[0]?.values?.[0]?.id;
-  if (!first || !valueId) return;
-
-  form.setValue("variantProperties.0.values.0.image", first, {
-    shouldDirty: true,
-  });
-}
-
 function attributesFromVariantFields(
   fields: Partial<QuickProductFields>
 ): { key: string; value: string }[] {
-  const name = fields.variantName?.trim();
   const value = fields.variantValue ?? "";
-  if (name && hasRichTextContent(value)) {
-    return [{ key: name, value: sanitizeRichHtml(value) }];
+  if (hasRichTextContent(value)) {
+    return [
+      {
+        key: DEFAULT_QUICK_ADD_VARIANT_NAME,
+        value: sanitizeRichHtml(value),
+      },
+    ];
   }
   return [{ key: "", value: "" }];
 }
@@ -44,8 +36,6 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
   if (Object.keys(fields).length === 0) return;
 
   const current = form.getValues();
-  const images = (current.images ?? []) as IFile[];
-
   const currentDescription = form.getValues("description") ?? "";
 
   if (
@@ -74,28 +64,29 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
     form.setValue("deliveryFeeYen", "0", { shouldDirty: true });
   }
 
+  const existing = current.variantProperties?.[0];
+  const existingValue = existing?.values?.[0]?.value ?? "";
   const hasVariantFields =
-    fields.variantName || fields.variantValue || fields.price;
+    fields.price?.trim() ||
+    hasRichTextContent(fields.variantValue ?? existingValue);
 
   if (hasVariantFields) {
-    const existing = current.variantProperties?.[0];
     const valueId =
       existing?.values?.[0]?.id?.trim() || generateVariantValueId();
-    const variantImage = images[0] ?? existing?.values?.[0]?.image ?? null;
     const existingSku = current.skus?.[valueId];
+    const variantValue = sanitizeRichHtml(
+      fields.variantValue ?? existingValue
+    );
 
     form.setValue(
       "variantProperties",
       [
         {
-          name: (fields.variantName ?? existing?.name ?? "").trim(),
+          name: DEFAULT_QUICK_ADD_VARIANT_NAME,
           values: [
             {
               id: valueId,
-              value: sanitizeRichHtml(
-                fields.variantValue ?? existing?.values?.[0]?.value ?? ""
-              ),
-              ...(variantImage && { image: variantImage }),
+              value: variantValue,
             },
           ],
         },
@@ -115,11 +106,8 @@ export function applyQuickTextToForm(form: UseFormReturn<ProductFormInput>): voi
       { shouldDirty: true }
     );
 
-    if (
-      fields.variantName?.trim() &&
-      hasRichTextContent(fields.variantValue ?? "")
-    ) {
-      form.setValue("attributes", attributesFromVariantFields(fields), {
+    if (hasRichTextContent(variantValue)) {
+      form.setValue("attributes", attributesFromVariantFields({ variantValue }), {
         shouldDirty: true,
       });
     }
@@ -131,7 +119,6 @@ export function quickProductToForm(
   images: IFile[]
 ): ProductFormValues {
   const valueId = generateVariantValueId();
-  const variantImage = images[0] ?? null;
 
   return {
     description: sanitizeRichHtml(fields.description),
@@ -144,12 +131,11 @@ export function quickProductToForm(
     attributes: attributesFromVariantFields(fields),
     variantProperties: [
       {
-        name: fields.variantName,
+        name: DEFAULT_QUICK_ADD_VARIANT_NAME,
         values: [
           {
             id: valueId,
             value: sanitizeRichHtml(fields.variantValue),
-            ...(variantImage && { image: variantImage }),
           },
         ],
       },

@@ -60,12 +60,15 @@ export const Basic = ({ form }: BasicProps) => {
                 <FormLabel htmlFor="name">Description</FormLabel>
                 <div className="flex flex-col space-y-1">
                   <FormControl>
-                    <RichTextEditor
+                    <Textarea
+                      {...field}
                       value={field.value ?? ""}
-                      onChange={field.onChange}
-                      onBlur={field.onBlur}
-                      placeholder="Description of this product"
+                      rows={7}
+                      className="text-sm min-h-[6rem]"
+                      spellCheck={false}
+                      placeholder="Enter product description"
                       error={!!errors?.description?.message}
+
                     />
                   </FormControl>
                   <FormMessage />

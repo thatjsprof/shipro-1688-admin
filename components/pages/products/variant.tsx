@@ -17,6 +17,7 @@ import FileUploadButton from "@/hooks/use-file";
 import { useEffect, useRef, useState } from "react";
 import { IFile } from "@/interfaces/file.interface";
 import { clearOutOfStockIfStockUpdated } from "@/lib/product-listing";
+import RichTextContent from "@/components/ui/rich-text-content";
 
 interface IVariantProps {
   form: UseFormReturn<ProductFormInput>;
@@ -239,7 +240,7 @@ const Variant = ({ form }: IVariantProps) => {
                           render={({ field }) => (
                             <FormItem>
                               <div className="space-y-1">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-start gap-3">
                                   <div className="flex items-start gap-3 flex-1">
                                     <FormControl className="flex-1">
                                       <RichTextEditor
@@ -415,9 +416,11 @@ const Variant = ({ form }: IVariantProps) => {
                   >
                     {combination.map((valueObj, vIdx) => (
                       <td key={vIdx} className="py-3 px-4 w-fit">
-                        <span className="text-sm text-gray-900">
-                          {valueObj.value}
-                        </span>
+                        <RichTextContent
+                          html={valueObj.value}
+                          as="p"
+                          className="text-sm text-gray-900"
+                        />
                       </td>
                     ))}
                     <td className="py-3 px-4 align-top">

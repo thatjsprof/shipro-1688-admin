@@ -1,9 +1,10 @@
 import { richTextPlainLength } from "@/lib/rich-text";
 
+export const DEFAULT_QUICK_ADD_VARIANT_NAME = "info";
+
 export const QUICK_PRODUCT_TEMPLATE = `stock: 1
 price:
-delivery_fee:
-variant_name: Info`;
+delivery_fee:`;
 
 export type QuickProductFields = {
   description: string;
@@ -30,7 +31,6 @@ const FIELD_ALIASES: Record<string, keyof QuickProductFields> = {
 const REQUIRED_PARSER_FIELDS: Array<keyof QuickProductFields> = [
   "stock",
   "price",
-  "variantName",
 ];
 
 const FIELD_LABELS: Record<keyof QuickProductFields, string> = {
@@ -163,7 +163,7 @@ export function parseQuickProduct(
     ""
   ).trim();
   if (!variantValue || richTextPlainLength(variantValue) < 1) {
-    errors.push("Missing required field: variant_value");
+    errors.push("Info is required");
   }
 
   const stockRaw = fields.stock?.trim() ?? "";
@@ -209,7 +209,7 @@ export function parseQuickProduct(
       ...(deliveryFee && {
         deliveryFee,
       }),
-      variantName: fields.variantName!.trim(),
+      variantName: DEFAULT_QUICK_ADD_VARIANT_NAME,
       variantValue,
     },
   };
