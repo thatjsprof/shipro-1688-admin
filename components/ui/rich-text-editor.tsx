@@ -218,7 +218,7 @@ export default function RichTextEditor({
       el.focus();
       restoreSelection(selectionRef.current);
 
-      document.execCommand("styleWithCSS", false, "true");
+      document.execCommand("styleWithCSS", false, "false");
       document.execCommand(command, false, arg);
 
       selectionRef.current = saveSelection(el);
