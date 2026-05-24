@@ -245,6 +245,7 @@ const Variant = ({ form }: IVariantProps) => {
                                       <RichTextEditor
                                         value={field.value ?? ""}
                                         onChange={field.onChange}
+                                        onBlur={field.onBlur}
                                         compact
                                         placeholder="Value"
                                         error={

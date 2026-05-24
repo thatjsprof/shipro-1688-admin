@@ -187,7 +187,7 @@ body {
   text-decoration: underline;
 }
 
-.rich-text-editor:empty::before {
+.rich-text-editor[data-empty="true"]::before {
   content: attr(data-placeholder);
   color: #9ca3af;
   pointer-events: none;

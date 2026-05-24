@@ -63,6 +63,7 @@ export const Basic = ({ form }: BasicProps) => {
                     <RichTextEditor
                       value={field.value ?? ""}
                       onChange={field.onChange}
+                      onBlur={field.onBlur}
                       placeholder="Description of this product"
                       error={!!errors?.description?.message}
                     />

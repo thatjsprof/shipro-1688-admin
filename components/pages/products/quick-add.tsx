@@ -94,6 +94,7 @@ export default function QuickAdd({
                 <RichTextEditor
                   value={field.value ?? ""}
                   onChange={field.onChange}
+                  onBlur={field.onBlur}
                   placeholder="Description of this product"
                   error={!!fieldState.error}
                 />
@@ -113,6 +114,7 @@ export default function QuickAdd({
                 <RichTextEditor
                   value={field.value ?? ""}
                   onChange={field.onChange}
+                  onBlur={field.onBlur}
                   compact
                   placeholder="Variant value"
                   error={!!fieldState.error}
