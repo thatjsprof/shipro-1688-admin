@@ -92,6 +92,8 @@ export const productFormSchema = productSchema.extend({
   pinTrending: z.boolean(),
   outOfStock: z.boolean(),
   archived: z.boolean(),
+  showReviews: z.boolean(),
+  showPackaging: z.boolean(),
 });
 
 export type ProductFormInput = z.infer<typeof productFormSchema>;

@@ -79,11 +79,11 @@ const Product = () => {
   const isEditMode = Boolean(id);
   const tabValues = isEditMode
     ? (TAB_VALUES.filter((t) => t !== ITabs.Quick) as [
-        typeof ITabs.Basic,
-        typeof ITabs.Picture,
-        typeof ITabs.Variant,
-        typeof ITabs.Attribute,
-      ])
+      typeof ITabs.Basic,
+      typeof ITabs.Picture,
+      typeof ITabs.Variant,
+      typeof ITabs.Attribute,
+    ])
     : TAB_VALUES;
 
   const { activeTab, handleTabChange } = useQueryTabs({
@@ -120,6 +120,8 @@ const Product = () => {
       pinTrending: false,
       outOfStock: false,
       archived: false,
+      showReviews: false,
+      showPackaging: false,
     },
   });
 
@@ -200,6 +202,8 @@ const Product = () => {
       const pinTrending = form.getValues("pinTrending") ?? false;
       const outOfStock = form.getValues("outOfStock") ?? false;
       const archived = form.getValues("archived") ?? false;
+      const showReviews = form.getValues("showReviews") ?? false;
+      const showPackaging = form.getValues("showPackaging") ?? false;
       form.reset({
         ...validated.data,
         quickAddText,
@@ -207,6 +211,8 @@ const Product = () => {
         pinTrending,
         outOfStock,
         archived,
+        showPackaging,
+        showReviews
       });
 
       const toSave = formToApi(form.getValues());

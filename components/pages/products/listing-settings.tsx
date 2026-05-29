@@ -101,6 +101,42 @@ export default function ListingSettings({ form }: ListingSettingsProps) {
           </FormItem>
         )}
       />
+      <FormField
+        control={form.control}
+        name="showReviews"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-3">
+            <FormControl>
+              <Switch
+                checked={Boolean(field.value)}
+                disabled={archived}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <FormLabel className="!mt-0 font-medium cursor-pointer">
+              Show Reviews
+            </FormLabel>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="showPackaging"
+        render={({ field }) => (
+          <FormItem className="flex items-center gap-3">
+            <FormControl>
+              <Switch
+                checked={Boolean(field.value)}
+                disabled={archived}
+                onCheckedChange={field.onChange}
+              />
+            </FormControl>
+            <FormLabel className="!mt-0 font-medium cursor-pointer">
+              Show Packaging Information
+            </FormLabel>
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

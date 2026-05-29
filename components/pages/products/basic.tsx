@@ -68,7 +68,6 @@ export const Basic = ({ form }: BasicProps) => {
                       spellCheck={false}
                       placeholder="Enter product description"
                       error={!!errors?.description?.message}
-
                     />
                   </FormControl>
                   <FormMessage />

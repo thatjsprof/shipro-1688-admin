@@ -50,6 +50,8 @@ export interface IProduct {
   internalProduct: boolean;
   isMoment?: boolean;
   pinTrending?: boolean;
+  showReviews?: boolean;
+  showPackaging?: boolean;
   createdAt?: string | Date;
   updatedAt?: string | Date;
   stock: number;
