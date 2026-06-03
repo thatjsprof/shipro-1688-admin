@@ -5,6 +5,7 @@ import {
   sanitizeRichHtml,
   stripRichHtml,
 } from "@/lib/rich-text";
+import { buildSkuKeyFromValues } from "@/lib/variant-sku";
 import z from "zod";
 
 type FormFormat = z.infer<typeof productSchema>;
@@ -196,9 +197,9 @@ export function apiToForm(
 
   formCombinations.forEach((combination) => {
     const formSkuKey = combination.map((item) => item.id).join("_");
-    const apiSkuKey = combination
-      .map((item) => item.value.replace(/\s+/g, "").toLowerCase())
-      .join("_");
+    const apiSkuKey = buildSkuKeyFromValues(
+      combination.map((item) => item.value),
+    );
 
     const apiSku = product.skus[apiSkuKey];
 

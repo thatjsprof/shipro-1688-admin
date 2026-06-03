@@ -1,6 +1,7 @@
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { resolveProductSku } from "@/lib/variant-sku";
 import { useGetCartQuery } from "@/services/cart.service";
 import { RefreshCcw } from "lucide-react";
 import { useRouter } from "next/router";
@@ -65,10 +66,8 @@ const Cart = () => {
                 normalized: string;
                 original: string;
               }>(i.variants ?? {});
-              const normVariant = Object.values(i.variants)
-                .map((v) => v.normalized)
-                .join("_");
-              const weight = product?.skus[normVariant]?.weight ?? 0;
+              const resolved = resolveProductSku(product, i.variants ?? {});
+              const weight = resolved?.sku?.weight ?? 0;
 
               return (
                 <div key={i.id}>
