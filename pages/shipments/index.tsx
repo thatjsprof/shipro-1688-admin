@@ -25,10 +25,17 @@ import { cn, formatNum } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
+import { MoreVertical, Search, X } from "lucide-react";
 import debounce from "lodash.debounce";
 import UpdateDialog from "@/components/pages/shipments/update";
 import OrderTrackingDialog from "@/components/pages/shipments/tracking";
+import DeleteShipmentDialog from "@/components/pages/shipments/delete-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { IAddress } from "@/interfaces/address.interface";
 import {
   Accordion,
@@ -105,6 +112,7 @@ const Shipments = () => {
   const { copyToClipboard } = useCopy();
   const [open, setOpen] = useState<boolean>(false);
   const [openTracking, setOpenTracking] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -292,30 +300,48 @@ const Shipments = () => {
                             </div>
                           </div>
                         )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="shadow-none h-11"
-                          onClick={() => {
-                            setOrder(shipment);
-                            setOpen(true);
-                          }}
-                        >
-                          <LucideIcons.Pencil className="w-4 h-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="shadow-none h-11"
-                          onClick={() => {
-                            setOrder(shipment);
-                            setOpenTracking(true);
-                          }}
-                        >
-                          <LucideIcons.Eye className="w-4 h-4" />
-                          Track
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="shadow-none h-11 w-11 p-0"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                              <span className="sr-only">Shipment actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setOrder(shipment);
+                                setOpen(true);
+                              }}
+                            >
+                              <LucideIcons.Pencil className="w-4 h-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setOrder(shipment);
+                                setOpenTracking(true);
+                              }}
+                            >
+                              <LucideIcons.Eye className="w-4 h-4" />
+                              Track
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => {
+                                setOrder(shipment);
+                                setOpenDelete(true);
+                              }}
+                            >
+                              <LucideIcons.Trash className="w-4 h-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   </CardHeader>
@@ -505,6 +531,11 @@ const Shipments = () => {
           order={order!}
           open={openTracking}
           setOpen={setOpenTracking}
+        />
+        <DeleteShipmentDialog
+          order={order}
+          open={openDelete}
+          setOpen={setOpenDelete}
         />
       </div>
     </div>
