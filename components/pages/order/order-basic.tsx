@@ -1,0 +1,132 @@
+import { Icons } from "@/components/shared/icons";
+import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { IOrder, OrderStatus } from "@/interfaces/order.interface";
+import { orderStatusInfo } from "@/lib/constants";
+import { notify } from "@/lib/toast";
+import { orderStatusOnlySchema } from "@/schemas/order";
+import { useUpdateOrderMutation } from "@/services/order.service";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Dispatch, SetStateAction, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import z from "zod";
+
+interface IOrderBasic {
+  order: IOrder | null;
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}
+
+const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
+  const [updateOrder, { isLoading }] = useUpdateOrderMutation();
+  const form = useForm<z.infer<typeof orderStatusOnlySchema>>({
+    resolver: zodResolver(orderStatusOnlySchema),
+    mode: "onTouched",
+    defaultValues: {
+      status: "",
+    },
+  });
+
+  const handleSubmit = async (values: z.infer<typeof orderStatusOnlySchema>) => {
+    try {
+      const response = await updateOrder({
+        id: order?.id,
+        data: {
+          status: values.status as OrderStatus,
+        },
+      }).unwrap();
+      if (response.status === 200) {
+        notify(response.message, "success");
+      } else {
+        notify(response.message, "error");
+      }
+      setOpen(false);
+    } catch {
+      notify("Could not save order", "error");
+    }
+  };
+
+  useEffect(() => {
+    if (!order) return;
+    form.reset({
+      status: order.status || "",
+    });
+  }, [order, form]);
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="status">Status</FormLabel>
+              <FormControl>
+                <Select
+                  {...field}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    field.onChange(value);
+                  }}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue
+                      placeholder={
+                        <span className="text-gray-400">Select Status</span>
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(OrderStatus).map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {orderStatusInfo[value]?.text}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <DialogFooter className="mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isLoading}
+            className="shadow-none h-11"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="shadow-none h-11"
+          >
+            {isLoading && <Icons.spinner className="h-3 w-3 animate-spin" />}
+            Update
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+};
+
+export default OrderBasic;

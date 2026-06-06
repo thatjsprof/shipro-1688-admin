@@ -34,6 +34,15 @@ export const orderSchema = z.object({
   status: z.union([z.nativeEnum(OrderStatus), z.literal("")]).optional(),
 });
 
+export const orderStatusOnlySchema = z
+  .object({
+    status: z.union([z.nativeEnum(OrderStatus), z.literal("")]),
+  })
+  .refine((data) => data.status !== "", {
+    message: "Status is required",
+    path: ["status"],
+  });
+
 export const shipmentSchema = z.object({
   trackingNumber: z.string().optional(),
   packageWeight: z.string().optional(),
