@@ -20,6 +20,17 @@ export const orderApi = createApi({
   tagTypes: ["GetOrderItems", "GetOrder", "GetOrders", "GetOrdersTracking"],
   endpoints: (builder) => {
     return {
+      deleteShipment: builder.mutation<
+        ApiResponse<{ id: string }>,
+        { id: string; itemStatus: OrderStatus }
+      >({
+        query: ({ id, itemStatus }) => ({
+          url: `${baseUrl}/shipment/${id}/delete`,
+          method: "POST",
+          body: { itemStatus },
+        }),
+        invalidatesTags: ["GetOrders", "GetOrderItems"],
+      }),
       createShipment: builder.mutation<
         ApiResponse<IOrder>,
         {
@@ -280,6 +291,7 @@ export const {
   useUpdateItemsMutation,
   useSendEmailsMutation,
   useUpdateOrderMutation,
+  useDeleteShipmentMutation,
   useGetOrdersQuery,
   useCreateShipmentMutation,
   useCreateOrderMutation,

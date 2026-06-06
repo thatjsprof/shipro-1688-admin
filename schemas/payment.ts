@@ -13,6 +13,7 @@ export const paymentInputSchema = z
     redirectLink: z.string().min(1, "Redirect Link is required"),
     code: z.union([z.nativeEnum(PaymentCodes), z.literal("")]),
     sendEmail: z.boolean().optional(),
+    datePaid: z.union([z.date(), z.string()]).optional().nullable(),
     paymentBreakdown: z
       .array(
         z.object({

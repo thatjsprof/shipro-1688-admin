@@ -35,13 +35,16 @@ import { paymentStatus, statusTags } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { formatNum } from "@/lib/utils";
 import { paymentInputSchema } from "@/schemas/payment";
+import DatePicker from "@/components/ui/date";
 import {
   useCreatePaymentMutation,
+  useDeletePaymentMutation,
   useGetPaymentsQuery,
   useUpdatePaymentMutation,
 } from "@/services/payment.service";
 import { useAppSelector } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { Pencil, Trash, X } from "lucide-react";
 import {
   Dispatch,
@@ -103,6 +106,8 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   const [createPayment, { isLoading }] = useCreatePaymentMutation();
   const [updatePayment, { isLoading: isLoadingUpdate }] =
     useUpdatePaymentMutation();
+  const [deletePayment, { isLoading: isDeletingPayment }] =
+    useDeletePaymentMutation();
   const payments = data?.data.data || [];
 
   const form = useForm<z.infer<typeof paymentInputSchema>>({
@@ -115,6 +120,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       code: "",
       sendEmail: false,
       redirectLink: "",
+      datePaid: undefined,
       paymentBreakdown: defaultBreakdown,
     },
   });
@@ -224,6 +230,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         code: (payment.code as PaymentCodes) || "",
         sendEmail: false,
         redirectLink: "",
+        datePaid: payment.datePaid ? new Date(payment.datePaid) : undefined,
         paymentBreakdown: breakdown,
       });
       hasInitializedRef.current = true;
@@ -236,6 +243,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         code: "",
         sendEmail: false,
         redirectLink: "",
+        datePaid: undefined,
         paymentBreakdown: calculated,
       });
       hasInitializedRef.current = true;
@@ -300,6 +308,9 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         code: values.code as PaymentCodes,
         redirectLink: values.redirectLink,
         sendEmail: !!values.sendEmail,
+        ...(values.datePaid && {
+          datePaid: new Date(values.datePaid),
+        }),
         ...(values.code === PaymentCodes.SHIPPING_FEE && {
           paymentBreakdown: values.paymentBreakdown,
         }),
@@ -326,6 +337,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           code: "",
           sendEmail: false,
           redirectLink: "",
+          datePaid: undefined,
           paymentBreakdown: defaultBreakdown.map((b) => ({
             ...b,
             unit: "",
@@ -516,6 +528,39 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
             />
             <FormField
               control={control}
+              name="datePaid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date Paid</FormLabel>
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center gap-3">
+                      <FormControl>
+                        <DatePicker
+                          {...field}
+                          enableTime
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          buttonClassName="flex-1"
+                          placeholder="Date Paid"
+                        />
+                      </FormControl>
+                      <Button
+                        type="button"
+                        className="h-11 shadow-none"
+                        variant="outline"
+                        onClick={() => form.setValue("datePaid", undefined)}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
               name="sendEmail"
               render={({ field }) => (
                 <FormItem>
@@ -671,13 +716,13 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               variant="outline"
               className="shadow-none"
               onClick={() => setOpen(false)}
-              disabled={isLoading || isLoadingUpdate}
+              disabled={isLoading || isLoadingUpdate || isDeletingPayment}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || isLoadingUpdate}
+              disabled={isLoading || isLoadingUpdate || isDeletingPayment}
               className="shadow-none"
             >
               {(isLoading || isLoadingUpdate) && (
@@ -700,6 +745,11 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                   </p>
                   <p className="text-[.92rem]">{p.description}</p>
                   <p className="text-[.92rem]">{formatNum(p.amount)}</p>
+                  {p.datePaid && (
+                    <p className="text-[.85rem] text-zinc-500 mt-1">
+                      Paid: {format(new Date(p.datePaid), "MM/dd/yyyy h:mm a")}
+                    </p>
+                  )}
                   <div className="mt-2">
                     <PaymentStatusPill status={p.status} />
                   </div>
@@ -719,6 +769,23 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                     size="icon"
                     type="button"
                     className="shadow-none"
+                    disabled={isDeletingPayment}
+                    onClick={async () => {
+                      try {
+                        const res = await deletePayment(p.id).unwrap();
+                        if (res.status === 200) {
+                          notify(res.message, "success");
+                          if (payment?.id === p.id) {
+                            setPayment(undefined);
+                            hasInitializedRef.current = false;
+                          }
+                        } else {
+                          notify(res.message, "error");
+                        }
+                      } catch {
+                        notify("Could not delete payment", "error");
+                      }
+                    }}
                   >
                     <Trash className="size-4" />
                   </Button>

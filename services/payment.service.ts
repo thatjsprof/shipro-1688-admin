@@ -137,6 +137,13 @@ export const paymentApi = createApi({
         },
         invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders"],
       }),
+      deletePayment: builder.mutation<ApiResponse<void>, string>({
+        query: (id) => ({
+          url: `${baseUrl}/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders"],
+      }),
     };
   },
 });
@@ -146,6 +153,7 @@ export const {
   useGetPaymentSumsQuery,
   useCreatePaymentMutation,
   useUpdatePaymentMutation,
+  useDeletePaymentMutation,
   useGetPaymentsQuery,
   useGetPaymentStatsQuery,
 } = paymentApi;

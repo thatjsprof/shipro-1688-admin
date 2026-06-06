@@ -40,9 +40,11 @@ interface IBasic {
   order: IOrder | null;
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
+  allowDelete?: boolean;
+  onDeleteClick?: () => void;
 }
 
-const Basic = ({ order, setOpen }: IBasic) => {
+const Basic = ({ order, setOpen, allowDelete, onDeleteClick }: IBasic) => {
   const [updateOrder, { isLoading }] = useUpdateOrderMutation();
   const form = useForm<z.infer<typeof shipmentSchema>>({
     resolver: zodResolver(shipmentSchema),
@@ -84,7 +86,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       }
       setOpen(false);
     } catch (err) {
-      notify("Could not save shipment", "error");
+      notify("Could not save order", "error");
     }
   };
 
@@ -360,24 +362,37 @@ const Basic = ({ order, setOpen }: IBasic) => {
             </div>
           </div>
         )}
-        <DialogFooter className="mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setOpen(false)}
-            disabled={isLoading}
-            className="shadow-none h-11"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="shadow-none h-11"
-          >
-            {isLoading && <Icons.spinner className="h-3 w-3 animate-spin" />}
-            Update
-          </Button>
+        <DialogFooter className="mt-6 flex-col sm:flex-row gap-2 sm:justify-between">
+          {allowDelete && (
+            <Button
+              type="button"
+              variant="outline"
+              className="shadow-none h-11 text-destructive border-destructive hover:text-destructive w-full sm:w-auto"
+              onClick={onDeleteClick}
+              disabled={isLoading}
+            >
+              Delete Shipment
+            </Button>
+          )}
+          <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+              className="shadow-none h-11"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="shadow-none h-11"
+            >
+              {isLoading && <Icons.spinner className="h-3 w-3 animate-spin" />}
+              Update
+            </Button>
+          </div>
         </DialogFooter>
       </form>
     </Form>

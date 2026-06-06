@@ -10,6 +10,7 @@ import { IOrder } from "@/interfaces/order.interface";
 import { Dispatch, SetStateAction, useState } from "react";
 import Basic from "./basic";
 import Payment from "./payment";
+import DeleteShipmentDialog from "./delete-dialog";
 
 enum ITabs {
   Basic = "Basic",
@@ -24,6 +25,7 @@ interface IupdateDialog {
 
 const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
   const [tab, setTab] = useState<string>(ITabs.Basic);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -39,7 +41,13 @@ const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
                 <TabsTrigger value={ITabs.Payment}>Payment</TabsTrigger>
               </TabsList>
               <TabsContent value={ITabs.Basic} className="pt-5">
-                <Basic order={order} setOpen={setOpen} open={open} />
+                <Basic
+                  order={order}
+                  setOpen={setOpen}
+                  open={open}
+                  allowDelete
+                  onDeleteClick={() => setDeleteOpen(true)}
+                />
               </TabsContent>
               <TabsContent className="pt-5" value={ITabs.Payment}>
                 <Payment order={order} setOpen={setOpen} open={open} />
@@ -48,6 +56,12 @@ const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
           </div>
         </ScrollArea>
       </DialogContent>
+      <DeleteShipmentDialog
+        order={order}
+        open={deleteOpen}
+        setOpen={setDeleteOpen}
+        onDeleted={() => setOpen(false)}
+      />
     </Dialog>
   );
 };

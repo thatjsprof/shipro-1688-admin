@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { IOrder } from "@/interfaces/order.interface";
 import { Dispatch, SetStateAction, useState } from "react";
+import Basic from "../shipments/basic";
 import Payment from "../shipments/payment";
 
 enum ITabs {
@@ -34,8 +35,12 @@ const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
                         </DialogHeader>
                         <Tabs value={tab} onValueChange={setTab} className="mt-8">
                             <TabsList>
+                                <TabsTrigger value={ITabs.Basic}>Basic</TabsTrigger>
                                 <TabsTrigger value={ITabs.Payment}>Payment</TabsTrigger>
                             </TabsList>
+                            <TabsContent value={ITabs.Basic} className="pt-5">
+                                <Basic order={order} setOpen={setOpen} open={open} />
+                            </TabsContent>
                             <TabsContent className="pt-5" value={ITabs.Payment}>
                                 <Payment order={order} setOpen={setOpen} open={open} />
                             </TabsContent>
