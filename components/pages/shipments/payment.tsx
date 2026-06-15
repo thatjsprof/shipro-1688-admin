@@ -602,34 +602,34 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
             <div className="mt-6">
               <div className="flex items-end justify-between mb-4 gap-4">
                 <FormLabel>Payment Breakdown</FormLabel>
-                <div className="flex flex-wrap items-end justify-end gap-2">
-                  <div className="flex flex-col gap-1">
-                    <FormLabel className="text-xs">
-                      Package Weight ({packageWeightUnit.toUpperCase()})
-                    </FormLabel>
-                    <NumericFormat
-                      thousandSeparator=","
-                      decimalSeparator="."
-                      allowNegative={false}
-                      decimalScale={2}
-                      value={packageWeight ?? ""}
-                      onValueChange={(v) => {
-                        setPackageWeight(v.floatValue);
-                      }}
-                      customInput={Input}
-                      className="h-10 w-32"
-                      placeholder="Weight"
-                    />
-                  </div>
-                  <Button
-                    className="shadow-none h-10"
-                    variant="outline"
-                    type="button"
-                    onClick={recalculateWithCurrentSettings}
-                  >
-                    Recalculate
-                  </Button>
-                  {fields.length > 0 && (
+                {fields.length > 0 && (
+                  <div className="flex flex-wrap items-end justify-end gap-2">
+                    <div className="flex flex-col gap-1">
+                      <FormLabel className="text-xs">
+                        Package Weight ({packageWeightUnit.toUpperCase()})
+                      </FormLabel>
+                      <NumericFormat
+                        thousandSeparator=","
+                        decimalSeparator="."
+                        allowNegative={false}
+                        decimalScale={2}
+                        value={packageWeight ?? ""}
+                        onValueChange={(v) => {
+                          setPackageWeight(v.floatValue);
+                        }}
+                        customInput={Input}
+                        className="h-10 w-32"
+                        placeholder="Weight"
+                      />
+                    </div>
+                    <Button
+                      className="shadow-none h-10"
+                      variant="outline"
+                      type="button"
+                      onClick={recalculateWithCurrentSettings}
+                    >
+                      Recalculate
+                    </Button>
                     <Button
                       className="shadow-none h-10"
                       variant="outline"
@@ -638,8 +638,8 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                     >
                       Clear all
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               {fields.length === 0 ? (
                 <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
