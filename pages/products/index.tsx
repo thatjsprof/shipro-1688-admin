@@ -395,7 +395,6 @@ const Products = () => {
       page: pageIndex - 1,
       limit: pageSize,
       search: debouncedValue,
-      includeArchived: true,
     },
     {
       skip: !authenticated,

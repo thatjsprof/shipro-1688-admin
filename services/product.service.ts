@@ -16,16 +16,18 @@ export const productApi = createApi({
           limit?: number;
           page?: number;
           search?: string;
-          includeArchived?: boolean;
+          archived?: boolean;
         }
       >({
-        query: ({ limit, page, search, includeArchived }) => {
+        query: ({ limit, page, search, archived }) => {
           const params = new URLSearchParams({
             limit: String(limit),
             page: String(page),
           });
           if (search) params.set("search", search);
-          if (includeArchived) params.set("includeArchived", "true");
+          if (archived !== undefined) {
+            params.set("archived", String(archived));
+          }
           return {
             url: `${baseUrl}?${params.toString()}`,
             method: "GET",

@@ -12,6 +12,7 @@ export const paymentInputSchema = z
     description: z.string().min(1, "Description is required"),
     redirectLink: z.string().min(1, "Redirect Link is required"),
     code: z.union([z.nativeEnum(PaymentCodes), z.literal("")]),
+    provider: z.union([z.nativeEnum(PaymentProviders), z.literal("")]),
     sendEmail: z.boolean().optional(),
     datePaid: z.union([z.date(), z.string()]).optional().nullable(),
     paymentBreakdown: z
@@ -32,6 +33,10 @@ export const paymentInputSchema = z
   .refine((data) => data.code !== "", {
     message: "Code is required",
     path: ["code"],
+  })
+  .refine((data) => data.provider !== "", {
+    message: "Provider is required",
+    path: ["provider"],
   });
 
 export const paymentSchema = paymentInputSchema

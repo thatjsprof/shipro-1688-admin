@@ -29,9 +29,10 @@ import {
   IPayment,
   PaymentCodes,
   PaymentModules,
+  PaymentProviders,
   PaymentStatus,
 } from "@/interfaces/payment.interface";
-import { paymentStatus, statusTags } from "@/lib/constants";
+import { paymentProviders, paymentStatus, statusTags } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { formatNum } from "@/lib/utils";
 import { paymentInputSchema } from "@/schemas/payment";
@@ -118,6 +119,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       status: PaymentStatus.PENDING,
       description: "",
       code: "",
+      provider: PaymentProviders.PAYSTACK,
       sendEmail: false,
       redirectLink: "",
       datePaid: undefined,
@@ -136,83 +138,52 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       ? settings?.hkPrice
       : settings?.gzPrice;
 
-  const calculateBreakdownValues = useCallback(() => {
-    const weight = packageWeight ?? 0;
-    return defaultBreakdown.map((b) => {
-      let unit = "0";
-      let calculatedValue = "0";
+  const calculateBreakdownValues = useCallback(
+    (weightOverride?: number) => {
+      const weight = weightOverride ?? packageWeight ?? 0;
+      return defaultBreakdown.map((b) => {
+        let unit = "0";
+        let calculatedValue = "0";
 
-      switch (b.value) {
-        case IBreakdown.freight:
-          unit = (price ?? 0).toString();
-          calculatedValue = ((price ?? 0) * weight).toString();
-          break;
-        case IBreakdown.clearance:
-          unit = "1000";
-          calculatedValue = (1000 * weight).toString();
-          break;
-        case IBreakdown.packing_fee:
-          unit = "1";
-          calculatedValue = "1";
-          break;
-      }
+        switch (b.value) {
+          case IBreakdown.freight:
+            unit = (price ?? 0).toString();
+            calculatedValue = ((price ?? 0) * weight).toString();
+            break;
+          case IBreakdown.clearance:
+            unit = "1000";
+            calculatedValue = (1000 * weight).toString();
+            break;
+          case IBreakdown.packing_fee:
+            unit = "1";
+            calculatedValue = "1";
+            break;
+        }
 
-      return {
-        ...b,
-        unit,
-        calculatedValue,
-      };
-    });
-  }, [price, packageWeight]);
+        return {
+          ...b,
+          unit,
+          calculatedValue,
+        };
+      });
+    },
+    [price, packageWeight]
+  );
 
   const recalculateWithCurrentSettings = useCallback(() => {
-    // Reset to original order package weight
     if (order?.packageWeight) {
       setPackageWeight(order.packageWeight);
     }
+    replace(calculateBreakdownValues(order?.packageWeight));
+  }, [order?.packageWeight, calculateBreakdownValues, replace]);
 
-    const weight = order?.packageWeight ?? 0;
-    const calculated = defaultBreakdown.map((b) => {
-      let unit = "0";
-      let calculatedValue = "0";
+  const clearAllBreakdown = useCallback(() => {
+    replace([]);
+  }, [replace]);
 
-      switch (b.value) {
-        case IBreakdown.freight:
-          unit = (price ?? 0).toString();
-          calculatedValue = ((price ?? 0) * weight).toString();
-          break;
-        case IBreakdown.clearance:
-          unit = "1000";
-          calculatedValue = (1000 * weight).toString();
-          break;
-        case IBreakdown.packing_fee:
-          unit = "1";
-          calculatedValue = "1";
-          break;
-      }
-
-      return {
-        ...b,
-        unit,
-        calculatedValue,
-      };
-    });
-
-    calculated.forEach((item, idx) => {
-      setValue(`paymentBreakdown.${idx}.unit`, item.unit, {
-        shouldValidate: false,
-        shouldDirty: true,
-      });
-      setValue(
-        `paymentBreakdown.${idx}.calculatedValue`,
-        item.calculatedValue,
-        {
-          shouldValidate: false,
-          shouldDirty: true,
-        }
-      );
-    });
-  }, [order?.packageWeight, price, setValue]);
+  const restoreDefaultBreakdown = useCallback(() => {
+    replace(calculateBreakdownValues());
+  }, [calculateBreakdownValues, replace]);
 
   // Initialize form only once when order changes
   useEffect(() => {
@@ -228,6 +199,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         amount: payment.baseAmount.toString(),
         status: payment.status as PaymentStatus,
         code: (payment.code as PaymentCodes) || "",
+        provider: payment.provider || PaymentProviders.PAYSTACK,
         sendEmail: false,
         redirectLink: "",
         datePaid: payment.datePaid ? new Date(payment.datePaid) : undefined,
@@ -241,6 +213,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         amount: "",
         status: PaymentStatus.PENDING,
         code: "",
+        provider: PaymentProviders.PAYSTACK,
         sendEmail: false,
         redirectLink: "",
         datePaid: undefined,
@@ -260,14 +233,16 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   const code = watch("code");
   const watchedBreakdowns = useWatch({ control, name: "paymentBreakdown" });
 
-  // Auto-calculate breakdown values when unit changes
   useEffect(() => {
-    if (code !== PaymentCodes.SHIPPING_FEE || !watchedBreakdowns) return;
+    if (code !== PaymentCodes.SHIPPING_FEE || fields.length === 0) return;
 
     const weight = packageWeight ?? 0;
-    watchedBreakdowns.forEach((item: any, idx: number) => {
-      const unit = Number(item?.unit);
-      if (!Number.isFinite(unit)) return;
+    for (let idx = 0; idx < fields.length; idx++) {
+      const item = form.getValues(`paymentBreakdown.${idx}`);
+      if (!item) continue;
+
+      const unit = Number(item.unit);
+      if (!Number.isFinite(unit)) continue;
 
       let calc = unit;
       if (
@@ -288,8 +263,8 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           shouldDirty: false,
         });
       }
-    });
-  }, [watchedBreakdowns, code, packageWeight, setValue, form]);
+    }
+  }, [watchedBreakdowns, code, packageWeight, fields.length, setValue, form]);
 
   const getUnits = useCallback(
     (value: string) =>
@@ -306,6 +281,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         module: PaymentModules.ORDER,
         status: values.status as PaymentStatus,
         code: values.code as PaymentCodes,
+        provider: values.provider as PaymentProviders,
         redirectLink: values.redirectLink,
         sendEmail: !!values.sendEmail,
         ...(values.datePaid && {
@@ -335,6 +311,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           status: PaymentStatus.PENDING,
           description: "",
           code: "",
+          provider: PaymentProviders.PAYSTACK,
           sendEmail: false,
           redirectLink: "",
           datePaid: undefined,
@@ -528,6 +505,41 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
             />
             <FormField
               control={control}
+              name="provider"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Provider</FormLabel>
+                  <div className="flex flex-col space-y-1">
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue
+                            placeholder={
+                              <span className="text-gray-400">
+                                Select Provider
+                              </span>
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.values(PaymentProviders).map((provider) => (
+                            <SelectItem key={provider} value={provider}>
+                              {paymentProviders[provider]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
               name="datePaid"
               render={({ field }) => (
                 <FormItem>
@@ -586,11 +598,11 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               )}
             />
           </div>
-          {code === PaymentCodes.SHIPPING_FEE && fields.length > 0 && (
+          {code === PaymentCodes.SHIPPING_FEE && (
             <div className="mt-6">
               <div className="flex items-end justify-between mb-4 gap-4">
                 <FormLabel>Payment Breakdown</FormLabel>
-                <div className="flex items-end gap-2">
+                <div className="flex flex-wrap items-end justify-end gap-2">
                   <div className="flex flex-col gap-1">
                     <FormLabel className="text-xs">
                       Package Weight ({packageWeightUnit.toUpperCase()})
@@ -617,8 +629,31 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                   >
                     Recalculate
                   </Button>
+                  {fields.length > 0 && (
+                    <Button
+                      className="shadow-none h-10"
+                      variant="outline"
+                      type="button"
+                      onClick={clearAllBreakdown}
+                    >
+                      Clear all
+                    </Button>
+                  )}
                 </div>
               </div>
+              {fields.length === 0 ? (
+                <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
+                  <p>No payment breakdown</p>
+                  <Button
+                    className="shadow-none h-9 mt-3"
+                    variant="outline"
+                    type="button"
+                    onClick={restoreDefaultBreakdown}
+                  >
+                    Restore defaults
+                  </Button>
+                </div>
+              ) : (
               <div className="space-y-3 mt-2">
                 {fields.map((field, index) => {
                   const breakdownValue = watch(
@@ -708,6 +743,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                   );
                 })}
               </div>
+              )}
             </div>
           )}
           <DialogFooter className="mt-10">
