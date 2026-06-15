@@ -12,7 +12,7 @@ import {
   OrderStatus,
   OrderType,
 } from "@/interfaces/order.interface";
-import { PaymentModules, PaymentStatus } from "@/interfaces/payment.interface";
+import { PaymentModules, PaymentProviders, PaymentStatus } from "@/interfaces/payment.interface";
 import { notify } from "@/lib/toast";
 import { createOrderSchema } from "@/schemas/new-order.schema";
 import { useCreateOrderMutation } from "@/services/order.service";
@@ -161,6 +161,7 @@ const NewOrder = () => {
         {
           amount: "",
           status: PaymentStatus.PENDING,
+          provider: PaymentProviders.PAYSTACK,
           description: "",
           redirectLink: "",
           code: "",
