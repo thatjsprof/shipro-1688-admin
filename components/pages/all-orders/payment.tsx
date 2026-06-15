@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
+import { PaymentCodes, PaymentProviders, PaymentStatus } from "@/interfaces/payment.interface";
 import { paymentStatus, statusTags } from "@/lib/constants";
 import { createOrderSchema } from "@/schemas/new-order.schema";
 import { Plus, X } from "lucide-react";
@@ -325,6 +325,7 @@ const Payment = ({ form }: IPaymentProps) => {
           append({
             amount: "",
             status: PaymentStatus.PENDING,
+            provider: PaymentProviders.PAYSTACK,
             description: "",
             redirectLink: "",
             code: "",
