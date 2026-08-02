@@ -19,16 +19,18 @@ import { adminSetPasswordSchema, profileSchema } from "@/schemas/auth";
 import {
   useAdminSetUserPasswordMutation,
   useAdminUpdateUserMutation,
+  useAdminImpersonateUserMutation,
   useGetAdminUserQuery,
   useGetUserIdentitiesQuery,
 } from "@/services/user.service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Eye, EyeOff } from "lucide-react";
+import { Check, Eye, EyeOff, UserRoundSearch } from "lucide-react";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Country } from "shipro-country-state-city";
 import { z } from "zod";
+import { IUserRole } from "@/interfaces/user.interface";
 
 const resolveCountryIso = (country?: string | null) => {
   if (!country) return "NG";
@@ -62,6 +64,8 @@ const Profile = () => {
   const [updateUser, { isLoading: isUpdating }] = useAdminUpdateUserMutation();
   const [setPassword, { isLoading: isSettingPassword }] =
     useAdminSetUserPasswordMutation();
+  const [impersonateUser, { isLoading: isImpersonating }] =
+    useAdminImpersonateUserMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -160,6 +164,25 @@ const Profile = () => {
     }
   };
 
+  const handleImpersonate = async () => {
+    if (!userId) return;
+    if (user?.role === IUserRole.admin) {
+      notify("Admins cannot be impersonated", "error");
+      return;
+    }
+    try {
+      await impersonateUser({ userId }).unwrap();
+      const clientUrl = process.env.CLIENT_URL;
+      if (!clientUrl) {
+        notify("Client URL is not configured", "error");
+        return;
+      }
+      window.location.href = clientUrl;
+    } catch (err: any) {
+      notify(err?.data?.message || "Could not impersonate this user", "error");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="mt-6 max-w-xl flex flex-col gap-5">
@@ -181,23 +204,43 @@ const Profile = () => {
   return (
     <div className="mt-6 max-w-xl flex flex-col gap-12">
       <div>
-        <div className="mb-6">
-          <p className="text-sm text-muted-foreground mb-2">Signed in with</p>
-          {isLoadingIdentities ? (
-            <div className="flex gap-2">
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-6 w-16" />
-            </div>
-          ) : identityLabels.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {identityLabels.map((label) => (
-                <Badge key={label} variant="secondary">
-                  {label}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No linked identities</p>
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm text-white mb-2">Signed in with</p>
+            {isLoadingIdentities ? (
+              <div className="flex gap-2">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-6 w-16" />
+              </div>
+            ) : identityLabels.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {identityLabels.map((label) => (
+                  <Badge key={label} variant="secondary">
+                    {label}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No linked identities
+              </p>
+            )}
+          </div>
+          {user.role !== IUserRole.admin && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 shrink-0"
+              disabled={isImpersonating}
+              onClick={handleImpersonate}
+            >
+              {isImpersonating ? (
+                <Icons.spinner className="h-3 w-3 animate-spin" />
+              ) : (
+                <UserRoundSearch className="size-4" />
+              )}
+              Impersonate
+            </Button>
           )}
         </div>
 

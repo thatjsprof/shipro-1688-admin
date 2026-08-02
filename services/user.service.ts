@@ -83,6 +83,16 @@ export const userApi = createApi({
           body,
         }),
       }),
+      adminImpersonateUser: builder.mutation<
+        { session: any; user: IUser },
+        { userId: string }
+      >({
+        query: (body) => ({
+          url: `${baseUrl}/admin/impersonate-user`,
+          method: "POST",
+          body,
+        }),
+      }),
     };
   },
 });
@@ -248,4 +258,5 @@ export const {
   useGetUserIdentitiesQuery,
   useAdminUpdateUserMutation,
   useAdminSetUserPasswordMutation,
+  useAdminImpersonateUserMutation,
 } = userApi;

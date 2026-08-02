@@ -65,7 +65,7 @@ const Input = React.forwardRef<
         {EndIcon && (
           <div
             className={cn(
-              "absolute right-1 top-0 h-full flex items-center",
+              "absolute top-1/2 right-[.5rem] transform -translate-x-1/2 -translate-y-1/2",
               endClassname
             )}
           >

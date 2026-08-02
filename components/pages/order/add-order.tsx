@@ -567,7 +567,7 @@ const AddOrderDialog = () => {
                                           );
                                         }}
                                         className="h-11 w-full pr-[6rem]"
-                                        endClassname="pr-0 translate-none -translate-y-1/2"
+                                        endClassname="top-0 right-1 h-full translate-x-0 translate-y-0 flex items-center"
                                         customInput={Input}
                                         EndIcon={
                                           <FormField
