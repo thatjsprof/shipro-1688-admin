@@ -39,6 +39,21 @@ export const userApi = createApi({
         }),
         providesTags: (_result, _error, id) => [{ type: "GetAdminUser", id }],
       }),
+      getUserIdentities: builder.query<
+        ApiResponse<
+          {
+            id: string;
+            providerId: string;
+            createdAt: string;
+          }[]
+        >,
+        string
+      >({
+        query: (id) => ({
+          url: `${baseUrlUser}/${id}/identities`,
+          method: "GET",
+        }),
+      }),
       adminUpdateUser: builder.mutation<
         IUser,
         {
@@ -230,6 +245,7 @@ export const {
 export const {
   useGetUsersQuery,
   useGetAdminUserQuery,
+  useGetUserIdentitiesQuery,
   useAdminUpdateUserMutation,
   useAdminSetUserPasswordMutation,
 } = userApi;

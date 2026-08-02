@@ -1,4 +1,5 @@
 import { Icons } from "@/components/shared/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
 import {
@@ -13,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import PhoneNumberInput from "@/components/ui/phone";
 import { Skeleton } from "@/components/ui/skeleton";
 import { notify } from "@/lib/toast";
-import { cn } from "@/lib/utils";
+import { cn, upperCaseFirst } from "@/lib/utils";
 import { adminSetPasswordSchema, profileSchema } from "@/schemas/auth";
 import {
   useAdminSetUserPasswordMutation,
   useAdminUpdateUserMutation,
   useGetAdminUserQuery,
+  useGetUserIdentitiesQuery,
 } from "@/services/user.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Eye, EyeOff } from "lucide-react";
@@ -41,17 +43,35 @@ const resolveCountryIso = (country?: string | null) => {
   return byName?.isoCode ?? "NG";
 };
 
+const formatProviderLabel = (providerId: string) => {
+  if (providerId === "credential") return "Password";
+  if (providerId === "google") return "Google";
+  return upperCaseFirst(providerId.replace(/[-_]/g, " "));
+};
+
 const Profile = () => {
   const router = useRouter();
   const userId = router.query.id as string;
   const { data: user, isLoading, isError } = useGetAdminUserQuery(userId, {
     skip: !userId,
   });
+  const { data: identitiesRes, isLoading: isLoadingIdentities } =
+    useGetUserIdentitiesQuery(userId, {
+      skip: !userId,
+    });
   const [updateUser, { isLoading: isUpdating }] = useAdminUpdateUserMutation();
   const [setPassword, { isLoading: isSettingPassword }] =
     useAdminSetUserPasswordMutation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const identities = identitiesRes?.data ?? [];
+  const identityLabels = useMemo(() => {
+    const labels = identities.map((identity) =>
+      formatProviderLabel(identity.providerId)
+    );
+    return [...new Set(labels)];
+  }, [identities]);
 
   const countries = useMemo(
     () =>
@@ -161,6 +181,26 @@ const Profile = () => {
   return (
     <div className="mt-6 max-w-xl flex flex-col gap-12">
       <div>
+        <div className="mb-6">
+          <p className="text-sm text-muted-foreground mb-2">Signed in with</p>
+          {isLoadingIdentities ? (
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ) : identityLabels.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {identityLabels.map((label) => (
+                <Badge key={label} variant="secondary">
+                  {label}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No linked identities</p>
+          )}
+        </div>
+
         <h2 className="text-lg font-semibold mb-6">Profile</h2>
         <Form {...profileForm}>
           <form
