@@ -1,4 +1,5 @@
 import Cart from "@/components/pages/users/cart";
+import Profile from "@/components/pages/users/profile";
 import Wallet from "@/components/pages/users/wallet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
@@ -41,9 +42,7 @@ const User = () => {
           <TabsTrigger value={ITabs.Cart}>Cart</TabsTrigger>
         </TabsList>
         <TabsContent value={ITabs.Basic}>
-          <div className="py-6 text-sm text-muted-foreground">
-            Profile settings coming soon.
-          </div>
+          <Profile />
         </TabsContent>
         <TabsContent value={ITabs.Wallet}>
           <Wallet />

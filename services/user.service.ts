@@ -8,7 +8,7 @@ const baseUrlUser = "/user";
 export const userApi = createApi({
   reducerPath: "rtk:user",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetUsers"],
+  tagTypes: ["GetUsers", "GetAdminUser"],
   endpoints: (builder) => {
     return {
       getUsers: builder.query<
@@ -31,6 +31,42 @@ export const userApi = createApi({
           };
         },
         providesTags: ["GetUsers"],
+      }),
+      getAdminUser: builder.query<IUser, string>({
+        query: (id) => ({
+          url: `${baseUrl}/admin/get-user?id=${encodeURIComponent(id)}`,
+          method: "GET",
+        }),
+        providesTags: (_result, _error, id) => [{ type: "GetAdminUser", id }],
+      }),
+      adminUpdateUser: builder.mutation<
+        IUser,
+        {
+          userId: string;
+          data: Partial<
+            Pick<IUser, "name" | "email" | "phoneNumber" | "country">
+          >;
+        }
+      >({
+        query: (body) => ({
+          url: `${baseUrl}/admin/update-user`,
+          method: "POST",
+          body,
+        }),
+        invalidatesTags: (_result, _error, arg) => [
+          { type: "GetAdminUser", id: arg.userId },
+          "GetUsers",
+        ],
+      }),
+      adminSetUserPassword: builder.mutation<
+        { status: boolean },
+        { userId: string; newPassword: string }
+      >({
+        query: (body) => ({
+          url: `${baseUrl}/admin/set-user-password`,
+          method: "POST",
+          body,
+        }),
       }),
     };
   },
@@ -191,4 +227,9 @@ export const {
   useLazyGetProfileQuery,
 } = authApi;
 
-export const { useGetUsersQuery } = userApi;
+export const {
+  useGetUsersQuery,
+  useGetAdminUserQuery,
+  useAdminUpdateUserMutation,
+  useAdminSetUserPasswordMutation,
+} = userApi;

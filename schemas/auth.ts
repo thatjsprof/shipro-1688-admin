@@ -49,6 +49,24 @@ export const changeSchema = z
     path: ["confirmPassword"],
   });
 
+export const adminSetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, { message: "Enter a password" })
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(
+        /[!@#$%^&*(),.?":{}|<>]/,
+        "Password must contain at least one special character"
+      ),
+    confirmPassword: z.string().min(1, { message: "Enter a confirm password" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords must match",
+    path: ["confirmPassword"],
+  });
+
 export const profileSchema = z.object({
   email: z
     .string()
