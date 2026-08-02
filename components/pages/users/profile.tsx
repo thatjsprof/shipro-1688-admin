@@ -206,7 +206,7 @@ const Profile = () => {
       <div>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm text-white mb-2">Signed in with</p>
+            <p className="text-sm text-muted-foreground mb-2">Signed in with</p>
             {isLoadingIdentities ? (
               <div className="flex gap-2">
                 <Skeleton className="h-6 w-20" />
@@ -215,7 +215,7 @@ const Profile = () => {
             ) : identityLabels.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {identityLabels.map((label) => (
-                  <Badge key={label} variant="secondary">
+                  <Badge key={label} variant="secondary" className="text-white">
                     {label}
                   </Badge>
                 ))}
