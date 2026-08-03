@@ -11,4 +11,7 @@ export interface IUser {
   phoneNumber: string;
   country: string;
   role: IUserRole;
+  cartCount?: number;
+  createdAt?: string | Date;
+  emailVerified?: string | Date | boolean | null;
 }

@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
-import { IUser } from "@/interfaces/user.interface";
+import { IUser, IUserRole } from "@/interfaces/user.interface";
 import useCopy, { ICopy } from "@/lib/copy";
-import { upperCaseFirst } from "@/lib/utils";
 import { useGetUsersQuery } from "@/services/user.service";
 import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
@@ -34,6 +33,7 @@ const getColumns = (
       ),
       cell: ({ row }) => {
         const name = row.original.name;
+        const isAdmin = row.original.role === IUserRole.admin;
         return (
           <div className="flex items-center gap-[0.7rem] text-nowrap h-8 mb-1">
             <Copy
@@ -49,6 +49,11 @@ const getColumns = (
               }}
             />
             <p>{name}</p>
+            {isAdmin && (
+              <Badge className="h-6 rounded-full bg-primary px-2.5 text-[.75rem] font-medium text-white">
+                Admin
+              </Badge>
+            )}
           </div>
         );
       },
@@ -120,21 +125,19 @@ const getColumns = (
       enableHiding: false,
     },
     {
-      accessorKey: "role",
+      accessorKey: "cartCount",
       header: ({ column }) => (
         <DataTableColumnHeader
           column={column}
-          title="Role"
+          title="Cart"
           className="-mb-[1.8px] px-2"
         />
       ),
       cell: ({ row }) => {
-        const role = row.original.role;
+        const cartCount = row.original.cartCount ?? 0;
         return (
           <div>
-            <div>
-              <p className="mb-1">{upperCaseFirst(role)}</p>
-            </div>
+            <p className="mb-1">{cartCount}</p>
           </div>
         );
       },
