@@ -355,6 +355,10 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                             label: `Domestic Delivery Fee for order ${order?.orderNumber}`,
                             value: `Domestic Delivery Fee for order ${order?.orderNumber}`,
                           },
+                          {
+                            label: `Goods Fee for order ${order?.orderNumber}`,
+                            value: `Goods Fee for order ${order?.orderNumber}`,
+                          },
                         ]}
                         type="textarea"
                         placeholder="Description"
@@ -654,95 +658,95 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
                   </Button>
                 </div>
               ) : (
-              <div className="space-y-3 mt-2">
-                {fields.map((field, index) => {
-                  const breakdownValue = watch(
-                    `paymentBreakdown.${index}.value`
-                  ) as string;
-                  const units = getUnits(breakdownValue);
+                <div className="space-y-3 mt-2">
+                  {fields.map((field, index) => {
+                    const breakdownValue = watch(
+                      `paymentBreakdown.${index}.value`
+                    ) as string;
+                    const units = getUnits(breakdownValue);
 
-                  return (
-                    <div key={field.id} className="flex gap-2 items-start">
-                      <FormField
-                        control={control}
-                        name={`paymentBreakdown.${index}.label`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <FormControl>
-                              <InputDropdown
-                                {...field}
-                                items={defaultBreakdown}
-                                disabled
-                                initialValue={watch(
-                                  `paymentBreakdown.${index}.label`
-                                )}
-                                placeholder="Label"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={control}
-                        name={`paymentBreakdown.${index}.unit`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <FormControl>
-                              <NumericFormat
-                                prefix={units.prefix}
-                                suffix={units.suffix}
-                                thousandSeparator=","
-                                decimalSeparator="."
-                                allowNegative={false}
-                                value={field.value ?? ""}
-                                onValueChange={(v) =>
-                                  form.setValue(
-                                    `paymentBreakdown.${index}.unit`,
-                                    v.floatValue?.toString() || ""
-                                  )
-                                }
-                                customInput={Input}
-                                className="h-11"
-                                placeholder="Unit"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={control}
-                        name={`paymentBreakdown.${index}.calculatedValue`}
-                        render={({ field }) => (
-                          <FormItem className="flex-1">
-                            <FormControl>
-                              <NumericFormat
-                                prefix={units.prefix}
-                                thousandSeparator=","
-                                decimalSeparator="."
-                                allowNegative={false}
-                                value={field.value ?? ""}
-                                disabled
-                                customInput={Input}
-                                className="h-11"
-                                placeholder="Calculated"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => remove(index)}
-                        className="h-11"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  );
-                })}
-              </div>
+                    return (
+                      <div key={field.id} className="flex gap-2 items-start">
+                        <FormField
+                          control={control}
+                          name={`paymentBreakdown.${index}.label`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <InputDropdown
+                                  {...field}
+                                  items={defaultBreakdown}
+                                  disabled
+                                  initialValue={watch(
+                                    `paymentBreakdown.${index}.label`
+                                  )}
+                                  placeholder="Label"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={control}
+                          name={`paymentBreakdown.${index}.unit`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <NumericFormat
+                                  prefix={units.prefix}
+                                  suffix={units.suffix}
+                                  thousandSeparator=","
+                                  decimalSeparator="."
+                                  allowNegative={false}
+                                  value={field.value ?? ""}
+                                  onValueChange={(v) =>
+                                    form.setValue(
+                                      `paymentBreakdown.${index}.unit`,
+                                      v.floatValue?.toString() || ""
+                                    )
+                                  }
+                                  customInput={Input}
+                                  className="h-11"
+                                  placeholder="Unit"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={control}
+                          name={`paymentBreakdown.${index}.calculatedValue`}
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <NumericFormat
+                                  prefix={units.prefix}
+                                  thousandSeparator=","
+                                  decimalSeparator="."
+                                  allowNegative={false}
+                                  value={field.value ?? ""}
+                                  disabled
+                                  customInput={Input}
+                                  className="h-11"
+                                  placeholder="Calculated"
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => remove(index)}
+                          className="h-11"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           )}
