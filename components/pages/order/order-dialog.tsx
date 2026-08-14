@@ -31,6 +31,7 @@ import {
 import DatePicker from "@/components/ui/date";
 import { NumericFormat } from "react-number-format";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useMemo } from "react";
 import {
   Select,
@@ -77,6 +78,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       trackingNumber: "",
       orderAmount: "",
       sendEmail: false,
+      emailNote: "",
       status: "",
       tags: [],
     },
@@ -137,6 +139,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
           packageWeightUnit: values["packageWeightUnit"],
           orderAmount: orderAmount ? +orderAmount : undefined,
           sendEmail: values["sendEmail"],
+          emailNote: values["sendEmail"]
+            ? values["emailNote"]?.trim() || undefined
+            : undefined,
           tags: tags.length > 0 ? tags : undefined,
         } as any,
       }).unwrap();
@@ -163,6 +168,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       trackingNumber: "",
       orderAmount: "",
       sendEmail: false,
+      emailNote: "",
       status: "",
       tags: [],
     });
@@ -203,6 +209,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         orderAmount: orderAmount?.toString() ?? "",
         trackingNumber,
         sendEmail,
+        emailNote: "",
         tags: tags.map((t) => ({
           label: upperCaseFirst(t),
           value: t,
@@ -712,7 +719,12 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                               <Checkbox
                                 id="sendEmail"
                                 checked={form.watch("sendEmail")}
-                                onCheckedChange={field.onChange}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  if (!checked) {
+                                    form.setValue("emailNote", "");
+                                  }
+                                }}
                                 className="shadow-none"
                                 disabled={!watch("status")}
                               />
@@ -727,6 +739,35 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                         );
                       }}
                     />
+                    {watch("sendEmail") && (
+                      <FormField
+                        control={form.control}
+                        name="emailNote"
+                        render={({ field }) => {
+                          return (
+                            <FormItem className="mt-3">
+                              <FormLabel htmlFor="emailNote">
+                                Email Note
+                              </FormLabel>
+                              <div className="flex flex-col space-y-1">
+                                <FormControl>
+                                  <Textarea
+                                    {...field}
+                                    id="emailNote"
+                                    rows={4}
+                                    value={field.value ?? ""}
+                                    error={!!errors?.emailNote?.message}
+                                    className="!bg-transparent hover:border-zinc-400 placeholder:text-gray-400 shadow-none"
+                                    placeholder="Optional note to include in the email"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </div>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
                 {orders.length === 1 &&

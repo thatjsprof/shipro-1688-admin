@@ -23,6 +23,7 @@ export const orderSchema = z.object({
   packageWeightUnit: z.nativeEnum(PackageWeightUnit).optional(),
   orderAmount: z.string().optional(),
   sendEmail: z.boolean().optional(),
+  emailNote: z.string().max(2000).optional(),
   tags: z
     .array(
       z.object({

@@ -164,6 +164,7 @@ export const orderApi = createApi({
             packageWeightUnit?: PackageWeightUnit;
             orderAmount?: number;
             sendEmail?: boolean;
+            emailNote?: string;
           };
         }>
       >({
