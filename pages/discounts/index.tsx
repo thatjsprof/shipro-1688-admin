@@ -8,6 +8,7 @@ import {
   DiscountRule,
   IDiscount,
 } from "@/interfaces/discount.interface";
+import useCopy from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import {
   useGetDiscountsQuery,
@@ -15,7 +16,7 @@ import {
 } from "@/services/management.service";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Plus } from "lucide-react";
+import { Copy, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 const ruleLabel: Record<DiscountRule, string> = {
@@ -35,6 +36,7 @@ const formatDate = (value?: string | null) => {
 const DiscountsPage = () => {
   const { data, isLoading, refetch } = useGetDiscountsQuery();
   const [updateDiscount] = useUpdateDiscountMutation();
+  const { copyToClipboard } = useCopy();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<IDiscount | null>(null);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -55,18 +57,35 @@ const DiscountsPage = () => {
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Code" />
         ),
-        cell: ({ row }) => (
-          <button
-            type="button"
-            className="font-semibold tracking-wide hover:text-secondary"
-            onClick={() => {
-              setEditing(row.original);
-              setOpen(true);
-            }}
-          >
-            {row.original.title}
-          </button>
-        ),
+        cell: ({ row }) => {
+          const code = row.original.title;
+          return (
+            <div className="flex items-center gap-[0.7rem] text-nowrap h-8">
+              <Copy
+                className="size-4 text-gray-600 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  copyToClipboard({
+                    id: "copy-discount-code",
+                    text: code,
+                    message: "Discount code copied to clipboard",
+                  });
+                }}
+              />
+              <button
+                type="button"
+                className="font-semibold tracking-wide hover:text-secondary"
+                onClick={() => {
+                  setEditing(row.original);
+                  setOpen(true);
+                }}
+              >
+                {code}
+              </button>
+            </div>
+          );
+        },
       },
       {
         accessorKey: "value",
@@ -174,7 +193,7 @@ const DiscountsPage = () => {
         ),
       },
     ],
-    [refetch, updateDiscount]
+    [copyToClipboard, refetch, updateDiscount]
   );
 
   return (
