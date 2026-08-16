@@ -88,21 +88,38 @@ export function sanitizeRichHtml(html: string): string {
   );
 }
 
-export function stripRichHtml(html: string): string {
-  if (!html) return "";
-  return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+function asHtmlString(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value;
+}
+
+function decodeBasicEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+/** Plain-text extraction that does not depend on jsdom (avoids broken isomorphic-dompurify). */
+export function stripRichHtml(html: unknown): string {
+  const value = asHtmlString(html);
+  if (!value) return "";
+  return decodeBasicEntities(value.replace(/<[^>]*>/g, " "))
     .replace(/\s+/g, " ")
     .trim();
 }
 
-export function richTextPlainLength(html: string): number {
+export function richTextPlainLength(html: unknown): number {
   return stripRichHtml(html).length;
 }
 
-export function isRichTextEmpty(html: string): boolean {
+export function isRichTextEmpty(html: unknown): boolean {
   return richTextPlainLength(html) === 0;
 }
 
-export function hasRichTextContent(html: string): boolean {
+export function hasRichTextContent(html: unknown): boolean {
   return !isRichTextEmpty(html);
 }

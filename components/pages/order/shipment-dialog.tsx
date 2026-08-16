@@ -16,6 +16,7 @@ import {
   ShippingType,
 } from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
+import RichTextContent from "@/components/ui/rich-text-content";
 import { cn, formatNum } from "@/lib/utils";
 import { ShippingFormValues, shippingSchema } from "@/schemas/shipment";
 import { useCreateShipmentMutation } from "@/services/order.service";
@@ -129,7 +130,12 @@ const ShipmentDialog = ({
                       <ul className="list-outside !list-disc ml-3 flex flex-col gap-2">
                         {v.map((order) => {
                           const product = order.product;
-                          const name = order.name || product?.description;
+                          const name = (
+                            <RichTextContent
+                              html={order.name || product?.description || ""}
+                              as="span"
+                            />
+                          );
                           const status = order.status;
                           const statusInfo = orderStatusInfo[status];
                           const IconComponent = LucideIcons[

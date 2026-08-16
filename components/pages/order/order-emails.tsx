@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { orderEmailsInfo, orderStatusInfo } from "@/lib/constants";
+import RichTextContent from "@/components/ui/rich-text-content";
 import * as LucideIcons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/shared/icons";
@@ -97,7 +98,12 @@ const OrderEmailsDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
               <ul className="list-outside !list-disc ml-3 flex flex-col gap-2">
                 {orders.map((order) => {
                   const product = order.product;
-                  const name = order.name || product?.description;
+                  const name = (
+                    <RichTextContent
+                      html={order.name || product?.description || ""}
+                      as="span"
+                    />
+                  );
                   const status = order.status;
                   const statusInfo = orderStatusInfo[status];
                   const IconComponent = LucideIcons[

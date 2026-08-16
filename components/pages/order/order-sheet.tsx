@@ -16,9 +16,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { IOrderItem } from "@/interfaces/order.interface";
-import { formatNum, upperCaseFirst } from "@/lib/utils";
-import * as LucideIcons from "lucide-react";
 import { orderStatusInfo } from "@/lib/constants";
+import RichTextContent from "@/components/ui/rich-text-content";
+import { formatNum } from "@/lib/utils";
+import * as LucideIcons from "lucide-react";
 import { IAddress } from "@/interfaces/address.interface";
 type LucideIconName = keyof typeof LucideIcons;
 
@@ -74,7 +75,7 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
   if (!item) return null;
 
   const product = item.product;
-  const name = item.name || product?.description;
+  const name = item.name || product?.description || "";
   const items = item?.items ?? [];
   const adminImages = (item.images ?? []).map((i) => i.url);
   const images = items.map((i) => (i.pictures ?? []).map((p) => p.url)).flat();
@@ -149,7 +150,10 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                   </Carousel>
                 </div>
               )}
-              <h4 className="font-medium text-gray-900">{name}</h4>
+              <RichTextContent
+                html={name}
+                className="font-medium text-gray-900"
+              />
               {item?.category && (
                 <p className="text-sm text-gray-600 mt-2">
                   Category: {item.category}
@@ -174,7 +178,13 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
               {item.variants && (
                 <div className="text-sm text-slate-600 flex items-center gap-3 mt-2">
                   {Object.entries(item?.variants ?? {}).map(([key, value]) => {
-                    return <p key={key}>{upperCaseFirst(value.original)}</p>;
+                    return (
+                      <RichTextContent
+                        key={key}
+                        html={value.original}
+                        as="span"
+                      />
+                    );
                   })}
                 </div>
               )}

@@ -18,6 +18,7 @@ import { useAppSelector } from "@/store/hooks";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
 import { airLocationInfo, orderStatusInfo } from "@/lib/constants";
+import RichTextContent from "@/components/ui/rich-text-content";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
@@ -456,12 +457,14 @@ const Shipments = () => {
                                     />
                                   )}
                                   <div>
-                                    <span className="hidden sm:inline-block text-gray-900 font-medium">
-                                      {nameToUse}
-                                    </span>
-                                    <p className="sm:hidden text-[.94rem] font-medium sm:font-medium cursor-pointer">
-                                      {nameToUse}
-                                    </p>
+                                    <RichTextContent
+                                      html={nameToUse}
+                                      className="hidden sm:block text-gray-900 font-medium"
+                                    />
+                                    <RichTextContent
+                                      html={nameToUse}
+                                      className="sm:hidden text-[.94rem] font-medium cursor-pointer"
+                                    />
                                     <span className="text-gray-600 block text-sm">
                                       Qty: {quantityToUse}
                                     </span>

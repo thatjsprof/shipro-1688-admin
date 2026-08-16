@@ -163,8 +163,44 @@ body {
   width: var(--radix-popover-trigger-width);
 }
 
+.rich-text {
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  word-wrap: break-word;
+}
+
+.rich-text :where(p, div, span, li) {
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+}
+
+.rich-text :where(p, div) {
+  margin: 0;
+}
+
+.rich-text :where(p + p, div + div) {
+  margin-top: 0.35em;
+}
+
+.rich-text :where(strong, b) {
+  font-weight: bolder;
+}
+
+.rich-text :where(em, i) {
+  font-style: italic;
+}
+
+.rich-text :where(u) {
+  text-decoration: underline;
+}
+
 .rich-text ul,
 .rich-text-editor ul {
+  font: inherit;
   list-style: disc;
   padding-left: 1.25rem;
   margin: 0.25rem 0;
@@ -172,12 +208,18 @@ body {
 
 .rich-text ol,
 .rich-text-editor ol {
+  font: inherit;
   list-style: decimal;
   padding-left: 1.25rem;
   margin: 0.25rem 0;
 }
 
-.rich-text p,
+.rich-text li,
+.rich-text-editor li {
+  font: inherit;
+  margin: 0;
+}
+
 .rich-text-editor p {
   margin: 0.25rem 0;
 }
@@ -185,6 +227,39 @@ body {
 .rich-text a {
   color: var(--primary, #fc6320);
   text-decoration: underline;
+}
+
+/* Keep line-clamp working when HTML wraps content in block tags */
+:where(.line-clamp-1, .line-clamp-2, .line-clamp-3).rich-text :where(p, div),
+:where(.line-clamp-1, .line-clamp-2, .line-clamp-3) .rich-text :where(p, div) {
+  display: inline;
+  margin: 0;
+}
+
+:where(.line-clamp-1, .line-clamp-2, .line-clamp-3).rich-text
+  :where(p, div):not(:last-child)::after,
+:where(.line-clamp-1, .line-clamp-2, .line-clamp-3)
+  .rich-text
+  :where(p, div):not(:last-child)::after {
+  content: " ";
+  white-space: pre;
+}
+
+.rich-text.rich-text-inline,
+.rich-text.rich-text-inline :where(p, div, ul, ol) {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.rich-text.rich-text-inline :where(ul, ol) {
+  list-style: none;
+}
+
+/* Block tags collapse to inline here, so restore the word gap between them */
+.rich-text.rich-text-inline :where(p, div, li):not(:last-child)::after {
+  content: " ";
+  white-space: pre;
 }
 
 .rich-text-editor[data-empty="true"]::before {

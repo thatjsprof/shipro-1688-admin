@@ -2,6 +2,8 @@ import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveProductSku } from "@/lib/variant-sku";
+import RichTextContent from "@/components/ui/rich-text-content";
+import { stripRichHtml } from "@/lib/rich-text";
 import { useGetCartQuery } from "@/services/cart.service";
 import { RefreshCcw } from "lucide-react";
 import { useRouter } from "next/router";
@@ -82,21 +84,27 @@ const Cart = () => {
                       <img
                         className="h-full w-full object-cover"
                         src={`${process.env.SERVER_URL}/proxy?url=${product.image}`}
-                        alt={product.description}
+                        alt={stripRichHtml(product.description)}
                       />
                     </div>
                     <div className="flex justify-between gap-5">
                       <div className="flex flex-col gap-1 -mt-1">
-                        <p>{product.description}</p>
+                        <RichTextContent html={product.description} />
                         {variantsToUse.length > 0 && (
-                          <p className="text-zinc-600">
-                            {variantsToUse
-                              .map(
-                                ([key, val]) =>
-                                  `${key}: ${val.original.toLowerCase()}`
-                              )
-                              .join(", ")}
-                          </p>
+                          <div className="text-zinc-600 flex flex-wrap gap-x-2 gap-y-1">
+                            {variantsToUse.map(([key, val]) => (
+                              <span
+                                key={key}
+                                className="inline-flex items-start gap-1"
+                              >
+                                <span>{key}:</span>
+                                <RichTextContent
+                                  html={val.original}
+                                  as="span"
+                                />
+                              </span>
+                            ))}
+                          </div>
                         )}
                         <p className="text-zinc-600">
                           Qty: {i.quantity}

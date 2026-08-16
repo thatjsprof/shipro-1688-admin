@@ -16,6 +16,7 @@ import {
 } from "react";
 import debounce from "lodash.debounce";
 import { cn, formatNum, upperCaseFirst } from "@/lib/utils";
+import { stripRichHtml } from "@/lib/rich-text";
 import { orderStatusInfo } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { useGetOrderItemsQuery } from "@/services/order.service";
@@ -93,7 +94,9 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
-        const name = row.original.name ?? row.original.product.description;
+        const name = stripRichHtml(
+          row.original.name ?? row.original.product?.description ?? ""
+        );
         return name ? (
           <div className="text-nowrap h-8 w-64">
             <div className="flex items-center gap-[0.6rem] h-full">
