@@ -13,7 +13,7 @@ import {
   useGetDiscountsQuery,
   useUpdateDiscountMutation,
 } from "@/services/management.service";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -37,6 +37,10 @@ const DiscountsPage = () => {
   const [updateDiscount] = useUpdateDiscountMutation();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<IDiscount | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 50,
+  });
 
   const discounts = data?.data ?? [];
 
@@ -183,6 +187,8 @@ const DiscountsPage = () => {
         data={discounts}
         pageCount={1}
         loading={isLoading}
+        pagination={pagination}
+        setPagination={setPagination}
         showSelected={false}
         showPagination={false}
         customEmpty="No discounts yet"
