@@ -96,9 +96,14 @@ const DiscountsPage = () => {
             <Badge variant="secondary">Everyone</Badge>
           ) : (
             <div className="max-w-[14rem]">
-              <Badge variant="outline">User</Badge>
+              <Badge variant="outline">
+                {row.original.users?.length || 1} user
+                {(row.original.users?.length || 1) === 1 ? "" : "s"}
+              </Badge>
               <p className="mt-1 truncate text-xs text-muted-foreground">
-                {row.original.user?.email || row.original.userId}
+                {row.original.users?.map((user) => user.email).join(", ") ||
+                  row.original.user?.email ||
+                  row.original.userId}
               </p>
             </div>
           ),

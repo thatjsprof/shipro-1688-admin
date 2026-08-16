@@ -18,11 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Combobox, IItem } from "@/components/ui/combobox";
 import { Icons } from "@/components/shared/icons";
 import {
   CreateDiscountPayload,
   DiscountRule,
   IDiscount,
+  IDiscountUser,
   UpdateDiscountPayload,
 } from "@/interfaces/discount.interface";
 import { notify } from "@/lib/toast";
@@ -64,8 +66,7 @@ type FormState = {
   rule: DiscountRule;
   active: boolean;
   global: boolean;
-  userId: string;
-  userLabel: string;
+  userIds: string[];
   maxRedemptions: string;
   maxRedemptionsPerUser: string;
   startsAt: string;
@@ -79,8 +80,7 @@ const emptyForm = (): FormState => ({
   rule: DiscountRule.ONE_PER_USER,
   active: true,
   global: true,
-  userId: "",
-  userLabel: "",
+  userIds: [],
   maxRedemptions: "",
   maxRedemptionsPerUser: "",
   startsAt: "",
@@ -112,7 +112,7 @@ type Props = {
 const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
   const isEdit = Boolean(discount);
   const [form, setForm] = useState<FormState>(emptyForm());
-  const [userSearch, setUserSearch] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<IDiscountUser[]>([]);
   const [createDiscount, { isLoading: creating }] = useCreateDiscountMutation();
   const [updateDiscount, { isLoading: updating }] = useUpdateDiscountMutation();
   const [searchUsers, { data: usersData, isFetching: searchingUsers }] =
@@ -121,12 +121,22 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
   const loading = creating || updating;
 
   const users = usersData?.data?.data ?? [];
+  const userOptions = useMemo<IItem[]>(() => {
+    const byId = new Map<string, IDiscountUser>();
+    selectedUsers.forEach((user) => byId.set(user.id, user));
+    users.forEach((user) => byId.set(user.id, user));
+    return Array.from(byId.values()).map((user) => ({
+      value: user.id,
+      label: `${user.name || "Unnamed user"} · ${user.email}`,
+    }));
+  }, [selectedUsers, users]);
 
   const debouncedSearch = useMemo(
     () =>
       debounce((q: string) => {
-        if (!q.trim()) return;
-        searchUsers({ page: 1, limit: 10, search: q });
+        const search = q.trim();
+        if (search.length < 2) return;
+        searchUsers({ page: 0, limit: 20, search });
       }, 350),
     [searchUsers]
   );
@@ -138,6 +148,11 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
   useEffect(() => {
     if (!open) return;
     if (discount) {
+      const scopedUsers = discount.users?.length
+        ? discount.users
+        : discount.user
+        ? [discount.user]
+        : [];
       setForm({
         title: discount.title,
         description: discount.description ?? "",
@@ -145,10 +160,7 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
         rule: discount.rule,
         active: discount.active,
         global: discount.global,
-        userId: discount.userId ?? "",
-        userLabel: discount.user
-          ? `${discount.user.name ?? ""} (${discount.user.email ?? ""})`
-          : "",
+        userIds: scopedUsers.map((user) => user.id),
         maxRedemptions:
           discount.maxRedemptions != null ? String(discount.maxRedemptions) : "",
         maxRedemptionsPerUser:
@@ -158,10 +170,11 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
         startsAt: toLocalInput(discount.startsAt),
         expiresAt: toLocalInput(discount.expiresAt),
       });
+      setSelectedUsers(scopedUsers);
     } else {
       setForm(emptyForm());
+      setSelectedUsers([]);
     }
-    setUserSearch("");
   }, [open, discount]);
 
   const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -175,7 +188,8 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
       rule: form.rule,
       active: form.active,
       global: form.global,
-      userId: form.global ? null : form.userId || null,
+      userId: null,
+      userIds: form.global ? [] : form.userIds,
       maxRedemptions:
         form.rule === DiscountRule.SINGLE_USE
           ? 1
@@ -201,8 +215,8 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
       notify("Percentage must be between 0.01 and 100");
       return;
     }
-    if (!form.global && !form.userId) {
-      notify("Select a user for scoped discounts");
+    if (!form.global && form.userIds.length === 0) {
+      notify("Select at least one user for scoped discounts");
       return;
     }
 
@@ -365,7 +379,7 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
             <div>
               <p className="text-sm font-medium">Available to everyone</p>
               <p className="text-xs text-muted-foreground">
-                Turn off to scope to one user
+                Turn off to scope to selected users
               </p>
             </div>
             <Switch
@@ -373,8 +387,8 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
               onCheckedChange={(v) => {
                 setField("global", v);
                 if (v) {
-                  setField("userId", "");
-                  setField("userLabel", "");
+                  setField("userIds", []);
+                  setSelectedUsers([]);
                 }
               }}
             />
@@ -382,62 +396,38 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
 
           {!form.global && (
             <div className="grid gap-2">
-              <Label>Scoped user</Label>
-              {form.userId ? (
-                <div className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
-                  <span>{form.userLabel || form.userId}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setField("userId", "");
-                      setField("userLabel", "");
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <Input
-                    value={userSearch}
-                    onChange={(e) => {
-                      setUserSearch(e.target.value);
-                      debouncedSearch(e.target.value);
-                    }}
-                    placeholder="Search by name or email"
-                  />
-                  <div className="max-h-36 overflow-y-auto rounded-md border">
-                    {searchingUsers && (
-                      <p className="p-2 text-xs text-muted-foreground">
-                        Searching…
-                      </p>
-                    )}
-                    {!searchingUsers &&
-                      users.map((u) => (
-                        <button
-                          key={u.id}
-                          type="button"
-                          className="flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-muted"
-                          onClick={() => {
-                            setField("userId", u.id);
-                            setField(
-                              "userLabel",
-                              `${u.name ?? ""} (${u.email ?? ""})`
-                            );
-                            setUserSearch("");
-                          }}
-                        >
-                          <span className="font-medium">{u.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {u.email}
-                          </span>
-                        </button>
-                      ))}
-                  </div>
-                </>
-              )}
+              <Label>Scoped users</Label>
+              <Combobox
+                multiple
+                isModal
+                lowercaseVal={false}
+                items={userOptions}
+                externalValue={form.userIds}
+                searchPlaceholder="Search users by name or email"
+                emptyPlaceholder={
+                  searchingUsers
+                    ? "Searching…"
+                    : "Type at least 2 characters to search"
+                }
+                handleInputChange={debouncedSearch}
+                handleReceiveValue={(value) => {
+                  const userIds = Array.isArray(value) ? value : [];
+                  setField("userIds", userIds);
+                  setSelectedUsers((current) => {
+                    const available = new Map(
+                      [...current, ...users].map((user) => [user.id, user])
+                    );
+                    return userIds
+                      .map((id) => available.get(id))
+                      .filter((user): user is IDiscountUser => Boolean(user));
+                  });
+                }}
+                buttonProps={{ className: "min-h-11" }}
+                popoverCls="w-[var(--radix-popover-trigger-width)]"
+              />
+              <p className="text-xs text-muted-foreground">
+                Search runs on the server and returns up to 20 matches.
+              </p>
             </div>
           )}
         </div>

@@ -21,6 +21,7 @@ export interface IDiscount {
   global: boolean;
   userId?: string | null;
   user?: IDiscountUser | null;
+  users?: IDiscountUser[];
   maxRedemptions?: number | null;
   maxRedemptionsPerUser?: number | null;
   redemptionCount: number;
@@ -38,6 +39,7 @@ export type CreateDiscountPayload = {
   active?: boolean;
   global?: boolean;
   userId?: string | null;
+  userIds?: string[];
   maxRedemptions?: number | null;
   maxRedemptionsPerUser?: number | null;
   startsAt?: string | null;
