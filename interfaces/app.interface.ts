@@ -17,7 +17,6 @@ export interface ISetting {
   accountDialogEnabled: boolean;
   accountDialogTitle: string;
   accountDialogMessage: string;
-  accountDialogScheduledAt: string | null;
   accountDialogId: string | null;
   accountDialogImageUrl: string;
   accountDialogCtaLabel: string;
