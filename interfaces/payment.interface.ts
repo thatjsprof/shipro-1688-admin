@@ -15,6 +15,7 @@ export interface IPayment {
   link: string;
   providerFees: number;
   description: string;
+  walletAmount?: number;
   user: IUser;
   paymentBreakdown: Record<string, string>[];
 }

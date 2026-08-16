@@ -72,10 +72,51 @@ const uniquePayments = (order: IOrder) => {
   );
 };
 
+const providerLabel = (provider?: PaymentProviders | string | null) =>
+  paymentProviderLabels[provider as PaymentProviders] ??
+  humanize(provider || "Online Payment");
+
+const paymentMethodLines = (payment: IPayment) => {
+  const total = amount(payment.baseAmount || payment.amount);
+  const wallet = amount(payment.walletAmount);
+  const lines: { label: string; value: number }[] = [];
+
+  if (wallet > 0 && wallet < total) {
+    lines.push({ label: "Wallet", value: wallet });
+    lines.push({
+      label: providerLabel(payment.provider),
+      value: Math.max(0, total - wallet),
+    });
+    return lines;
+  }
+
+  if (wallet > 0 && wallet >= total) {
+    return [{ label: "Wallet", value: total }];
+  }
+
+  return [{ label: providerLabel(payment.provider), value: total }];
+};
+
+const aggregateMethodLines = (payments: IPayment[]) => {
+  const totals = new Map<string, number>();
+  for (const payment of payments) {
+    for (const line of paymentMethodLines(payment)) {
+      totals.set(line.label, (totals.get(line.label) ?? 0) + line.value);
+    }
+  }
+  return Array.from(totals.entries()).map(([label, value]) => ({
+    label,
+    value,
+  }));
+};
+
 const PaymentBreakdownDialog = ({ order }: { order: IOrder }) => {
   const payments = uniquePayments(order);
   const successfulPayments = payments.filter(
     (payment) => payment.status === PaymentStatus.SUCCESSFUL
+  );
+  const methodLines = aggregateMethodLines(
+    successfulPayments.length > 0 ? successfulPayments : payments
   );
   const totalPaid = successfulPayments.reduce(
     (total, payment) => total + amount(payment.baseAmount || payment.amount),
@@ -147,6 +188,29 @@ const PaymentBreakdownDialog = ({ order }: { order: IOrder }) => {
 
             <section>
               <h3 className="mb-3 text-sm font-semibold text-gray-900">
+                Paid via
+              </h3>
+              <div className="overflow-hidden rounded-lg border">
+                {methodLines.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-muted-foreground">
+                    No payment methods yet.
+                  </div>
+                ) : (
+                  methodLines.map((row) => (
+                    <div
+                      key={row.label}
+                      className="flex items-center justify-between border-b px-4 py-3 text-sm last:border-b-0"
+                    >
+                      <span className="text-muted-foreground">{row.label}</span>
+                      <span className="font-medium">₦{formatNum(row.value)}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900">
                 Payment summary
               </h3>
               <div className="overflow-hidden rounded-lg border">
@@ -173,60 +237,60 @@ const PaymentBreakdownDialog = ({ order }: { order: IOrder }) => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {payments.map((payment: IPayment) => (
-                    <div key={payment.id} className="rounded-lg border p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {paymentProviderLabels[payment.provider] ??
-                              humanize(payment.provider || "Payment")}
-                          </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {payment.description ||
-                              humanize(payment.code || "Payment")}
-                          </p>
+                  {payments.map((payment: IPayment) => {
+                    const lines = paymentMethodLines(payment);
+                    const isSplit = lines.length > 1;
+                    return (
+                      <div key={payment.id} className="rounded-lg border p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {isSplit
+                                ? lines.map((l) => l.label).join(" + ")
+                                : lines[0]?.label}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {payment.description ||
+                                humanize(payment.code || "Payment")}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-semibold">
+                              ₦
+                              {formatNum(
+                                amount(payment.baseAmount || payment.amount)
+                              )}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {humanize(payment.status)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-semibold">
-                            ₦
-                            {formatNum(
-                              amount(payment.baseAmount || payment.amount)
-                            )}
+                        {payment.reference && (
+                          <p className="mt-3 break-all text-xs text-muted-foreground">
+                            Ref: {payment.reference}
                           </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {humanize(payment.status)}
-                          </p>
-                        </div>
-                      </div>
-                      {payment.reference && (
-                        <p className="mt-3 break-all text-xs text-muted-foreground">
-                          Ref: {payment.reference}
-                        </p>
-                      )}
-                      {(payment.paymentBreakdown ?? []).map(
-                        (breakdown, breakdownIndex) => (
-                          <div
-                            key={`${payment.id}-${breakdownIndex}`}
-                            className="mt-3 rounded-md bg-gray-50 px-3 py-2"
-                          >
-                            {Object.entries(breakdown).map(([label, value]) => (
+                        )}
+                        {isSplit && (
+                          <div className="mt-3 rounded-md bg-gray-50 px-3 py-2">
+                            {lines.map((line) => (
                               <div
-                                key={label}
+                                key={line.label}
                                 className="flex items-center justify-between py-1 text-xs"
                               >
                                 <span className="text-muted-foreground">
-                                  {humanize(label)}
+                                  {line.label}
                                 </span>
                                 <span className="font-medium">
-                                  ₦{formatNum(amount(value))}
+                                  ₦{formatNum(line.value)}
                                 </span>
                               </div>
                             ))}
                           </div>
-                        )
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>

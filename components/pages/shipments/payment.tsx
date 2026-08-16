@@ -604,12 +604,14 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           </div>
           {code === PaymentCodes.SHIPPING_FEE && (
             <div className="mt-6">
-              <div className="flex items-end justify-between mb-4 gap-4">
-                <FormLabel>Payment Breakdown</FormLabel>
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <FormLabel className="shrink-0 whitespace-nowrap">
+                  Payment Breakdown
+                </FormLabel>
                 {fields.length > 0 && (
-                  <div className="flex flex-wrap items-end justify-end gap-2">
+                  <div className="flex flex-wrap items-end gap-2 sm:justify-end">
                     <div className="flex flex-col gap-1">
-                      <FormLabel className="text-xs">
+                      <FormLabel className="text-xs whitespace-nowrap">
                         Package Weight ({packageWeightUnit.toUpperCase()})
                       </FormLabel>
                       <NumericFormat
