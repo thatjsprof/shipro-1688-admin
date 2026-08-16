@@ -1,4 +1,5 @@
 import DiscountDialog from "@/components/pages/discounts/discount-dialog";
+import ActionAlert from "@/components/ui/action-alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -11,13 +12,14 @@ import {
 import useCopy from "@/lib/copy";
 import { notify } from "@/lib/toast";
 import {
+  useDeleteDiscountMutation,
   useGetDiscountsQuery,
   useUpdateDiscountMutation,
 } from "@/services/management.service";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Copy, Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Copy, Plus, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 const ruleLabel: Record<DiscountRule, string> = {
   [DiscountRule.ONE_PER_USER]: "Once per user",
@@ -36,9 +38,15 @@ const formatDate = (value?: string | null) => {
 const DiscountsPage = () => {
   const { data, isLoading, refetch } = useGetDiscountsQuery();
   const [updateDiscount] = useUpdateDiscountMutation();
+  const [deleteDiscount, { isLoading: isDeleting }] =
+    useDeleteDiscountMutation();
   const { copyToClipboard } = useCopy();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<IDiscount | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [discountToDelete, setDiscountToDelete] = useState<IDiscount | null>(
+    null
+  );
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50,
@@ -49,6 +57,23 @@ const DiscountsPage = () => {
   useEffect(() => {
     document.title = "Discounts | Shipro Africa";
   }, []);
+
+  const handleRequestDelete = useCallback((discount: IDiscount) => {
+    setDiscountToDelete(discount);
+    setDeleteOpen(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!discountToDelete) return;
+    try {
+      const res = await deleteDiscount(discountToDelete.id).unwrap();
+      notify(res.message || "Discount deleted");
+      setDeleteOpen(false);
+      setDiscountToDelete(null);
+    } catch (err: any) {
+      notify(err?.data?.message || "Failed to delete discount");
+    }
+  }, [deleteDiscount, discountToDelete]);
 
   const columns = useMemo<ColumnDef<IDiscount>[]>(
     () => [
@@ -192,8 +217,29 @@ const DiscountsPage = () => {
           />
         ),
       },
+      {
+        id: "actions",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="" />
+        ),
+        cell: ({ row }) => (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-destructive hover:text-destructive"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleRequestDelete(row.original);
+            }}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        ),
+      },
     ],
-    [copyToClipboard, refetch, updateDiscount]
+    [copyToClipboard, handleRequestDelete, refetch, updateDiscount]
   );
 
   return (
@@ -235,6 +281,27 @@ const DiscountsPage = () => {
           if (!next) setEditing(null);
         }}
         discount={editing}
+      />
+
+      <ActionAlert
+        open={deleteOpen}
+        setOpen={setDeleteOpen}
+        title="Delete discount?"
+        body={
+          discountToDelete ? (
+            <span>
+              This permanently removes{" "}
+              <strong className="font-medium">{discountToDelete.title}</strong>.
+              This cannot be undone.
+            </span>
+          ) : (
+            "This permanently removes the discount. This cannot be undone."
+          )
+        }
+        actionText="Delete discount"
+        loading={isDeleting}
+        handleAction={handleConfirmDelete}
+        closeCls="shadow-none"
       />
     </div>
   );

@@ -103,6 +103,13 @@ export const settingApi = createApi({
         }),
         invalidatesTags: ["GetDiscounts"],
       }),
+      deleteDiscount: builder.mutation<ApiResponse<{ id: string }>, string>({
+        query: (id) => ({
+          url: `/discounts/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["GetDiscounts"],
+      }),
     };
   },
 });
@@ -116,4 +123,5 @@ export const {
   useGetDiscountsQuery,
   useCreateDiscountMutation,
   useUpdateDiscountMutation,
+  useDeleteDiscountMutation,
 } = settingApi;
