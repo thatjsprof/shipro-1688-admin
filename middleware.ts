@@ -37,5 +37,6 @@ export const config = {
     "/rmb-purchase",
     "/all-orders",
     "/shipments",
+    "/discounts",
   ],
 };

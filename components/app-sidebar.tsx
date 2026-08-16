@@ -6,6 +6,7 @@ import {
   Home,
   Package,
   PackageSearch,
+  Percent,
   Settings,
   ShoppingBag,
   Truck,
@@ -95,6 +96,11 @@ const data: {
       title: "Users",
       url: "/users",
       Icon: <User className="!size-5" strokeWidth={2.5} />,
+    },
+    {
+      title: "Discounts",
+      url: "/discounts",
+      Icon: <Percent className="!size-5" strokeWidth={2.5} />,
     },
     {
       title: "Settings",

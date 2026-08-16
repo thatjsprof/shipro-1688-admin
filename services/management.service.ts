@@ -1,13 +1,18 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import { ISetting } from "@/interfaces/app.interface";
+import {
+  CreateDiscountPayload,
+  IDiscount,
+  UpdateDiscountPayload,
+} from "@/interfaces/discount.interface";
 
 const baseUrl = "/";
 
 export const settingApi = createApi({
   reducerPath: "rtk:setting",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetSettings", "GetStatistics"],
+  tagTypes: ["GetSettings", "GetStatistics", "GetDiscounts"],
   endpoints: (builder) => {
     return {
       getDashboard: builder.query<
@@ -69,6 +74,35 @@ export const settingApi = createApi({
         }),
         invalidatesTags: ["GetSettings"],
       }),
+      getDiscounts: builder.query<ApiResponse<IDiscount[]>, void>({
+        query: () => ({
+          url: `/discounts`,
+          method: "GET",
+        }),
+        providesTags: ["GetDiscounts"],
+      }),
+      createDiscount: builder.mutation<
+        ApiResponse<IDiscount>,
+        CreateDiscountPayload
+      >({
+        query: (body) => ({
+          url: `/discounts`,
+          method: "POST",
+          body,
+        }),
+        invalidatesTags: ["GetDiscounts"],
+      }),
+      updateDiscount: builder.mutation<
+        ApiResponse<IDiscount>,
+        { id: string; body: UpdateDiscountPayload }
+      >({
+        query: ({ id, body }) => ({
+          url: `/discounts/${id}`,
+          method: "PATCH",
+          body,
+        }),
+        invalidatesTags: ["GetDiscounts"],
+      }),
     };
   },
 });
@@ -79,4 +113,7 @@ export const {
   useUpdateSettingMutation,
   useUpdateAccountDialogMutation,
   useGetDashboardQuery,
+  useGetDiscountsQuery,
+  useCreateDiscountMutation,
+  useUpdateDiscountMutation,
 } = settingApi;

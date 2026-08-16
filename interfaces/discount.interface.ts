@@ -1,0 +1,49 @@
+export enum DiscountRule {
+  ONE_PER_USER = "ONE_PER_USER",
+  MULTIPLE_PER_USER = "MULTIPLE_PER_USER",
+  SINGLE_USE = "SINGLE_USE",
+  PUBLIC = "PUBLIC",
+}
+
+export interface IDiscountUser {
+  id: string;
+  name?: string;
+  email?: string;
+}
+
+export interface IDiscount {
+  id: string;
+  title: string;
+  description?: string;
+  percentage: number;
+  rule: DiscountRule;
+  active: boolean;
+  global: boolean;
+  userId?: string | null;
+  user?: IDiscountUser | null;
+  maxRedemptions?: number | null;
+  maxRedemptionsPerUser?: number | null;
+  redemptionCount: number;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+  createdOn: string;
+  modifiedOn: string;
+}
+
+export type CreateDiscountPayload = {
+  title: string;
+  description?: string;
+  percentage: number;
+  rule: DiscountRule;
+  active?: boolean;
+  global?: boolean;
+  userId?: string | null;
+  maxRedemptions?: number | null;
+  maxRedemptionsPerUser?: number | null;
+  startsAt?: string | null;
+  expiresAt?: string | null;
+};
+
+export type UpdateDiscountPayload = Partial<
+  Omit<CreateDiscountPayload, "title">
+>;
