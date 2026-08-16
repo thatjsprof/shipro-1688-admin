@@ -12,7 +12,11 @@ import {
   OrderStatus,
   OrderType,
 } from "@/interfaces/order.interface";
-import { PaymentStatus } from "@/interfaces/payment.interface";
+import {
+  IPayment,
+  PaymentProviders,
+  PaymentStatus,
+} from "@/interfaces/payment.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import RichTextContent from "@/components/ui/rich-text-content";
 import { useGetOrdersQuery } from "@/services/order.service";
@@ -39,6 +43,199 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import FadeScrollArea from "@/components/ui/fade-scrollarea";
 import UpdateDialog from "@/components/pages/order/order-payment";
 type LucideIconName = keyof typeof LucideIcons;
+
+const paymentProviderLabels: Record<PaymentProviders, string> = {
+  [PaymentProviders.PAYSTACK]: "Paystack",
+  [PaymentProviders.FLUTTERWAVE]: "Flutterwave",
+  [PaymentProviders.KORA]: "Korapay",
+  [PaymentProviders.BANK_TRANSFER]: "Bank Transfer",
+  [PaymentProviders.WALLET]: "Wallet",
+};
+
+const humanize = (value: string) =>
+  value
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+
+const amount = (value?: number | string | null) =>
+  Number.isFinite(Number(value)) ? Number(value) : 0;
+
+const uniquePayments = (order: IOrder) => {
+  const payments = [
+    ...(order.payments ?? []),
+    ...(order.items ?? []).flatMap((item) => item.payments ?? []),
+  ];
+
+  return Array.from(
+    new Map(payments.map((payment) => [payment.id, payment])).values()
+  );
+};
+
+const PaymentBreakdownDialog = ({ order }: { order: IOrder }) => {
+  const payments = uniquePayments(order);
+  const successfulPayments = payments.filter(
+    (payment) => payment.status === PaymentStatus.SUCCESSFUL
+  );
+  const totalPaid = successfulPayments.reduce(
+    (total, payment) => total + amount(payment.baseAmount || payment.amount),
+    0
+  );
+  const orderTotal = amount(order.orderAmount);
+  const outstanding = Math.max(0, orderTotal - totalPaid);
+  const chargeRows = [
+    { label: "Items total", value: order.subTotal },
+    {
+      label: "Shipping fee within China",
+      value: order.shippingFeeWithinChina,
+    },
+    { label: "Service charge", value: order.serviceCharge },
+    ...(amount(order.providerCharges) > 0
+      ? [{ label: "Provider charges", value: order.providerCharges }]
+      : []),
+  ];
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="mt-1 text-sm font-medium text-primary hover:underline"
+        >
+          View payment breakdown
+        </button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg p-0 overflow-hidden">
+        <DialogHeader className="border-b p-6 pb-4">
+          <DialogTitle>Payment breakdown</DialogTitle>
+          <CardDescription>{order.orderNumber}</CardDescription>
+        </DialogHeader>
+        <ScrollArea className="max-h-[75vh]">
+          <div className="space-y-6 p-6">
+            <section>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900">
+                Order charges
+              </h3>
+              <div className="overflow-hidden rounded-lg border">
+                {chargeRows.map((row) => (
+                  <div
+                    key={row.label}
+                    className="flex items-center justify-between border-b px-4 py-3 text-sm last:border-b-0"
+                  >
+                    <span className="text-muted-foreground">{row.label}</span>
+                    <span className="font-medium">₦{formatNum(amount(row.value))}</span>
+                  </div>
+                ))}
+                {order.insurance && (
+                  <div className="flex items-center justify-between border-b px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Insurance</span>
+                    <span className="font-medium">Included</span>
+                  </div>
+                )}
+                {order.discountCode && (
+                  <div className="flex items-center justify-between border-b px-4 py-3 text-sm">
+                    <span className="text-muted-foreground">Discount code</span>
+                    <span className="font-medium">{order.discountCode}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between bg-gray-50 px-4 py-3 text-sm">
+                  <span className="font-semibold">Order total</span>
+                  <span className="font-semibold">₦{formatNum(orderTotal)}</span>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900">
+                Payment summary
+              </h3>
+              <div className="overflow-hidden rounded-lg border">
+                <div className="flex items-center justify-between border-b px-4 py-3 text-sm">
+                  <span className="text-muted-foreground">Total paid</span>
+                  <span className="font-semibold text-green-700">
+                    ₦{formatNum(totalPaid)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between px-4 py-3 text-sm">
+                  <span className="text-muted-foreground">Outstanding</span>
+                  <span className="font-semibold">₦{formatNum(outstanding)}</span>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900">
+                Payments ({payments.length})
+              </h3>
+              {payments.length === 0 ? (
+                <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                  No payment records yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {payments.map((payment: IPayment) => (
+                    <div key={payment.id} className="rounded-lg border p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {paymentProviderLabels[payment.provider] ??
+                              humanize(payment.provider || "Payment")}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {payment.description ||
+                              humanize(payment.code || "Payment")}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold">
+                            ₦
+                            {formatNum(
+                              amount(payment.baseAmount || payment.amount)
+                            )}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {humanize(payment.status)}
+                          </p>
+                        </div>
+                      </div>
+                      {payment.reference && (
+                        <p className="mt-3 break-all text-xs text-muted-foreground">
+                          Ref: {payment.reference}
+                        </p>
+                      )}
+                      {(payment.paymentBreakdown ?? []).map(
+                        (breakdown, breakdownIndex) => (
+                          <div
+                            key={`${payment.id}-${breakdownIndex}`}
+                            className="mt-3 rounded-md bg-gray-50 px-3 py-2"
+                          >
+                            {Object.entries(breakdown).map(([label, value]) => (
+                              <div
+                                key={label}
+                                className="flex items-center justify-between py-1 text-xs"
+                              >
+                                <span className="text-muted-foreground">
+                                  {humanize(label)}
+                                </span>
+                                <span className="font-medium">
+                                  ₦{formatNum(amount(value))}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const AllOrders = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -198,6 +395,7 @@ const AllOrders = () => {
                         <LucideIcons.User className="w-4 h-4" />
                         Ordered by {order.user?.name}
                       </p>
+                      <PaymentBreakdownDialog order={order} />
                     </div>
                     <div>
                       <Button

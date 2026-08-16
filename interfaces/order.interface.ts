@@ -46,9 +46,13 @@ export interface IOrder {
   estimatedDelivery: Date;
   deliveredAt: Date;
   orderAmount: number;
+  baseAmount: number;
   shippingFeeWithinChina: number;
   serviceCharge: number;
   subTotal: number;
+  providerCharges: number;
+  insurance: boolean;
+  discountCode?: string | null;
   paidShippingFee: boolean;
   shippingFee: number;
   createdAt: Date;
