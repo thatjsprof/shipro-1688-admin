@@ -69,11 +69,21 @@ const DiscountsPage = () => {
         ),
       },
       {
-        accessorKey: "percentage",
+        accessorKey: "value",
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="%" />
+          <DataTableColumnHeader column={column} title="Value" />
         ),
-        cell: ({ row }) => <span>{row.original.percentage}%</span>,
+        cell: ({ row }) => {
+          const isFixed =
+            row.original.type === "FIXED_AMOUNT" ||
+            (row.original.amount != null &&
+              row.original.amount > 0 &&
+              !row.original.percentage);
+          if (isFixed) {
+            return <span>₦{Number(row.original.amount).toLocaleString()}</span>;
+          }
+          return <span>{row.original.percentage}%</span>;
+        },
       },
       {
         accessorKey: "rule",

@@ -23,6 +23,7 @@ import { Icons } from "@/components/shared/icons";
 import {
   CreateDiscountPayload,
   DiscountRule,
+  DiscountType,
   IDiscount,
   IDiscountUser,
   UpdateDiscountPayload,
@@ -62,7 +63,9 @@ const RULE_OPTIONS: { value: DiscountRule; label: string; hint: string }[] = [
 type FormState = {
   title: string;
   description: string;
+  type: DiscountType;
   percentage: string;
+  amount: string;
   rule: DiscountRule;
   active: boolean;
   global: boolean;
@@ -76,7 +79,9 @@ type FormState = {
 const emptyForm = (): FormState => ({
   title: "",
   description: "",
+  type: DiscountType.PERCENTAGE,
   percentage: "",
+  amount: "",
   rule: DiscountRule.ONE_PER_USER,
   active: true,
   global: true,
@@ -103,6 +108,11 @@ const parseOptionalInt = (value: string) => {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : null;
 };
 
+const toUserOption = (user: IDiscountUser): IItem => ({
+  value: user.id,
+  label: `${user.name || "Unnamed user"} · ${user.email}`,
+});
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -122,15 +132,17 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
 
   const users = usersData?.data?.data ?? [];
   const userOptions = useMemo<IItem[]>(() => {
-    const byId = new Map<string, IDiscountUser>();
-    users.forEach((user) => byId.set(user.id, user));
-    selectedUsers.forEach((user) => {
-      if (!byId.has(user.id)) byId.set(user.id, user);
-    });
-    return Array.from(byId.values()).map((user) => ({
-      value: user.id,
-      label: `${user.name || "Unnamed user"} · ${user.email}`,
-    }));
+    const selectedIds = new Set(selectedUsers.map((user) => user.id));
+    const selectedOpts = selectedUsers.map(toUserOption);
+    const rest = [...users]
+      .filter((user) => !selectedIds.has(user.id))
+      .sort((a, b) =>
+        (a.name || a.email || "").localeCompare(b.name || b.email || "", undefined, {
+          sensitivity: "base",
+        })
+      )
+      .map(toUserOption);
+    return [...selectedOpts, ...rest];
   }, [selectedUsers, users]);
 
   const fetchUsers = useMemo(
@@ -175,10 +187,23 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
         : discount.user
         ? [discount.user]
         : [];
+      const type =
+        discount.type ??
+        (discount.amount != null && discount.amount > 0
+          ? DiscountType.FIXED_AMOUNT
+          : DiscountType.PERCENTAGE);
       setForm({
         title: discount.title,
         description: discount.description ?? "",
-        percentage: String(discount.percentage ?? ""),
+        type,
+        percentage:
+          type === DiscountType.PERCENTAGE
+            ? String(discount.percentage ?? "")
+            : "",
+        amount:
+          type === DiscountType.FIXED_AMOUNT
+            ? String(discount.amount ?? "")
+            : "",
         rule: discount.rule,
         active: discount.active,
         global: discount.global,
@@ -206,7 +231,13 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
   const buildPayload = (): CreateDiscountPayload | UpdateDiscountPayload => {
     const base = {
       description: form.description.trim(),
-      percentage: Number(form.percentage),
+      type: form.type,
+      percentage:
+        form.type === DiscountType.PERCENTAGE
+          ? Number(form.percentage)
+          : null,
+      amount:
+        form.type === DiscountType.FIXED_AMOUNT ? Number(form.amount) : null,
       rule: form.rule,
       active: form.active,
       global: form.global,
@@ -232,10 +263,18 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
       notify("Enter a discount code (at least 2 characters)");
       return;
     }
-    const percentage = Number(form.percentage);
-    if (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100) {
-      notify("Percentage must be between 0.01 and 100");
-      return;
+    if (form.type === DiscountType.PERCENTAGE) {
+      const percentage = Number(form.percentage);
+      if (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100) {
+        notify("Percentage must be between 0.01 and 100");
+        return;
+      }
+    } else {
+      const amount = Number(form.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        notify("Enter a valid amount in Naira");
+        return;
+      }
     }
     if (!form.global && form.userIds.length === 0) {
       notify("Select at least one user for scoped discounts");
@@ -297,39 +336,85 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <Label htmlFor="discount-pct">Percentage (%)</Label>
-              <Input
-                id="discount-pct"
-                type="number"
-                min={0.01}
-                max={100}
-                step="0.01"
-                value={form.percentage}
-                onChange={(e) => setField("percentage", e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label>Rule</Label>
+              <Label>Discount type</Label>
               <Select
-                value={form.rule}
-                onValueChange={(v) => setField("rule", v as DiscountRule)}
+                value={form.type}
+                onValueChange={(v) => {
+                  const type = v as DiscountType;
+                  setForm((prev) => ({
+                    ...prev,
+                    type,
+                    percentage:
+                      type === DiscountType.PERCENTAGE ? prev.percentage : "",
+                    amount: type === DiscountType.FIXED_AMOUNT ? prev.amount : "",
+                  }));
+                }}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {RULE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value={DiscountType.PERCENTAGE}>
+                    Percentage (%)
+                  </SelectItem>
+                  <SelectItem value={DiscountType.FIXED_AMOUNT}>
+                    Fixed amount (₦)
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid gap-2">
+              {form.type === DiscountType.PERCENTAGE ? (
+                <>
+                  <Label htmlFor="discount-pct">Percentage (%)</Label>
+                  <Input
+                    id="discount-pct"
+                    type="number"
+                    min={0.01}
+                    max={100}
+                    step="0.01"
+                    value={form.percentage}
+                    onChange={(e) => setField("percentage", e.target.value)}
+                  />
+                </>
+              ) : (
+                <>
+                  <Label htmlFor="discount-amount">Amount (₦)</Label>
+                  <Input
+                    id="discount-amount"
+                    type="number"
+                    min={0.01}
+                    step="0.01"
+                    value={form.amount}
+                    onChange={(e) => setField("amount", e.target.value)}
+                    placeholder="e.g. 5000"
+                  />
+                </>
+              )}
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground -mt-2">
-            {RULE_OPTIONS.find((r) => r.value === form.rule)?.hint}
-          </p>
+
+          <div className="grid gap-2">
+            <Label>Rule</Label>
+            <Select
+              value={form.rule}
+              onValueChange={(v) => setField("rule", v as DiscountRule)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RULE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {RULE_OPTIONS.find((r) => r.value === form.rule)?.hint}
+            </p>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
@@ -446,7 +531,9 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
                 popoverCls="w-[var(--radix-popover-trigger-width)]"
               />
               <p className="text-xs text-muted-foreground">
-                Shows the first 20 users. Search to filter; clear to reset.
+                Shows the 20 newest users (by signup date), A–Z in the list.
+                Selected users stay pinned at the top. Search filters on the
+                server.
               </p>
             </div>
           )}

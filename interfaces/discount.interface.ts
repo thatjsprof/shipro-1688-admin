@@ -5,6 +5,11 @@ export enum DiscountRule {
   PUBLIC = "PUBLIC",
 }
 
+export enum DiscountType {
+  PERCENTAGE = "PERCENTAGE",
+  FIXED_AMOUNT = "FIXED_AMOUNT",
+}
+
 export interface IDiscountUser {
   id: string;
   name?: string;
@@ -15,7 +20,9 @@ export interface IDiscount {
   id: string;
   title: string;
   description?: string;
-  percentage: number;
+  type?: DiscountType;
+  percentage?: number | null;
+  amount?: number | null;
   rule: DiscountRule;
   active: boolean;
   global: boolean;
@@ -34,7 +41,9 @@ export interface IDiscount {
 export type CreateDiscountPayload = {
   title: string;
   description?: string;
-  percentage: number;
+  type: DiscountType;
+  percentage?: number | null;
+  amount?: number | null;
   rule: DiscountRule;
   active?: boolean;
   global?: boolean;
