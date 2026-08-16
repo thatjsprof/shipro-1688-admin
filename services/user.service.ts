@@ -254,6 +254,7 @@ export const {
 
 export const {
   useGetUsersQuery,
+  useLazyGetUsersQuery,
   useGetAdminUserQuery,
   useGetUserIdentitiesQuery,
   useAdminUpdateUserMutation,

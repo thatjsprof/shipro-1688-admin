@@ -2,19 +2,85 @@ import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Icons } from "@/components/shared/icons";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { IUser, IUserRole } from "@/interfaces/user.interface";
 import useCopy, { ICopy } from "@/lib/copy";
-import { useGetUsersQuery } from "@/services/user.service";
+import { notify } from "@/lib/toast";
+import { useGetUsersQuery, useLazyGetUsersQuery } from "@/services/user.service";
 import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
-import { Copy, Search, X } from "lucide-react";
+import { Copy, Download, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+
+const escapeCsvValue = (value: string) => {
+  if (/[",\n\r]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+};
+
+const downloadCsv = (filename: string, rows: string[][]) => {
+  const csv = rows
+    .map((row) => row.map((cell) => escapeCsvValue(cell ?? "")).join(","))
+    .join("\n");
+  const blob = new Blob(["\uFEFF" + csv], {
+    type: "text/csv;charset=utf-8;",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const formatUserDate = (value?: string | Date) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return format(date, "dd MMM, yyy, h:mm a");
+};
+
+const usersToTableRows = (users: IUser[]): string[][] => {
+  return [
+    [
+      "Name",
+      "Email",
+      "Phone Number",
+      "Cart",
+      "Date Joined",
+      "Verification Status",
+    ],
+    ...users.map((user) => [
+      user.name ?? "",
+      user.email ?? "",
+      user.phoneNumber ?? "",
+      String(user.cartCount ?? 0),
+      formatUserDate(user.createdAt),
+      user.emailVerified ? "Verified" : "Not Verified",
+    ]),
+  ];
+};
+
+const usersToEmailRows = (users: IUser[]): string[][] => {
+  return [["Email"], ...users.map((user) => [user.email ?? ""])];
+};
 
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
@@ -219,6 +285,9 @@ const Users = () => {
   const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
+  const [rowSelect, setRowSelect] = useState<Record<string, boolean>>({});
+  const [rowSelection, setRowSelection] = useState<IUser[]>([]);
   const authenticated = useAppSelector((state) => state.user.authenticated);
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
     pageIndex: 1,
@@ -241,14 +310,69 @@ const Users = () => {
       skip: !authenticated,
     }
   );
+  const [getUsers] = useLazyGetUsersQuery();
   const users = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
   const totalCount = data?.data.totalCount ?? 0;
   const columns = getColumns(
     copyToClipboard,
     () => null,
-    () => { }
+    () => {}
   );
+  const hasSelected = rowSelection.length > 0;
+
+  const getRowId = useCallback((row: IUser) => row.id, []);
+
+  const clearState = () => {
+    setRowSelection([]);
+    setRowSelect({});
+  };
+
+  const resolveUsers = async (scope: "all" | "selected") => {
+    if (scope === "selected") return rowSelection;
+    const res = await getUsers({
+      page: 0,
+      noLimit: true,
+      search: debouncedValue || undefined,
+    }).unwrap();
+    return res?.data?.data ?? [];
+  };
+
+  const handleExport = async (
+    kind: "table" | "emails",
+    scope: "all" | "selected"
+  ) => {
+    if (scope === "selected" && rowSelection.length === 0) {
+      notify("Select at least one user to export");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const list = await resolveUsers(scope);
+      if (list.length === 0) {
+        notify("No users to export");
+        return;
+      }
+      const stamp = format(new Date(), "yyyy-MM-dd");
+      const suffix = scope === "selected" ? "selected" : "all";
+      if (kind === "emails") {
+        downloadCsv(
+          `shipro-users-emails-${suffix}-${stamp}.csv`,
+          usersToEmailRows(list)
+        );
+      } else {
+        downloadCsv(
+          `shipro-users-${suffix}-${stamp}.csv`,
+          usersToTableRows(list)
+        );
+      }
+      notify("Users exported", "success");
+    } catch {
+      notify("Failed to export users", "error");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -293,22 +417,86 @@ const Users = () => {
             ) : null
           }
         />
-        <Link href="/users/new">
-          <Button className="shadow-none h-11">Create New</Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="shadow-none h-11"
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Icons.spinner className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>Full list</DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={isExporting}
+                onClick={() => handleExport("table", "all")}
+              >
+                All users
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isExporting || !hasSelected}
+                onClick={() => handleExport("table", "selected")}
+              >
+                Selected users
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Emails only</DropdownMenuLabel>
+              <DropdownMenuItem
+                disabled={isExporting}
+                onClick={() => handleExport("emails", "all")}
+              >
+                All emails
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={isExporting || !hasSelected}
+                onClick={() => handleExport("emails", "selected")}
+              >
+                Selected emails
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link href="/users/new">
+            <Button className="shadow-none h-11">Create New</Button>
+          </Link>
+        </div>
       </div>
+      {hasSelected && (
+        <div className="flex items-center gap-2 mt-4">
+          <p className="text-sm">{rowSelection.length} users selected</p>
+          <Button
+            className="shadow-none"
+            variant="outline"
+            onClick={clearState}
+          >
+            Clear Selected
+          </Button>
+        </div>
+      )}
       <div className="grid grid-cols-12 mt-8">
         <DataTable
           columns={columns}
           data={users}
+          getRowId={getRowId}
           pageCount={totalPages}
           manualPagination={true}
           manualFiltering={true}
           loading={isLoading}
           pagination={pagination}
           showSelected={false}
+          rowSelection={rowSelect}
+          setRowSelection={setRowSelect}
           setPagination={setPagination}
           showPagination={false}
+          enableRowSelection
+          onSelectedRowsChange={setRowSelection}
           headerRowClassname="hover:bg-transparent"
           headerSubClassname="!px-0"
           customEmpty="No users Found"
