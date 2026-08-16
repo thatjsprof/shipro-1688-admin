@@ -52,6 +52,7 @@ export interface IOrder {
   subTotal: number;
   providerCharges: number;
   insurance: boolean;
+  insuranceAmount?: number | null;
   discountCode?: string | null;
   paidShippingFee: boolean;
   shippingFee: number;

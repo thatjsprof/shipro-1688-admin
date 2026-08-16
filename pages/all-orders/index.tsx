@@ -170,7 +170,11 @@ const PaymentBreakdownDialog = ({ order }: { order: IOrder }) => {
                 {order.insurance && (
                   <div className="flex items-center justify-between border-b px-4 py-3 text-sm">
                     <span className="text-muted-foreground">Insurance</span>
-                    <span className="font-medium">Included</span>
+                    <span className="font-medium">
+                      {amount(order.insuranceAmount) > 0
+                        ? `₦${formatNum(amount(order.insuranceAmount))}`
+                        : "Included"}
+                    </span>
                   </div>
                 )}
                 {order.discountCode && (
