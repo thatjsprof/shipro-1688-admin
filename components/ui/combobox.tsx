@@ -140,7 +140,8 @@ export function Combobox<T extends IItem = IItem>({
   }, [value, allItems, multiple]);
 
   const filteredItems = React.useMemo(() => {
-    if (!inputValue) return items;
+    // Async/server search owns filtering when handleInputChange is provided
+    if (handleInputChange || !inputValue) return items;
 
     if (isGrouped) {
       const groupedFiltered = (items as IGroupedItems<T>[])
@@ -172,7 +173,7 @@ export function Combobox<T extends IItem = IItem>({
     return (items as T[]).filter((item) => {
       return filterFunction(item.label, inputValue) > 0;
     });
-  }, [items, inputValue, isGrouped, filterFunction]);
+  }, [items, inputValue, isGrouped, filterFunction, handleInputChange]);
 
   const handleSelect = (currentValue: string) => {
     const lowercased = currentValue.toLowerCase();
@@ -378,12 +379,19 @@ export function Combobox<T extends IItem = IItem>({
               }}
               {...inputProps}
             />
-            <CommandEmpty className={commandEmptyCls}>
-              {emptyPlaceholder ? emptyPlaceholder : "No value found."}
-            </CommandEmpty>
-            <ScrollArea className="h-[14rem] w-full" type="always">
-              {renderItems()}
-            </ScrollArea>
+            <div className="relative h-[14rem] w-full shrink-0">
+              <CommandEmpty
+                className={cn(
+                  "absolute inset-0 flex items-center justify-center py-0",
+                  commandEmptyCls
+                )}
+              >
+                {emptyPlaceholder ? emptyPlaceholder : "No value found."}
+              </CommandEmpty>
+              <ScrollArea className="h-full w-full" type="always">
+                {renderItems()}
+              </ScrollArea>
+            </div>
           </Command>
         </PopoverContent>
       </Popover>

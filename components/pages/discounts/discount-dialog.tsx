@@ -123,27 +123,49 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
   const users = usersData?.data?.data ?? [];
   const userOptions = useMemo<IItem[]>(() => {
     const byId = new Map<string, IDiscountUser>();
-    selectedUsers.forEach((user) => byId.set(user.id, user));
     users.forEach((user) => byId.set(user.id, user));
+    selectedUsers.forEach((user) => {
+      if (!byId.has(user.id)) byId.set(user.id, user);
+    });
     return Array.from(byId.values()).map((user) => ({
       value: user.id,
       label: `${user.name || "Unnamed user"} · ${user.email}`,
     }));
   }, [selectedUsers, users]);
 
+  const fetchUsers = useMemo(
+    () => (search?: string) => {
+      searchUsers({
+        page: 0,
+        limit: 20,
+        ...(search ? { search } : {}),
+      });
+    },
+    [searchUsers]
+  );
+
   const debouncedSearch = useMemo(
     () =>
       debounce((q: string) => {
         const search = q.trim();
+        if (!search) {
+          fetchUsers();
+          return;
+        }
         if (search.length < 2) return;
-        searchUsers({ page: 0, limit: 20, search });
+        fetchUsers(search);
       }, 350),
-    [searchUsers]
+    [fetchUsers]
   );
 
   useEffect(() => {
     return () => debouncedSearch.cancel();
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (!open || form.global) return;
+    fetchUsers();
+  }, [open, form.global, fetchUsers]);
 
   useEffect(() => {
     if (!open) return;
@@ -405,9 +427,7 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
                 externalValue={form.userIds}
                 searchPlaceholder="Search users by name or email"
                 emptyPlaceholder={
-                  searchingUsers
-                    ? "Searching…"
-                    : "Type at least 2 characters to search"
+                  searchingUsers ? "Searching…" : "No users found"
                 }
                 handleInputChange={debouncedSearch}
                 handleReceiveValue={(value) => {
@@ -426,7 +446,7 @@ const DiscountDialog = ({ open, onOpenChange, discount }: Props) => {
                 popoverCls="w-[var(--radix-popover-trigger-width)]"
               />
               <p className="text-xs text-muted-foreground">
-                Search runs on the server and returns up to 20 matches.
+                Shows the first 20 users. Search to filter; clear to reset.
               </p>
             </div>
           )}
