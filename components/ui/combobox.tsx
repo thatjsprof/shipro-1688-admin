@@ -108,6 +108,7 @@ export function Combobox<T extends IItem = IItem>({
       : ""
   );
   const [inputValue, setInputValue] = React.useState("");
+  const keepSearchOnSelectRef = React.useRef(false);
 
   const isGrouped = items.length > 0 && "items" in items[0];
   const allItems = React.useMemo(() => {
@@ -197,13 +198,12 @@ export function Combobox<T extends IItem = IItem>({
 
       setValue(newValues);
       handleReceiveValue(newValues);
-      setInputValue("");
+      keepSearchOnSelectRef.current = true;
     } else {
       const newValue =
         (value as string).toLowerCase() === lowercased ? "" : finalValue;
       setValue(newValue);
       handleReceiveValue(newValue);
-      setInputValue("");
       setOpen(false);
     }
   };
@@ -374,10 +374,20 @@ export function Combobox<T extends IItem = IItem>({
               placeholder={searchPlaceholder ? searchPlaceholder : "Search..."}
               value={inputValue}
               onValueChange={(val) => {
+                if (keepSearchOnSelectRef.current && val === "") {
+                  keepSearchOnSelectRef.current = false;
+                  return;
+                }
+                keepSearchOnSelectRef.current = false;
                 setInputValue(val);
                 handleInputChange && handleInputChange(val);
               }}
               {...inputProps}
+              onClear={() => {
+                keepSearchOnSelectRef.current = false;
+                setInputValue("");
+                handleInputChange && handleInputChange("");
+              }}
             />
             <div className="relative h-[14rem] w-full shrink-0">
               <CommandEmpty

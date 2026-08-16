@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -63,10 +63,14 @@ function CommandDialog({
 function CommandInput({
   className,
   wrapperCls,
+  onClear,
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input> & {
   wrapperCls?: string;
+  onClear?: () => void;
 }) {
+  const showClear = Boolean(onClear && props.value);
+
   return (
     <div
       data-slot="command-input-wrapper"
@@ -81,6 +85,24 @@ function CommandInput({
         )}
         {...props}
       />
+      {showClear && (
+        <button
+          type="button"
+          aria-label="Clear search"
+          className="shrink-0 rounded-sm p-0.5 text-muted-foreground hover:text-foreground"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClear?.();
+          }}
+        >
+          <XIcon className="size-4" />
+        </button>
+      )}
     </div>
   );
 }
