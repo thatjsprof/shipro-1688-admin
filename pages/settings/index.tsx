@@ -4,14 +4,21 @@ import Rates from "@/components/pages/settings/rates";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { useQueryTabs } from "@/hooks/use-query-tabs";
 import { useEffect } from "react";
+import AccountDialog from "@/components/pages/settings/account-dialog";
 
 enum ITabs {
   Profile = "profile",
   Password = "password",
   Rates = "rates",
+  AccountDialog = "account-dialog",
 }
 
-const TAB_VALUES = [ITabs.Profile, ITabs.Rates, ITabs.Password];
+const TAB_VALUES = [
+  ITabs.Profile,
+  ITabs.Rates,
+  ITabs.AccountDialog,
+  ITabs.Password,
+];
 const DEFAULT_TAB = ITabs.Profile;
 
 const Settings = () => {
@@ -30,6 +37,7 @@ const Settings = () => {
         <TabsTrigger value={ITabs.Profile}>Profile</TabsTrigger>
         <TabsTrigger value={ITabs.Password}>Password</TabsTrigger>
         <TabsTrigger value={ITabs.Rates}>Rates</TabsTrigger>
+        <TabsTrigger value={ITabs.AccountDialog}>Account dialog</TabsTrigger>
       </TabsList>
       <TabsContent value={ITabs.Profile}>
         <Account />
@@ -39,6 +47,9 @@ const Settings = () => {
       </TabsContent>
       <TabsContent value={ITabs.Rates}>
         <Rates />
+      </TabsContent>
+      <TabsContent value={ITabs.AccountDialog}>
+        <AccountDialog />
       </TabsContent>
     </Tabs>
   );

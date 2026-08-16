@@ -47,8 +47,28 @@ export const settingApi = createApi({
               body: data,
             };
           },
+          invalidatesTags: ["GetSettings"],
         }
       ),
+      updateAccountDialog: builder.mutation<
+        ApiResponse<ISetting>,
+        {
+          enabled: boolean;
+          title: string;
+          message: string;
+          imageUrl: string;
+          ctaLabel: string;
+          ctaUrl: string;
+          durationHours: number;
+        }
+      >({
+        query: (data) => ({
+          url: `/setting/account-dialog`,
+          method: "PATCH",
+          body: data,
+        }),
+        invalidatesTags: ["GetSettings"],
+      }),
     };
   },
 });
@@ -57,5 +77,6 @@ export const {
   useGetSettingsQuery,
   useLazyGetSettingsQuery,
   useUpdateSettingMutation,
+  useUpdateAccountDialogMutation,
   useGetDashboardQuery,
 } = settingApi;

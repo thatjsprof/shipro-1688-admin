@@ -14,4 +14,15 @@ export interface ISetting {
   gzPrice: number;
   cbmPrice: number;
   clearanceFee: number;
+  accountDialogEnabled: boolean;
+  accountDialogTitle: string;
+  accountDialogMessage: string;
+  accountDialogScheduledAt: string | null;
+  accountDialogId: string | null;
+  accountDialogImageUrl: string;
+  accountDialogCtaLabel: string;
+  accountDialogCtaUrl: string;
+  accountDialogDurationHours: number | null;
+  accountDialogPublishedAt: string | null;
+  accountDialogExpiresAt: string | null;
 }

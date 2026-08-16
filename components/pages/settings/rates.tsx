@@ -9,7 +9,12 @@ import { Icons } from "@/components/shared/icons";
 import { useUpdateSettingMutation } from "@/services/management.service";
 import { ISetting } from "@/interfaces/app.interface";
 
-const names: Record<keyof ISetting, string> = {
+type ShippingSetting = Pick<
+  ISetting,
+  "hkPrice" | "gzPrice" | "cbmPrice" | "clearanceFee"
+>;
+
+const names: Record<keyof ShippingSetting, string> = {
   hkPrice: "HK Price",
   gzPrice: "GZ Price",
   cbmPrice: "CBM Price",
@@ -23,7 +28,7 @@ const Rates = () => {
   const [updateSetting, { isLoading: loadingSetting }] =
     useUpdateSettingMutation();
   const [setting, setSetting] = useState<
-    Partial<Record<keyof ISetting, string>>
+    Partial<Record<keyof ShippingSetting, string>>
   >({});
   const [value, setValue] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
@@ -140,7 +145,7 @@ const Rates = () => {
         <p className="font-semibold mb-4">Shipping Rates</p>
         <div className="flex flex-col gap-3">
           {Object.entries(setting).map(([key]) => {
-            const keyToUse = key as keyof ISetting;
+            const keyToUse = key as keyof ShippingSetting;
             return (
               <div className="flex items-center gap-2" key={key}>
                 <div className="flex items-center gap-4 flex-1">
