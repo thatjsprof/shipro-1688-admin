@@ -38,6 +38,11 @@ export const orderSchema = z.object({
 export const orderStatusOnlySchema = z
   .object({
     status: z.union([z.nativeEnum(OrderStatus), z.literal("")]),
+    itemsStatus: z.union([
+      z.nativeEnum(OrderStatus),
+      z.literal("none"),
+      z.literal(""),
+    ]),
   })
   .refine((data) => data.status !== "", {
     message: "Status is required",

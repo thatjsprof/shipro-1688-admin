@@ -39,15 +39,22 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     mode: "onTouched",
     defaultValues: {
       status: "",
+      itemsStatus: "none",
     },
   });
 
   const handleSubmit = async (values: z.infer<typeof orderStatusOnlySchema>) => {
     try {
+      const itemsStatus =
+        values.itemsStatus && values.itemsStatus !== "none"
+          ? (values.itemsStatus as OrderStatus)
+          : undefined;
+
       const response = await updateOrder({
         id: order?.id,
         data: {
           status: values.status as OrderStatus,
+          ...(itemsStatus ? { itemsStatus } : {}),
         },
       }).unwrap();
       if (response.status === 200) {
@@ -65,46 +72,86 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     if (!order) return;
     form.reset({
       status: order.status || "",
+      itemsStatus: "none",
     });
   }, [order, form]);
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="status">Status</FormLabel>
-              <FormControl>
-                <Select
-                  {...field}
-                  onValueChange={(value) => {
-                    if (!value) return;
-                    field.onChange(value);
-                  }}
-                >
-                  <SelectTrigger className="h-11">
-                    <SelectValue
-                      placeholder={
-                        <span className="text-gray-400">Select Status</span>
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(OrderStatus).map(([key, value]) => (
-                      <SelectItem key={key} value={value}>
-                        {orderStatusInfo[value]?.text}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="status">Order status</FormLabel>
+                <FormControl>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      if (!value) return;
+                      field.onChange(value);
+                    }}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue
+                        placeholder={
+                          <span className="text-gray-400">Select status</span>
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(OrderStatus).map(([key, value]) => (
+                        <SelectItem key={key} value={value}>
+                          {orderStatusInfo[value]?.text}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="itemsStatus"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel htmlFor="itemsStatus">Order items status</FormLabel>
+                <FormControl>
+                  <Select
+                    {...field}
+                    onValueChange={(value) => {
+                      if (!value) return;
+                      field.onChange(value);
+                    }}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue
+                        placeholder={
+                          <span className="text-gray-400">
+                            Don&apos;t update items
+                          </span>
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Don&apos;t update items</SelectItem>
+                      {Object.entries(OrderStatus).map(([key, value]) => (
+                        <SelectItem key={key} value={value}>
+                          {orderStatusInfo[value]?.text}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <DialogFooter className="mt-6">
           <Button
             type="button"

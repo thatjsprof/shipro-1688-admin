@@ -247,6 +247,7 @@ export const orderApi = createApi({
           id: string;
           data: {
             status?: OrderStatus;
+            itemsStatus?: OrderStatus;
             trackingNumber?: string;
             packageWeight?: number;
             packageWeightUnit?: PackageWeightUnit;
