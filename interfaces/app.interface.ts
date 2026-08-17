@@ -9,6 +9,17 @@ export interface IRate {
   isActive: boolean;
 }
 
+export interface IAccountDialogSlide {
+  id: string;
+  active: boolean;
+  title: string;
+  message: string;
+  imageUrl: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  displaySeconds: number;
+}
+
 export interface ISetting {
   hkPrice: number;
   gzPrice: number;
@@ -24,4 +35,5 @@ export interface ISetting {
   accountDialogDurationHours: number | null;
   accountDialogPublishedAt: string | null;
   accountDialogExpiresAt: string | null;
+  accountDialogSlides: IAccountDialogSlide[] | null;
 }

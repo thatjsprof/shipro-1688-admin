@@ -1,6 +1,9 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
-import { ISetting } from "@/interfaces/app.interface";
+import {
+  IAccountDialogSlide,
+  ISetting,
+} from "@/interfaces/app.interface";
 import {
   CreateDiscountPayload,
   IDiscount,
@@ -59,11 +62,7 @@ export const settingApi = createApi({
         ApiResponse<ISetting>,
         {
           enabled: boolean;
-          title: string;
-          message: string;
-          imageUrl: string;
-          ctaLabel: string;
-          ctaUrl: string;
+          slides: IAccountDialogSlide[];
           durationHours: number;
         }
       >({
