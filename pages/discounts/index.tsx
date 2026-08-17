@@ -150,7 +150,7 @@ const DiscountsPage = () => {
             <Badge variant="secondary">Everyone</Badge>
           ) : (
             <div className="max-w-[14rem]">
-              <Badge variant="outline">
+              <Badge variant="outline" className="text-white">
                 {row.original.users?.length || 1} user
                 {(row.original.users?.length || 1) === 1 ? "" : "s"}
               </Badge>
