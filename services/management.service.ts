@@ -63,7 +63,6 @@ export const settingApi = createApi({
         {
           enabled: boolean;
           slides: IAccountDialogSlide[];
-          durationHours: number;
         }
       >({
         query: (data) => ({

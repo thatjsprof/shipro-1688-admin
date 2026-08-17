@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -41,6 +42,10 @@ const createSlide = (
   ctaLabel: "",
   ctaUrl: "",
   displaySeconds: 5,
+  durationHours: 24,
+  publishedAt: null,
+  expiresAt: null,
+  restart: false,
   ...overrides,
 });
 
@@ -49,7 +54,6 @@ const AccountDialog = () => {
   const [updateDialog, { isLoading }] = useUpdateAccountDialogMutation();
   const [enabled, setEnabled] = useState(false);
   const [slides, setSlides] = useState<IAccountDialogSlide[]>([]);
-  const [durationHours, setDurationHours] = useState("24");
 
   useEffect(() => {
     const setting = data?.data;
@@ -58,7 +62,19 @@ const AccountDialog = () => {
     setEnabled(setting.accountDialogEnabled);
     setSlides(
       setting.accountDialogSlides?.length
-        ? setting.accountDialogSlides
+        ? setting.accountDialogSlides.map((slide) =>
+            createSlide({
+              ...slide,
+              durationHours:
+                slide.durationHours ??
+                setting.accountDialogDurationHours ??
+                24,
+              publishedAt:
+                slide.publishedAt ?? setting.accountDialogPublishedAt,
+              expiresAt: slide.expiresAt ?? setting.accountDialogExpiresAt,
+              restart: false,
+            })
+          )
         : [
             createSlide({
               title: setting.accountDialogTitle ?? "",
@@ -66,10 +82,12 @@ const AccountDialog = () => {
               imageUrl: setting.accountDialogImageUrl ?? "",
               ctaLabel: setting.accountDialogCtaLabel ?? "",
               ctaUrl: setting.accountDialogCtaUrl ?? "",
+              durationHours: setting.accountDialogDurationHours ?? 24,
+              publishedAt: setting.accountDialogPublishedAt,
+              expiresAt: setting.accountDialogExpiresAt,
             }),
           ]
     );
-    setDurationHours(String(setting.accountDialogDurationHours ?? 24));
   }, [data]);
 
   const updateSlide = (
@@ -120,8 +138,8 @@ const AccountDialog = () => {
           imageUrl: slide.imageUrl.trim(),
           ctaLabel: slide.ctaLabel.trim(),
           ctaUrl: slide.ctaUrl.trim(),
+          restart: !!slide.restart,
         })),
-        durationHours: Number(durationHours),
       }).unwrap();
       notify(response.message);
     } catch {
@@ -135,7 +153,8 @@ const AccountDialog = () => {
         <div>
           <p className="font-semibold">Show account dialog</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Publish this announcement immediately for the selected duration.
+            Publish active slides for users. Saving keeps each slide&apos;s
+            schedule unless you restart it.
           </p>
         </div>
         <Switch checked={enabled} onCheckedChange={setEnabled} />
@@ -146,8 +165,8 @@ const AccountDialog = () => {
           <div>
             <h3 className="font-semibold">Dialog slides</h3>
             <p className="text-sm text-muted-foreground">
-              Only active slides are shown. Each slide advances after its own
-              display time.
+              Only active, non-expired slides are shown. Each slide advances
+              after its own display time.
             </p>
           </div>
           <Button
@@ -319,54 +338,80 @@ const AccountDialog = () => {
               </div>
             </div>
 
-            <div className="max-w-48 space-y-2">
-              <Label htmlFor={`account-dialog-seconds-${slide.id}`}>
-                Display time (seconds)
-              </Label>
-              <Input
-                id={`account-dialog-seconds-${slide.id}`}
-                type="number"
-                min={2}
-                max={300}
-                value={slide.displaySeconds}
-                onChange={(event) =>
-                  updateSlide(slide.id, {
-                    displaySeconds: Number(event.target.value),
-                  })
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor={`account-dialog-seconds-${slide.id}`}>
+                  Display time (seconds)
+                </Label>
+                <Input
+                  id={`account-dialog-seconds-${slide.id}`}
+                  type="number"
+                  min={2}
+                  max={300}
+                  value={slide.displaySeconds}
+                  onChange={(event) =>
+                    updateSlide(slide.id, {
+                      displaySeconds: Number(event.target.value),
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`account-dialog-duration-${slide.id}`}>
+                  Available for
+                </Label>
+                <Select
+                  value={String(slide.durationHours)}
+                  onValueChange={(value) =>
+                    updateSlide(slide.id, {
+                      durationHours: Number(value),
+                    })
+                  }
+                >
+                  <SelectTrigger id={`account-dialog-duration-${slide.id}`}>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {durations.map((duration) => (
+                      <SelectItem key={duration.value} value={duration.value}>
+                        {duration.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 rounded-md border p-3">
+              <Checkbox
+                id={`account-dialog-restart-${slide.id}`}
+                checked={!!slide.restart}
+                onCheckedChange={(checked) =>
+                  updateSlide(slide.id, { restart: checked === true })
                 }
               />
+              <div className="space-y-1">
+                <Label
+                  htmlFor={`account-dialog-restart-${slide.id}`}
+                  className="cursor-pointer font-medium"
+                >
+                  Restart availability on save
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Leave unchecked to keep the current expiry. Check only when
+                  you want this slide&apos;s timer to start over.
+                </p>
+                {slide.expiresAt && (
+                  <p className="text-xs text-muted-foreground">
+                    Currently expires{" "}
+                    {new Date(slide.expiresAt).toLocaleString()}.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="account-dialog-duration">Available for</Label>
-        <Select value={durationHours} onValueChange={setDurationHours}>
-          <SelectTrigger id="account-dialog-duration">
-            <SelectValue placeholder="Select duration" />
-          </SelectTrigger>
-          <SelectContent>
-            {durations.map((duration) => (
-              <SelectItem key={duration.value} value={duration.value}>
-                {duration.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-muted-foreground">
-          The announcement starts when saved and automatically disappears for
-          everyone when this period ends.
-        </p>
-      </div>
-
-      {data?.data.accountDialogExpiresAt && enabled && (
-        <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
-          Current announcement expires{" "}
-          {new Date(data.data.accountDialogExpiresAt).toLocaleString()}.
-          Saving again restarts the selected duration.
-        </div>
-      )}
 
       <Button onClick={handleSave} disabled={isLoading}>
         {isLoading && <Icons.spinner className="size-3 animate-spin" />}

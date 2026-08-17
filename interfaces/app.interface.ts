@@ -18,6 +18,10 @@ export interface IAccountDialogSlide {
   ctaLabel: string;
   ctaUrl: string;
   displaySeconds: number;
+  durationHours: number;
+  publishedAt?: string | null;
+  expiresAt?: string | null;
+  restart?: boolean;
 }
 
 export interface ISetting {
