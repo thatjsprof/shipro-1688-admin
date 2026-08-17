@@ -1,5 +1,6 @@
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { IOrder, OrderStatus } from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import { notify } from "@/lib/toast";
@@ -40,8 +42,13 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     defaultValues: {
       status: "",
       itemsStatus: "none",
+      sendEmail: false,
+      emailNote: "",
     },
   });
+  const { watch } = form;
+  const itemsStatus = watch("itemsStatus");
+  const canSendEmail = !!watch("status") && itemsStatus !== "none" && !!itemsStatus;
 
   const handleSubmit = async (values: z.infer<typeof orderStatusOnlySchema>) => {
     try {
@@ -55,6 +62,10 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
         data: {
           status: values.status as OrderStatus,
           ...(itemsStatus ? { itemsStatus } : {}),
+          sendEmail: !!values.sendEmail,
+          emailNote: values.sendEmail
+            ? values.emailNote?.trim() || undefined
+            : undefined,
         },
       }).unwrap();
       if (response.status === 200) {
@@ -73,6 +84,8 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     form.reset({
       status: order.status || "",
       itemsStatus: "none",
+      sendEmail: false,
+      emailNote: "",
     });
   }, [order, form]);
 
@@ -126,6 +139,10 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
                     onValueChange={(value) => {
                       if (!value) return;
                       field.onChange(value);
+                      if (value === "none") {
+                        form.setValue("sendEmail", false);
+                        form.setValue("emailNote", "");
+                      }
                     }}
                   >
                     <SelectTrigger className="h-11">
@@ -151,6 +168,53 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="sendEmail"
+            render={({ field }) => (
+              <FormItem className="flex items-center">
+                <FormControl>
+                  <Checkbox
+                    id="sendEmail"
+                    checked={!!field.value}
+                    onCheckedChange={(checked) => {
+                      field.onChange(checked);
+                      if (!checked) {
+                        form.setValue("emailNote", "");
+                      }
+                    }}
+                    className="shadow-none"
+                    disabled={!canSendEmail}
+                  />
+                </FormControl>
+                <FormLabel className="text-nowrap" htmlFor="sendEmail">
+                  Send Email
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+          {watch("sendEmail") && (
+            <FormField
+              control={form.control}
+              name="emailNote"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel htmlFor="emailNote">Email Note</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      id="emailNote"
+                      rows={4}
+                      value={field.value ?? ""}
+                      className="!bg-transparent hover:border-zinc-400 placeholder:text-gray-400 shadow-none"
+                      placeholder="Optional note to include in the email"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
         <DialogFooter className="mt-6">
           <Button

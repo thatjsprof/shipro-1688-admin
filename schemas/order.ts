@@ -43,6 +43,8 @@ export const orderStatusOnlySchema = z
       z.literal("none"),
       z.literal(""),
     ]),
+    sendEmail: z.boolean().optional(),
+    emailNote: z.string().max(2000).optional(),
   })
   .refine((data) => data.status !== "", {
     message: "Status is required",

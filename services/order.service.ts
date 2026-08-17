@@ -252,6 +252,7 @@ export const orderApi = createApi({
             packageWeight?: number;
             packageWeightUnit?: PackageWeightUnit;
             sendEmail?: boolean;
+            emailNote?: string;
             deliveredAt?: string | Date;
             addTracking?: boolean;
           };
