@@ -24,7 +24,7 @@ import { useCreatePaymentMutation } from "@/services/payment.service";
 import { useAppSelector } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { buildCreatePaymentPayload } from "@/components/pages/payment/build-create-payment-payload";
@@ -53,32 +53,12 @@ export const PaymentDialog = ({
     orderItem?.packageWeight
   );
 
-  const orderNumber = orderItem?.order?.orderNumber;
-  const itemName = orderItem?.name;
   const packageWeightUnit =
     orderItem?.packageWeightUnit ?? PackageWeightUnit.KG;
   const freightUnitPrice =
     orderItem?.order?.airLocation === AirLocation.HK
       ? settings?.hkPrice ?? 0
       : settings?.gzPrice ?? 0;
-
-  const descriptionPresets = useMemo(() => {
-    const label = orderNumber || itemName || "item";
-    return [
-      {
-        label: `International Shipping Fee for order ${label}`,
-        value: `International Shipping Fee for order ${label}`,
-      },
-      {
-        label: `Domestic Delivery Fee for order ${label}`,
-        value: `Domestic Delivery Fee for order ${label}`,
-      },
-      {
-        label: `Goods Fee for ${itemName || label}`,
-        value: `Goods Fee for ${itemName || label}`,
-      },
-    ];
-  }, [itemName, orderNumber]);
 
   const form = useForm<z.infer<typeof paymentInputSchema>>({
     resolver: zodResolver(paymentInputSchema),
@@ -168,10 +148,7 @@ export const PaymentDialog = ({
         <ScrollArea className="h-full max-h-[calc(90vh-8rem)]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="py-4">
-              <CreatePaymentFormFields
-                form={form}
-                descriptionPresets={descriptionPresets}
-              />
+              <CreatePaymentFormFields form={form} />
               {code === PaymentCodes.SHIPPING_FEE && (
                 <PaymentBreakdownSection
                   form={form}
