@@ -16,6 +16,7 @@ export const paymentApi = createApi({
   tagTypes: [
     "GetPayments",
     "GetOrders",
+    "GetOrderItems",
     "GetAllPayments",
     "GetPaymentSums",
     "GetPaymentStats",
@@ -139,14 +140,14 @@ export const paymentApi = createApi({
             body: data.data,
           };
         },
-        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders"],
+        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders", "GetOrderItems"],
       }),
       deletePayment: builder.mutation<ApiResponse<void>, string>({
         query: (id) => ({
           url: `${baseUrl}/${id}`,
           method: "DELETE",
         }),
-        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders"],
+        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders", "GetOrderItems"],
       }),
     };
   },
