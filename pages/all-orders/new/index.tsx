@@ -132,35 +132,6 @@ const NewOrder = () => {
         {
           amount: "",
           status: PaymentStatus.PENDING,
-          description: "",
-          redirectLink: "",
-          code: "",
-          sendEmail: false,
-        },
-      ],
-    },
-    values: {
-      order: {
-        type: OrderType.PURCHASE,
-        origin: OrderOrigin.SOURCING,
-        status: OrderStatus.DRAFT,
-        userId: "",
-        packageWeightUnit: PackageWeightUnit.KG,
-      },
-      items: [
-        {
-          name: "",
-          status: OrderStatus.DRAFT,
-          quantity: "",
-          packageWeight: "",
-          packageWeightUnit: PackageWeightUnit.KG,
-          items: [],
-        },
-      ],
-      payments: [
-        {
-          amount: "",
-          status: PaymentStatus.PENDING,
           provider: PaymentProviders.PAYSTACK,
           description: "",
           redirectLink: "",
@@ -212,6 +183,7 @@ const NewOrder = () => {
             baseAmount: +p.amount || 0,
             code: p.code,
             status: p.status,
+            provider: p.provider,
             module: PaymentModules.ORDER,
             description: p.description,
             sendEmail: p.sendEmail,

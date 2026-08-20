@@ -1,11 +1,6 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useEffect } from "react";
-import {
-  PaymentAltFormData,
-  PaymentAltFormInput,
-  paymentInputSchema,
-} from "@/schemas/payment";
+import { Icons } from "@/components/shared/icons";
+import { PaymentStatusPill } from "@/components/shared/status-pill";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,65 +9,152 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { PaymentStatus, PaymentCodes } from "@/interfaces/payment.interface";
-import { NumericFormat } from "react-number-format";
-import { Icons } from "@/components/shared/icons";
+import { Form } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AirLocation,
+  IOrderItem,
+  PackageWeightUnit,
+} from "@/interfaces/order.interface";
+import { PaymentCodes, PaymentProviders, PaymentStatus } from "@/interfaces/payment.interface";
+import { notify } from "@/lib/toast";
+import { formatNum } from "@/lib/utils";
+import { paymentInputSchema } from "@/schemas/payment";
+import { useCreatePaymentMutation } from "@/services/payment.service";
+import { useAppSelector } from "@/store/hooks";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import z from "zod";
+import { buildCreatePaymentPayload } from "@/components/pages/payment/build-create-payment-payload";
+import { CreatePaymentFormFields } from "@/components/pages/payment/create-payment-form-fields";
+import {
+  calculatePaymentBreakdownValues,
+  emptyPaymentBreakdown,
+  PaymentBreakdownSection,
+} from "@/components/pages/payment/payment-breakdown-section";
+import { defaultPaymentBreakdown } from "@/components/pages/payment/payment-form.constants";
 
 interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: PaymentAltFormData) => void;
-  isLoading?: boolean;
+  orderItem: IOrderItem | null;
 }
 
 export const PaymentDialog = ({
   open,
   onOpenChange,
-  onSubmit,
-  isLoading = false,
+  orderItem,
 }: PaymentDialogProps) => {
-  const form = useForm<PaymentAltFormInput, any, PaymentAltFormData>({
-    resolver: zodResolver(paymentInputSchema) as any,
+  const settings = useAppSelector((state) => state.app.setting);
+  const [createPayment, { isLoading }] = useCreatePaymentMutation();
+  const [packageWeight, setPackageWeight] = useState<number | undefined>(
+    orderItem?.packageWeight
+  );
+
+  const orderNumber = orderItem?.order?.orderNumber;
+  const itemName = orderItem?.name;
+  const packageWeightUnit =
+    orderItem?.packageWeightUnit ?? PackageWeightUnit.KG;
+  const freightUnitPrice =
+    orderItem?.order?.airLocation === AirLocation.HK
+      ? settings?.hkPrice ?? 0
+      : settings?.gzPrice ?? 0;
+
+  const descriptionPresets = useMemo(() => {
+    const label = orderNumber || itemName || "item";
+    return [
+      {
+        label: `International Shipping Fee for order ${label}`,
+        value: `International Shipping Fee for order ${label}`,
+      },
+      {
+        label: `Domestic Delivery Fee for order ${label}`,
+        value: `Domestic Delivery Fee for order ${label}`,
+      },
+      {
+        label: `Goods Fee for ${itemName || label}`,
+        value: `Goods Fee for ${itemName || label}`,
+      },
+    ];
+  }, [itemName, orderNumber]);
+
+  const form = useForm<z.infer<typeof paymentInputSchema>>({
+    resolver: zodResolver(paymentInputSchema),
     mode: "onTouched",
     defaultValues: {
       amount: "",
       status: PaymentStatus.PENDING,
       description: "",
-      code: undefined,
+      code: "",
+      provider: PaymentProviders.PAYSTACK,
+      sendEmail: false,
+      redirectLink: "",
+      datePaid: undefined,
+      paymentBreakdown: defaultPaymentBreakdown.map((item) => ({
+        ...item,
+        unit: "",
+        calculatedValue: "",
+      })),
     },
   });
 
-  const handleSubmit = async (data: PaymentAltFormInput) => {};
+  const { control, watch, reset } = form;
+  const { fields, remove, replace } = useFieldArray({
+    control,
+    name: "paymentBreakdown",
+  });
+  const code = watch("code");
 
   useEffect(() => {
     if (!open) {
-      form.reset({
+      reset({
         amount: "",
         status: PaymentStatus.PENDING,
         description: "",
-        code: undefined,
+        code: "",
+        provider: PaymentProviders.PAYSTACK,
+        sendEmail: false,
+        redirectLink: "",
+        datePaid: undefined,
+        paymentBreakdown: emptyPaymentBreakdown,
       });
+      setPackageWeight(undefined);
+      return;
     }
-  }, [open, form]);
+
+    setPackageWeight(orderItem?.packageWeight);
+    replace(
+      calculatePaymentBreakdownValues(
+        freightUnitPrice,
+        orderItem?.packageWeight
+      )
+    );
+  }, [open, orderItem, freightUnitPrice, replace, reset]);
+
+  const handleSubmit = async (values: z.infer<typeof paymentInputSchema>) => {
+    if (!orderItem) return;
+
+    try {
+      const payload = buildCreatePaymentPayload(values, {
+        orderItemId: orderItem.id,
+      });
+
+      const res = await createPayment(payload).unwrap();
+
+      if (res.status === 200) {
+        notify(res.message || "Payment created successfully", "success");
+        onOpenChange(false);
+      } else {
+        notify(res.message || "Failed to create payment", "error");
+      }
+    } catch (error: any) {
+      notify(error?.data?.message || "Failed to create payment", "error");
+    }
+  };
+
+  const existingPayments = orderItem?.payments ?? [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,123 +165,56 @@ export const PaymentDialog = ({
             Add a new payment record for this order item.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-full max-h-[90vh]">
+        <ScrollArea className="h-full max-h-[calc(90vh-8rem)]">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)}>
-              <div className="flex flex-col gap-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel>Amount</FormLabel>
-                        <FormControl>
-                          <NumericFormat
-                            type="text"
-                            autoCapitalize="none"
-                            autoCorrect="off"
-                            placeholder="Amount"
-                            prefix="₦"
-                            displayType="input"
-                            decimalSeparator="."
-                            allowNegative={false}
-                            thousandSeparator=","
-                            {...field}
-                            value={field.value ?? ""}
-                            onValueChange={(values) => {
-                              field.onChange(
-                                values.floatValue?.toString() ?? ""
-                              );
-                            }}
-                            className="h-10"
-                            customInput={Input}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="py-4">
+              <CreatePaymentFormFields
+                form={form}
+                descriptionPresets={descriptionPresets}
+              />
+              {code === PaymentCodes.SHIPPING_FEE && (
+                <PaymentBreakdownSection
+                  form={form}
+                  fields={fields}
+                  remove={remove}
+                  replace={replace}
+                  packageWeight={packageWeight}
+                  setPackageWeight={setPackageWeight}
+                  packageWeightUnit={packageWeightUnit}
+                  freightUnitPrice={freightUnitPrice}
                 />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel>Payment Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select payment status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Object.values(PaymentStatus).map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {status}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-                <FormField
-                  control={form.control}
-                  name="code"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel>Payment Code</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select payment code" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Object.values(PaymentCodes).map((code) => (
-                              <SelectItem key={code} value={code}>
-                                {code.replace(/_/g, " ")}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => {
-                    return (
-                      <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter payment description"
-                            rows={3}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-              </div>
+              )}
+              {existingPayments.length > 0 && (
+                <div className="mt-6">
+                  <p className="mb-4 font-semibold">Existing Payments</p>
+                  <div className="flex flex-col gap-4">
+                    {existingPayments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="rounded-lg border p-4 space-y-1"
+                      >
+                        <p className="text-sm text-zinc-500">
+                          {payment.reference}
+                        </p>
+                        <p className="text-sm">{payment.description}</p>
+                        <p className="text-sm font-medium">
+                          ₦{formatNum(payment.baseAmount || payment.amount)}
+                        </p>
+                        {payment.datePaid && (
+                          <p className="text-xs text-zinc-500">
+                            Paid:{" "}
+                            {format(
+                              new Date(payment.datePaid),
+                              "MM/dd/yyyy h:mm a"
+                            )}
+                          </p>
+                        )}
+                        <PaymentStatusPill status={payment.status} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <DialogFooter className="mt-6">
                 <Button
                   type="button"

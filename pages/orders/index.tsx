@@ -23,8 +23,6 @@ import { useGetOrderItemsQuery } from "@/services/order.service";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { PaymentDialog } from "@/components/pages/order/payment-dialog";
-import { PaymentAltFormData } from "@/schemas/payment";
-import { notify } from "@/lib/toast";
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -386,12 +384,18 @@ const OrdersTable = ({
   const [selectedOrderItem, setSelectedOrderItem] = useState<IOrderItem | null>(
     null
   );
-  const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   const handlePaymentClick = (orderItem: IOrderItem) => {
     setSelectedOrderItem(orderItem);
     setIsPaymentDialogOpen(true);
+  };
+
+  const handlePaymentDialogChange = (open: boolean) => {
+    setIsPaymentDialogOpen(open);
+    if (!open) {
+      setSelectedOrderItem(null);
+    }
   };
 
   const clearState = () => {
@@ -412,19 +416,7 @@ const OrdersTable = ({
     }
   );
 
-  const handlePaymentSubmit = async (data: PaymentAltFormData) => {
-    if (!selectedOrderItem) return;
-    setIsSubmittingPayment(true);
-    try {
-      notify("Payment created successfully", "success");
-      setIsPaymentDialogOpen(false);
-      setSelectedOrderItem(null);
-    } catch (error: any) {
-      notify(error?.message || "Failed to create payment", "error");
-    } finally {
-      setIsSubmittingPayment(false);
-    }
-  };
+
   const pagination = useMemo(
     () => ({
       pageIndex,
@@ -432,6 +424,7 @@ const OrdersTable = ({
     }),
     [pageIndex, pageSize]
   );
+
   const {
     data: orderItems,
     isLoading,
@@ -600,9 +593,8 @@ const OrdersTable = ({
       <OrderSheet open={openSheet} onOpenChange={setOpenSheet} item={order!} />
       <PaymentDialog
         open={isPaymentDialogOpen}
-        onOpenChange={setIsPaymentDialogOpen}
-        onSubmit={handlePaymentSubmit}
-        isLoading={isSubmittingPayment}
+        onOpenChange={handlePaymentDialogChange}
+        orderItem={selectedOrderItem}
       />
       <ShipmentDialog
         open={openShipment}

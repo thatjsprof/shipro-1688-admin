@@ -4,6 +4,7 @@ import {
   IPayment,
   PaymentCodes,
   PaymentModules,
+  PaymentProviders,
   PaymentStatus,
 } from "@/interfaces/payment.interface";
 
@@ -101,14 +102,17 @@ export const paymentApi = createApi({
         Partial<{
           userId: string;
           orderId: string;
+          orderItemId: string;
           baseAmount: number;
           amount: number;
           module: PaymentModules;
           status: PaymentStatus;
           description: string;
           code: PaymentCodes;
+          provider: PaymentProviders;
           redirectLink: string;
           sendEmail: boolean;
+          datePaid: Date;
           paymentBreakdown: Record<string, string>[];
         }>
       >({
@@ -119,7 +123,7 @@ export const paymentApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetPayments", "GetOrders"],
+        invalidatesTags: ["GetPayments", "GetOrders", "GetOrderItems"],
       }),
       updatePayment: builder.mutation<
         ApiResponse<IPayment>,
