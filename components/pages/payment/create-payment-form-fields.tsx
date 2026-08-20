@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import InputDropdown from "@/components/ui/input-dropdown";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -54,6 +55,7 @@ export const CreatePaymentFormFields = <T extends FieldValues>({
   showProvider = true,
 }: CreatePaymentFormFieldsProps<T>) => {
   const { control, watch, setValue, getFieldState } = form;
+  const hasDescriptionPresets = descriptionPresets.length > 0;
 
   const fieldName = (field: PaymentField) =>
     (namePrefix ? `${namePrefix}.${field}` : field) as FieldPath<T>;
@@ -71,18 +73,31 @@ export const CreatePaymentFormFields = <T extends FieldValues>({
             <FormLabel>Description</FormLabel>
             <div className="flex flex-col space-y-1">
               <FormControl>
-                <InputDropdown
-                  items={descriptionPresets}
-                  type="textarea"
-                  placeholder="Description"
-                  {...field}
-                  onChange={(v) =>
-                    setValue(fieldName("description"), v.value.toString() as any)
-                  }
-                  initialValue={watch(fieldName("description")) as string}
-                  error={hasError("description")}
-                  className="text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
-                />
+                {hasDescriptionPresets ? (
+                  <InputDropdown
+                    items={descriptionPresets}
+                    type="textarea"
+                    placeholder="Description"
+                    {...field}
+                    onChange={(v) =>
+                      setValue(
+                        fieldName("description"),
+                        v.value.toString() as any
+                      )
+                    }
+                    initialValue={watch(fieldName("description")) as string}
+                    error={hasError("description")}
+                    className="text-sm placeholder:text-sm !bg-transparent shadow-none w-full"
+                  />
+                ) : (
+                  <Textarea
+                    {...field}
+                    value={(field.value as string) ?? ""}
+                    placeholder="Enter payment description"
+                    rows={3}
+                    error={hasError("description")}
+                  />
+                )}
               </FormControl>
               <FormMessage />
             </div>
