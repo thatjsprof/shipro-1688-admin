@@ -1,4 +1,8 @@
-import { IWallet, IWalletTransation } from "@/interfaces/wallet.interface";
+import {
+  IWallet,
+  IWalletTransation,
+  WalletTransactionStatus,
+} from "@/interfaces/wallet.interface";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import { createApi } from "@reduxjs/toolkit/query/react";
 
@@ -101,6 +105,31 @@ export const walletApi = createApi({
           ];
         },
       }),
+      updateWalletTransaction: builder.mutation<
+        ApiResponse<IWalletTransation>,
+        {
+          id: string;
+          status: WalletTransactionStatus;
+          addAmountToWallet?: boolean;
+          sendEmail?: boolean;
+        }
+      >({
+        query: ({ id, ...body }) => {
+          return {
+            url: `${baseUrl}/transaction/${id}`,
+            method: "PUT",
+            body,
+          };
+        },
+        invalidatesTags: (result) => {
+          if (!result) return [];
+          return [
+            "GetWalletTransactionsSum",
+            "GetWalletTransactions",
+            "GetWallet",
+          ];
+        },
+      }),
     };
   },
 });
@@ -112,4 +141,5 @@ export const {
   useCreateCreditMutation,
   useGetWalletTransactionsQuery,
   useGetWalletTransactionsSumQuery,
+  useUpdateWalletTransactionMutation,
 } = walletApi;

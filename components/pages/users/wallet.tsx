@@ -33,6 +33,7 @@ import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Input } from "@/components/ui/input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import WalletAdjustment from "@/components/pages/users/wallet-adjustment";
+import EditWalletTransactionDialog from "@/components/pages/users/edit-wallet-transaction-dialog";
 
 const columns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void
@@ -52,13 +53,15 @@ const columns = (
         <div className="flex items-center gap-[0.9rem] text-nowrap h-8">
           <Copy
             className="size-5"
-            onClick={() =>
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               copyToClipboard({
                 id: "copy-transaction-reference",
                 text: reference,
                 message: "Transaction reference copied to clipboard",
-              })
-            }
+              });
+            }}
           />
           <p>{reference}</p>
         </div>
@@ -197,6 +200,8 @@ const Wallet = () => {
   const { copyToClipboard } = useCopy();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<IWalletTransation | null>(null);
   const [statuses, setStatuses] = useState<
     { value: WalletTransactionStatus; label: string }[]
   >([]);
@@ -337,6 +342,14 @@ const Wallet = () => {
           headerSubClassname="!px-0"
           customEmpty="No Transactions Found"
           className="border-none rounded-none"
+          rowClick={(row) => setSelectedTransaction(row.original)}
+        />
+        <EditWalletTransactionDialog
+          open={!!selectedTransaction}
+          onOpenChange={(open) => {
+            if (!open) setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
         />
         <div className="mt-7">
           <AdvancedPagination
