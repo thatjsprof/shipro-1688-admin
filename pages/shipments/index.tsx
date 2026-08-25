@@ -31,6 +31,7 @@ import debounce from "lodash.debounce";
 import UpdateDialog from "@/components/pages/shipments/update";
 import OrderTrackingDialog from "@/components/pages/shipments/tracking";
 import DeleteShipmentDialog from "@/components/pages/shipments/delete-dialog";
+import ShipmentDialog from "@/components/pages/order/shipment-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -114,6 +115,7 @@ const Shipments = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [openTracking, setOpenTracking] = useState<boolean>(false);
   const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const [openCreate, setOpenCreate] = useState<boolean>(false);
   const [order, setOrder] = useState<IOrder | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -196,6 +198,12 @@ const Shipments = () => {
           className="h-11 border-zinc-300"
           placeholder="Select order statuses"
         />
+        <Button
+          className="h-11 shadow-none font-semibold"
+          onClick={() => setOpenCreate(true)}
+        >
+          Create Shipment
+        </Button>
       </div>
       <div className="flex flex-col gap-5 space-y-3">
         {isLoading ? (
@@ -539,6 +547,11 @@ const Shipments = () => {
           order={order}
           open={openDelete}
           setOpen={setOpenDelete}
+        />
+        <ShipmentDialog
+          open={openCreate}
+          onOpenChange={setOpenCreate}
+          orders={[]}
         />
       </div>
     </div>

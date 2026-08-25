@@ -34,6 +34,7 @@ export const orderApi = createApi({
       createShipment: builder.mutation<
         ApiResponse<IOrder>,
         {
+          userId?: string;
           itemIds?: string[];
           shippingType?: ShippingType;
           airLocation?: AirLocation;

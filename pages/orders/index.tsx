@@ -499,10 +499,9 @@ const OrdersTable = ({
                 Send Email
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={!hasSelected}
                 onClick={() => {
                   setOpenShipment(true);
-                  setOrderShipment(rowSelection);
+                  setOrderShipment(hasSelected ? rowSelection : []);
                 }}
               >
                 Create Shipment

@@ -1,5 +1,6 @@
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
+import { Combobox } from "@/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
@@ -8,22 +9,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AirLocation,
   IOrderItem,
-  OrderStatus,
   ShippingType,
 } from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
+import { notify } from "@/lib/toast";
 import RichTextContent from "@/components/ui/rich-text-content";
 import { cn, formatNum } from "@/lib/utils";
 import { ShippingFormValues, shippingSchema } from "@/schemas/shipment";
 import { useCreateShipmentMutation } from "@/services/order.service";
+import { useGetUsersQuery } from "@/services/user.service";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as LucideIcons from "lucide-react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 type LucideIconName = keyof typeof LucideIcons;
 
@@ -31,7 +34,7 @@ interface IShipmentDialogProps {
   open: boolean;
   orders: IOrderItem[];
   onOpenChange: (open: boolean) => void;
-  clearState: () => void;
+  clearState?: () => void;
 }
 
 const ShipmentDialog = ({
@@ -41,24 +44,40 @@ const ShipmentDialog = ({
   onOpenChange,
 }: IShipmentDialogProps) => {
   const router = useRouter();
-  const ordersToUse = orders;
+  const ordersToUse = orders ?? [];
+  const isEmptyShipment = ordersToUse.length === 0;
   const {
     handleSubmit,
     watch,
     reset,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<ShippingFormValues>({
     defaultValues: {
+      userId: "",
       shippingType: undefined,
       airLocation: undefined,
     },
     resolver: zodResolver(shippingSchema),
   });
   const [createShipment, { isLoading }] = useCreateShipmentMutation();
+  const { data: usersData } = useGetUsersQuery(
+    { noLimit: true, page: 0 },
+    { skip: !open || !isEmptyShipment }
+  );
+  const usersToRender = useMemo(() => {
+    return [...(usersData?.data.data || [])]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(({ id, name }) => ({
+        value: id,
+        label: name,
+      }));
+  }, [usersData]);
 
   const shippingType = watch("shippingType");
   const airLocation = watch("airLocation");
+  const userId = watch("userId");
 
   const itemsByUser = ordersToUse.reduce((acc, item) => {
     const userId = item.order.user.name;
@@ -84,21 +103,29 @@ const ShipmentDialog = ({
   );
 
   const handleCreateShipment = async (values: ShippingFormValues) => {
-    const { shippingType, airLocation } = values;
-    if (ordersToUse.length === 0) return;
+    const { shippingType, airLocation, userId } = values;
+    if (isEmptyShipment && !userId) {
+      setError("userId", { message: "Select a user" });
+      return;
+    }
+    if (!isEmptyShipment && ordersToUse.length === 0) return;
 
     try {
       await createShipment({
-        itemIds: ordersToUse.map((o) => o.id),
+        ...(isEmptyShipment
+          ? { userId, itemIds: [] }
+          : { itemIds: ordersToUse.map((o) => o.id) }),
         shippingType,
         airLocation,
       }).unwrap();
       onOpenChange(false);
       reset();
-      clearState();
+      clearState?.();
+      notify("Shipment created", "success");
       router.push(`/shipments`);
     } catch (error) {
       console.error("Failed to create shipment:", error);
+      notify("Failed to create shipment", "error");
     }
   };
 
@@ -106,6 +133,16 @@ const ShipmentDialog = ({
     if (shippingType === ShippingType.AIR && hasSensitiveItems)
       setValue("airLocation", AirLocation.HK);
   }, [shippingType, hasSensitiveItems]);
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        userId: "",
+        shippingType: undefined,
+        airLocation: undefined,
+      });
+    }
+  }, [open, reset]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -119,11 +156,41 @@ const ShipmentDialog = ({
               <DialogHeader>
                 <DialogTitle>Create Shipment</DialogTitle>
                 <DialogDescription>
-                  Create a new shipment from order items
+                  {isEmptyShipment
+                    ? "Create an empty shipment for a user. You can attach items later."
+                    : "Create a new shipment from order items"}
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-6 mb-2 flex gap-3 flex-col">
-                {Object.entries(itemsByUser).map(([k, v]) => {
+                {isEmptyShipment ? (
+                  <div className="flex flex-col gap-1">
+                    <Label htmlFor="shipment-user">User</Label>
+                    <Combobox
+                      isModal={true}
+                      items={usersToRender}
+                      externalValue={userId ?? ""}
+                      lowercaseVal={false}
+                      handleReceiveValue={(value) => {
+                        setValue("userId", value as string, {
+                          shouldValidate: true,
+                        });
+                      }}
+                      buttonProps={{
+                        id: "shipment-user",
+                        className:
+                          "h-11 px-3 w-full justify-between !bg-transparent !pointer-events-auto",
+                      }}
+                      searchPlaceholder="Search Users"
+                      error={!!errors.userId}
+                    />
+                    {errors.userId && (
+                      <p className="text-sm text-destructive">
+                        {errors.userId.message}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  Object.entries(itemsByUser).map(([k, v]) => {
                   return (
                     <div className="text-gray-600 text-[.8rem]" key={k}>
                       <p className="font-semibold mb-1">{k}</p>
@@ -171,9 +238,11 @@ const ShipmentDialog = ({
                       </ul>
                     </div>
                   );
-                })}
+                  })
+                )}
               </div>
               <div className="flex flex-col gap-4 mt-4">
+                {!isEmptyShipment && (
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">Total Weight</p>
                   <div className="font-semibold">
@@ -187,6 +256,7 @@ const ShipmentDialog = ({
                     kg
                   </div>
                 </div>
+                )}
                 <div className="flex flex-col gap-3">
                   <p className="text-sm font-medium">Shipping Type</p>
                   <div>

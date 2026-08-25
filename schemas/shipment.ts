@@ -3,6 +3,7 @@ import z from "zod";
 
 export const shippingSchema = z
   .object({
+    userId: z.string().optional(),
     shippingType: z.nativeEnum(ShippingType).optional(),
     airLocation: z.nativeEnum(AirLocation).optional(),
   })
