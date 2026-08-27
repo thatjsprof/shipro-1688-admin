@@ -7,8 +7,36 @@ import {
   PaymentProviders,
   PaymentStatus,
 } from "@/interfaces/payment.interface";
+import { settingApi } from "@/services/management.service";
 
 const baseUrl = "/admin/payment";
+
+const paymentMutationTags = [
+  "GetPayments",
+  "GetAllPayments",
+  "GetPaymentSums",
+  "GetPaymentStats",
+  "GetOrders",
+  "GetOrderItems",
+] as const;
+
+const invalidateDashboardStats = async (
+  _arg: unknown,
+  {
+    dispatch,
+    queryFulfilled,
+  }: {
+    dispatch: (action: unknown) => void;
+    queryFulfilled: Promise<unknown>;
+  }
+) => {
+  try {
+    await queryFulfilled;
+    dispatch(settingApi.util.invalidateTags(["GetStatistics"]));
+  } catch {
+    // Keep cached dashboard stats if the mutation fails.
+  }
+};
 
 export const paymentApi = createApi({
   reducerPath: "rtk:payment",
@@ -124,7 +152,8 @@ export const paymentApi = createApi({
             body: data,
           };
         },
-        invalidatesTags: ["GetPayments", "GetOrders", "GetOrderItems"],
+        invalidatesTags: [...paymentMutationTags],
+        onQueryStarted: invalidateDashboardStats,
       }),
       updatePayment: builder.mutation<
         ApiResponse<IPayment>,
@@ -140,14 +169,16 @@ export const paymentApi = createApi({
             body: data.data,
           };
         },
-        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders", "GetOrderItems"],
+        invalidatesTags: [...paymentMutationTags],
+        onQueryStarted: invalidateDashboardStats,
       }),
       deletePayment: builder.mutation<ApiResponse<void>, string>({
         query: (id) => ({
           url: `${baseUrl}/${id}`,
           method: "DELETE",
         }),
-        invalidatesTags: ["GetPayments", "GetAllPayments", "GetOrders", "GetOrderItems"],
+        invalidatesTags: [...paymentMutationTags],
+        onQueryStarted: invalidateDashboardStats,
       }),
     };
   },
