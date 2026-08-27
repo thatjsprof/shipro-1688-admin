@@ -93,6 +93,16 @@ export const userApi = createApi({
           body,
         }),
       }),
+      resendVerification: builder.mutation<
+        ApiResponse<{ sent: number; skipped: number; failed: string[] }>,
+        { userIds: string[] }
+      >({
+        query: (body) => ({
+          url: `${baseUrlUser}/resend-verification`,
+          method: "POST",
+          body,
+        }),
+      }),
     };
   },
 });
@@ -260,4 +270,5 @@ export const {
   useAdminUpdateUserMutation,
   useAdminSetUserPasswordMutation,
   useAdminImpersonateUserMutation,
+  useResendVerificationMutation,
 } = userApi;

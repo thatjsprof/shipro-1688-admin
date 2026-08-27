@@ -16,12 +16,16 @@ import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-h
 import { IUser, IUserRole } from "@/interfaces/user.interface";
 import useCopy, { ICopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";
-import { useGetUsersQuery, useLazyGetUsersQuery } from "@/services/user.service";
+import {
+  useGetUsersQuery,
+  useLazyGetUsersQuery,
+  useResendVerificationMutation,
+} from "@/services/user.service";
 import { useAppSelector } from "@/store/hooks";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
-import { Copy, Download, Search, X } from "lucide-react";
+import { Copy, Download, Mail, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -82,10 +86,12 @@ const usersToEmailRows = (users: IUser[]): string[][] => {
   return [["Email"], ...users.map((user) => [user.email ?? ""])];
 };
 
+const isUnverified = (user: IUser) => !user.emailVerified;
+
 const getColumns = (
   copyToClipboard: ({ id, text, message, style }: ICopy) => void,
-  onViewClick: (row: IUser) => void,
-  openEmailDialog: (row: IUser) => void
+  onResendVerification: (user: IUser) => void,
+  isResending: boolean
 ): ColumnDef<IUser>[] => {
   return [
     {
@@ -272,7 +278,24 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
-        return <></>;
+        if (!isUnverified(row.original)) return null;
+        return (
+          <div
+            className="flex items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              type="button"
+              variant="outline"
+              className="shadow-none"
+              disabled={isResending}
+              onClick={() => onResendVerification(row.original)}
+            >
+              <Mail className="h-4 w-4" />
+              Resend verification
+            </Button>
+          </div>
+        );
       },
       enableSorting: false,
       enableHiding: false,
@@ -311,15 +334,60 @@ const Users = () => {
     }
   );
   const [getUsers] = useLazyGetUsersQuery();
+  const [resendVerification, { isLoading: isResending }] =
+    useResendVerificationMutation();
   const users = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
   const totalCount = data?.data.totalCount ?? 0;
+  const hasSelected = rowSelection.length > 0;
+  const unverifiedSelected = useMemo(
+    () => rowSelection.filter(isUnverified),
+    [rowSelection]
+  );
+
+  const handleResendVerification = useCallback(
+    async (usersToEmail: IUser[]) => {
+      const userIds = usersToEmail.filter(isUnverified).map((user) => user.id);
+      if (userIds.length === 0) {
+        notify("Select at least one unverified user");
+        return;
+      }
+      try {
+        const res = await resendVerification({ userIds }).unwrap();
+        const { sent, skipped, failed } = res.data;
+        if (sent > 0) {
+          const sentLabel =
+            sent === 1
+              ? "Verification email sent"
+              : `Sent verification emails to ${sent} users`;
+          const skipLabel =
+            skipped > 0
+              ? ` Skipped ${skipped} already verified.`
+              : "";
+          notify(`${sentLabel}.${skipLabel}`, "success");
+        } else if (skipped > 0 && failed.length === 0) {
+          notify("Selected users are already verified");
+        }
+        if (failed.length > 0) {
+          notify(
+            `Failed to send to ${failed.length} user${failed.length === 1 ? "" : "s"}`,
+            "error"
+          );
+        }
+      } catch {
+        notify("Failed to send verification email", "error");
+      }
+    },
+    [resendVerification]
+  );
+
   const columns = getColumns(
     copyToClipboard,
-    () => null,
-    () => {}
+    (user) => {
+      void handleResendVerification([user]);
+    },
+    isResending
   );
-  const hasSelected = rowSelection.length > 0;
 
   const getRowId = useCallback((row: IUser) => row.id, []);
 
@@ -418,6 +486,25 @@ const Users = () => {
           }
         />
         <div className="flex items-center gap-2">
+          {hasSelected && (
+            <Button
+              type="button"
+              variant="outline"
+              className="shadow-none h-11"
+              disabled={isResending || unverifiedSelected.length === 0}
+              onClick={() => handleResendVerification(rowSelection)}
+            >
+              {isResending ? (
+                <Icons.spinner className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Resend verification
+              {unverifiedSelected.length > 0
+                ? ` (${unverifiedSelected.length})`
+                : ""}
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
