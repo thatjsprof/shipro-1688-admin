@@ -117,6 +117,7 @@ const NewOrder = () => {
         status: OrderStatus.DRAFT,
         userId: "",
         packageWeightUnit: PackageWeightUnit.KG,
+        dateOrdered: new Date(),
       },
       items: [
         {
@@ -125,6 +126,7 @@ const NewOrder = () => {
           quantity: "",
           packageWeight: "",
           packageWeightUnit: PackageWeightUnit.KG,
+          dateOrdered: new Date(),
           items: [],
         },
       ],
@@ -163,6 +165,7 @@ const NewOrder = () => {
           packageWeightUnit: order.packageWeightUnit,
           status: order.status,
           origin: order.origin,
+          dateOrdered: order.dateOrdered,
           items: items.map((i) => {
             return {
               name: i.name,
@@ -174,6 +177,7 @@ const NewOrder = () => {
               trackingNumber: i.trackingNumber,
               note: i.note,
               orderAmount: +(i.orderAmount || 0),
+              dateOrdered: i.dateOrdered ?? order.dateOrdered,
             };
           }),
         },

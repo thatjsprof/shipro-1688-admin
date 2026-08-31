@@ -1,4 +1,5 @@
 import { Combobox } from "@/components/ui/combobox";
+import DatePicker from "@/components/ui/date";
 import {
   FormControl,
   FormField,
@@ -212,6 +213,35 @@ const Details = ({ form }: DetailsProps) => {
               </FormItem>
             );
           }}
+        />
+        <FormField
+          control={form.control}
+          name="order.dateOrdered"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="order.dateOrdered">Date Ordered</FormLabel>
+              <div className="flex flex-col space-y-1">
+                <FormControl>
+                  <DatePicker
+                    {...field}
+                    enableTime
+                    value={field.value ? new Date(field.value) : undefined}
+                    onChange={(date) => {
+                      field.onChange(date);
+                      const items = form.getValues("items");
+                      items.forEach((_, idx) => {
+                        form.setValue(`items.${idx}.dateOrdered`, date);
+                      });
+                    }}
+                    buttonClassName="w-full"
+                    placeholder="Date Ordered"
+                    error={!!errors?.order?.dateOrdered}
+                  />
+                </FormControl>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
         />
       </div>
       <p className="font-semibold text-sm mt-3">Optional Fields</p>

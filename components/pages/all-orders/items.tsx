@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import DatePicker from "@/components/ui/date";
 import { OrderStatus, PackageWeightUnit } from "@/interfaces/order.interface";
 import { categories, orderStatusInfo } from "@/lib/constants";
 import { createOrderSchema } from "@/schemas/new-order.schema";
@@ -182,6 +183,33 @@ const Items = ({ form }: ItemsProps) => {
             </div>
             <p className="font-semibold text-sm mt-3">Optional Fields</p>
             <div className="flex flex-col gap-4 py-4">
+              <FormField
+                control={form.control}
+                name={`items.${idx}.dateOrdered`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor={`items.${idx}.dateOrdered`}>
+                      Date Ordered
+                    </FormLabel>
+                    <div className="flex flex-col space-y-1">
+                      <FormControl>
+                        <DatePicker
+                          {...field}
+                          enableTime
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={field.onChange}
+                          buttonClassName="w-full"
+                          placeholder="Date Ordered"
+                          error={!!errors?.items?.[idx]?.dateOrdered}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name={`items.${idx}.orderAmount`}
@@ -366,6 +394,7 @@ const Items = ({ form }: ItemsProps) => {
             quantity: "",
             packageWeight: "",
             packageWeightUnit: PackageWeightUnit.KG,
+            dateOrdered: form.getValues("order.dateOrdered") ?? new Date(),
             items: [],
           });
         }}
