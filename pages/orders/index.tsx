@@ -92,39 +92,70 @@ const getColumns = (
         />
       ),
       cell: ({ row }) => {
+        const item = row.original;
         const name = stripRichHtml(
-          row.original.name ?? row.original.product?.description ?? ""
+          item.name ?? item.product?.description ?? ""
         );
-        return name ? (
-          <div className="text-nowrap h-8 w-64">
-            <div className="flex items-center gap-[0.6rem] h-full">
-              <Tooltip
-                contentClassName="max-w-[15rem] py-3 bg-primary text-white"
-                side="top"
-                arrowClassName="bg-primary fill-primary"
-                mobileVariant="popover"
-                content={
-                  <div>
-                    <p className="mb-1">{name}</p>
-                  </div>
-                }
+        const image =
+          item.images?.[0]?.url ||
+          item.items
+            ?.flatMap((i) => i.pictures?.map((p) => p.url) ?? [])
+            .find(Boolean) ||
+          item.product?.image;
+
+        return (
+          <div className="w-72">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onViewClick(item);
+                }}
               >
-                <p
-                  className="truncate hover:text-secondary duration-200 transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onViewClick(row.original);
-                  }}
+                {image ? (
+                  <img
+                    src={`${process.env.SERVER_URL}/proxy?url=${encodeURIComponent(image)}`}
+                    alt=""
+                    className="h-full w-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                    <LucideIcons.ImageIcon className="size-3.5" />
+                  </div>
+                )}
+              </button>
+              {name ? (
+                <Tooltip
+                  contentClassName="max-w-[15rem] py-3 bg-primary text-white"
+                  side="top"
+                  arrowClassName="bg-primary fill-primary"
+                  mobileVariant="popover"
+                  content={
+                    <div>
+                      <p className="mb-1">{name}</p>
+                    </div>
+                  }
                 >
-                  <LucideIcons.Eye className="size-4 flex-shrink-0 inline-block -mt-[3px] mr-2" />
-                  <span>{name}</span>
-                </p>
-              </Tooltip>
+                  <p
+                    className="truncate hover:text-secondary duration-200 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onViewClick(item);
+                    }}
+                  >
+                    <LucideIcons.Eye className="size-4 flex-shrink-0 inline-block -mt-[3px] mr-2" />
+                    <span>{name}</span>
+                  </p>
+                </Tooltip>
+              ) : (
+                <p>---</p>
+              )}
             </div>
           </div>
-        ) : (
-          <p>---</p>
         );
       },
       enableSorting: false,

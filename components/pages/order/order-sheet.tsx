@@ -105,7 +105,10 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg max-h-[100vh] h-full w-full overflow-hidden">
+      <SheetContent
+        mobileCloseLabel
+        className="sm:max-w-lg max-h-[100vh] h-full w-full overflow-hidden"
+      >
         <ScrollArea className="max-h-[100vh] h-full">
           <SheetHeader>
             <SheetTitle>Order Item Details</SheetTitle>
