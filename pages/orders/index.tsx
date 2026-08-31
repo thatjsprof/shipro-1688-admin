@@ -108,7 +108,7 @@ const getColumns = (
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
+                className="h-10 w-10 -my-1 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
