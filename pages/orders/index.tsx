@@ -106,27 +106,53 @@ const getColumns = (
         return (
           <div className="w-72">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="h-10 w-10 -my-1 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onViewClick(item);
-                }}
-              >
-                {image ? (
-                  <img
-                    src={`${process.env.SERVER_URL}/proxy?url=${encodeURIComponent(image)}`}
-                    alt=""
-                    className="h-full w-full object-cover object-center"
-                  />
-                ) : (
+              {image ? (
+                <Tooltip
+                  side="top"
+                  sideOffset={8}
+                  delayDuration={200}
+                  mobileVariant="popover"
+                  contentClassName="p-1.5 bg-white border shadow-md max-w-none"
+                  arrowClassName="bg-white fill-white"
+                  content={
+                    <img
+                      src={`${process.env.SERVER_URL}/proxy?url=${encodeURIComponent(image)}`}
+                      alt=""
+                      className="h-40 w-40 rounded-sm object-cover object-center"
+                    />
+                  }
+                >
+                  <button
+                    type="button"
+                    className="h-10 w-10 -my-1 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onViewClick(item);
+                    }}
+                  >
+                    <img
+                      src={`${process.env.SERVER_URL}/proxy?url=${encodeURIComponent(image)}`}
+                      alt=""
+                      className="h-full w-full object-cover object-center"
+                    />
+                  </button>
+                </Tooltip>
+              ) : (
+                <button
+                  type="button"
+                  className="h-10 w-10 -my-1 flex-shrink-0 overflow-hidden rounded-md border bg-muted"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onViewClick(item);
+                  }}
+                >
                   <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                     <LucideIcons.ImageIcon className="size-3.5" />
                   </div>
-                )}
-              </button>
+                </button>
+              )}
               {name ? (
                 <Tooltip
                   contentClassName="max-w-[15rem] py-3 bg-primary text-white"
@@ -636,12 +662,22 @@ const OrdersTable = ({
   );
 };
 
+const DEFAULT_ORDER_ITEM_STATUSES = Object.values(OrderStatus)
+  .filter(
+    (status) =>
+      status !== OrderStatus.DRAFT && status !== OrderStatus.CANCELLED
+  )
+  .map((status) => ({
+    value: status,
+    label: orderStatusInfo[status]?.text ?? "",
+  }));
+
 const Orders = () => {
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const [statuses, setStatuses] = useState<
     { value: OrderStatus; label: string }[]
-  >([]);
+  >(DEFAULT_ORDER_ITEM_STATUSES);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 1,
     pageSize: 20,
