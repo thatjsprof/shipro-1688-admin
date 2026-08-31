@@ -8,6 +8,7 @@ import {
   PaymentStatus,
 } from "@/interfaces/payment.interface";
 import { settingApi } from "@/services/management.service";
+import { orderApi } from "@/services/order.service";
 
 const baseUrl = "/admin/payment";
 
@@ -33,8 +34,9 @@ const invalidateDashboardStats = async (
   try {
     await queryFulfilled;
     dispatch(settingApi.util.invalidateTags(["GetStatistics"]));
+    dispatch(orderApi.util.invalidateTags(["GetOrders", "GetOrderItems"]));
   } catch {
-    // Keep cached dashboard stats if the mutation fails.
+    // Keep cached lists if the mutation fails.
   }
 };
 

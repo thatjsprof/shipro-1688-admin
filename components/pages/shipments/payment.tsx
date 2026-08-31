@@ -7,13 +7,14 @@ import {
   emptyPaymentBreakdown,
   PaymentBreakdownSection,
 } from "@/components/pages/payment/payment-breakdown-section";
-import { defaultPaymentBreakdown } from "@/components/pages/payment/payment-form.constants";
+import { defaultPaymentBreakdown, ordersRedirectLink, shipmentsRedirectLink } from "@/components/pages/payment/payment-form.constants";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import {
   AirLocation,
   IOrder,
+  OrderType,
   PackageWeightUnit,
 } from "@/interfaces/order.interface";
 import {
@@ -72,6 +73,10 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   const [deletePayment, { isLoading: isDeletingPayment }] =
     useDeletePaymentMutation();
   const payments = data?.data.data || [];
+  const defaultRedirectLink =
+    order?.type === OrderType.SHIPMENT
+      ? shipmentsRedirectLink
+      : ordersRedirectLink;
 
   const form = useForm<z.infer<typeof paymentInputSchema>>({
     resolver: zodResolver(paymentInputSchema),
@@ -83,7 +88,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
       code: "",
       provider: PaymentProviders.PAYSTACK,
       sendEmail: false,
-      redirectLink: "",
+      redirectLink: defaultRedirectLink,
       datePaid: undefined,
       paymentBreakdown: defaultPaymentBreakdown.map((item) => ({
         ...item,
@@ -147,7 +152,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         code: (payment.code as PaymentCodes) || "",
         provider: payment.provider || PaymentProviders.PAYSTACK,
         sendEmail: false,
-        redirectLink: "",
+        redirectLink: payment.redirectLink || defaultRedirectLink,
         datePaid: payment.datePaid ? new Date(payment.datePaid) : undefined,
         paymentBreakdown: breakdown,
       });
@@ -160,13 +165,13 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
         code: "",
         provider: PaymentProviders.PAYSTACK,
         sendEmail: false,
-        redirectLink: "",
+        redirectLink: defaultRedirectLink,
         datePaid: undefined,
         paymentBreakdown: getBreakdownValues(),
       });
       hasInitializedRef.current = true;
     }
-  }, [order?.id, payment, form, getBreakdownValues]);
+  }, [order?.id, payment, form, getBreakdownValues, defaultRedirectLink]);
 
   useEffect(() => {
     if (order?.packageWeight) {
@@ -203,7 +208,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
           code: "",
           provider: PaymentProviders.PAYSTACK,
           sendEmail: false,
-          redirectLink: "",
+          redirectLink: defaultRedirectLink,
           datePaid: undefined,
           paymentBreakdown: emptyPaymentBreakdown,
         });

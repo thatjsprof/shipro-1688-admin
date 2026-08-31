@@ -40,3 +40,6 @@ export const defaultRedirectLinks = [
     value: `${process.env.CLIENT_URL}/orders?tab=shipments`,
   },
 ];
+
+export const ordersRedirectLink = defaultRedirectLinks[1].value;
+export const shipmentsRedirectLink = defaultRedirectLinks[2].value;

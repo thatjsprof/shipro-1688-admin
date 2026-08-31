@@ -29,17 +29,18 @@ export async function middleware(req: NextRequest) {
   }
   return NextResponse.next();
 }
+
 export const config = {
   matcher: [
-    "/dashboard",
-    "/orders",
-    "/settings",
-    "/products",
-    "/users",
-    "/payments",
-    "/rmb-purchase",
-    "/all-orders",
-    "/shipments",
-    "/discounts",
+    "/dashboard/:path*",
+    "/orders/:path*",
+    "/settings/:path*",
+    "/products/:path*",
+    "/users/:path*",
+    "/payments/:path*",
+    "/rmb-purchase/:path*",
+    "/all-orders/:path*",
+    "/shipments/:path*",
+    "/discounts/:path*",
   ],
 };
