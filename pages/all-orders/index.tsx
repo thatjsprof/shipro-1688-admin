@@ -322,6 +322,7 @@ const AllOrders = () => {
     },
   ]);
   const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState(20);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const userId = useAppSelector((state) => state.user.user?.id);
@@ -330,7 +331,7 @@ const AllOrders = () => {
       search: debouncedValue as string,
       statuses: statuses.map((status) => status.value),
       page: page - 1,
-      limit: 20,
+      limit: pageSize,
       types: [OrderType.PURCHASE],
     },
     {
@@ -343,6 +344,7 @@ const AllOrders = () => {
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
       setDebouncedValue(value);
+      setPage(1);
     }, 300),
     []
   );
@@ -356,6 +358,7 @@ const AllOrders = () => {
   const handleClearSearch = () => {
     setDebouncedValue("");
     setSearchValue("");
+    setPage(1);
   };
 
   useEffect(() => {
@@ -371,7 +374,10 @@ const AllOrders = () => {
             label: orderStatusInfo[value]?.text ?? "",
           }))}
           selected={statuses}
-          onChange={(values) => setStatuses(values)}
+          onChange={(values) => {
+            setPage(1);
+            setStatuses(values);
+          }}
           placeholder="Select statuses"
           className="h-11"
           align="start"
@@ -745,6 +751,12 @@ const AllOrders = () => {
             initialPage={page}
             isLoading={isLoading || isFetching}
             totalPages={totalPages}
+            showPageSizeSelector
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPage(1);
+              setPageSize(size);
+            }}
             onPageChange={setPage}
           />
         </div>

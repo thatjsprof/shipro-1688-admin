@@ -145,6 +145,9 @@ const Shipments = () => {
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
       setDebouncedValue(value);
+      setPagination((prev) =>
+        prev.pageIndex === 1 ? prev : { ...prev, pageIndex: 1 }
+      );
     }, 300),
     []
   );
@@ -157,6 +160,9 @@ const Shipments = () => {
   const handleClearSearch = () => {
     setDebouncedValue("");
     setSearchValue("");
+    setPagination((prev) =>
+      prev.pageIndex === 1 ? prev : { ...prev, pageIndex: 1 }
+    );
   };
 
   useEffect(() => {
@@ -189,10 +195,10 @@ const Shipments = () => {
           }))}
           selected={statuses}
           onChange={(statuses) => {
-            setPagination({
+            setPagination((prev) => ({
+              ...prev,
               pageIndex: 1,
-              pageSize: 10,
-            });
+            }));
             setStatuses(statuses);
           }}
           className="h-11 border-zinc-300"
