@@ -1,6 +1,6 @@
 import { CreatePaymentFormFields } from "@/components/pages/payment/create-payment-form-fields";
 import { Button } from "@/components/ui/button";
-import { PaymentProviders, PaymentStatus } from "@/interfaces/payment.interface";
+import { PaymentStatus } from "@/interfaces/payment.interface";
 import { createOrderSchema } from "@/schemas/new-order.schema";
 import { Plus, X } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
@@ -52,7 +52,7 @@ const Payment = ({ form }: IPaymentProps) => {
           append({
             amount: "",
             status: PaymentStatus.PENDING,
-            provider: PaymentProviders.PAYSTACK,
+            provider: "",
             description: "",
             redirectLink: "",
             code: "",

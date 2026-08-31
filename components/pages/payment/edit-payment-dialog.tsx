@@ -66,7 +66,7 @@ export const EditPaymentDialog = ({
       description: "",
       amount: "",
       status: PaymentStatus.SUCCESSFUL,
-      provider: PaymentProviders.PAYSTACK,
+      provider: "",
       datePaid: undefined,
     },
   });
@@ -77,7 +77,7 @@ export const EditPaymentDialog = ({
         description: payment.description ?? "",
         amount: payment.baseAmount?.toString() ?? "",
         status: payment.status,
-        provider: payment.provider,
+        provider: payment.provider ?? "",
         datePaid: payment.datePaid
           ? new Date(payment.datePaid)
           : undefined,

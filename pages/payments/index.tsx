@@ -160,10 +160,10 @@ const columns = (
         />
       ),
       cell: ({ row }) => {
-        const provider = row.getValue<PaymentProviders>("provider");
+        const provider = row.getValue<PaymentProviders | null>("provider");
         return (
           <div className="flex items-center gap-[0.9rem] text-nowrap capitalize">
-            {paymentProviders[provider]}
+            {provider ? paymentProviders[provider] : "---"}
           </div>
         );
       },

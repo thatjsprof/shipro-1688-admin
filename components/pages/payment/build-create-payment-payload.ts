@@ -23,7 +23,9 @@ export const buildCreatePaymentPayload = (
   module: options.module ?? PaymentModules.ORDER,
   status: values.status as PaymentStatus,
   code: values.code as PaymentCodes,
-  provider: values.provider as PaymentProviders,
+  ...(values.provider
+    ? { provider: values.provider as PaymentProviders }
+    : {}),
   redirectLink: values.redirectLink,
   sendEmail: !!values.sendEmail,
   ...(values.datePaid && {

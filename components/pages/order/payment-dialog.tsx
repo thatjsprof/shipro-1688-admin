@@ -16,7 +16,7 @@ import {
   IOrderItem,
   PackageWeightUnit,
 } from "@/interfaces/order.interface";
-import { PaymentCodes, PaymentProviders, PaymentStatus } from "@/interfaces/payment.interface";
+import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
 import { notify } from "@/lib/toast";
 import { formatNum } from "@/lib/utils";
 import { paymentInputSchema } from "@/schemas/payment";
@@ -68,7 +68,7 @@ export const PaymentDialog = ({
       status: PaymentStatus.PENDING,
       description: "",
       code: "",
-      provider: PaymentProviders.PAYSTACK,
+      provider: "",
       sendEmail: false,
       redirectLink: "",
       datePaid: undefined,
@@ -94,7 +94,7 @@ export const PaymentDialog = ({
         status: PaymentStatus.PENDING,
         description: "",
         code: "",
-        provider: PaymentProviders.PAYSTACK,
+        provider: "",
         sendEmail: false,
         redirectLink: "",
         datePaid: undefined,

@@ -119,7 +119,7 @@ export const editPaymentInputSchema = z
     description: z.string().min(1, "Description is required"),
     amount: z.string().min(1, "Amount is required"),
     status: z.nativeEnum(PaymentStatus),
-    provider: z.nativeEnum(PaymentProviders),
+    provider: z.union([z.nativeEnum(PaymentProviders), z.literal("")]),
     datePaid: z.date().optional().nullable(),
   })
   .refine(
@@ -128,7 +128,11 @@ export const editPaymentInputSchema = z
       return !isNaN(num) && num > 0;
     },
     { message: "Amount must be greater than 0", path: ["amount"] }
-  );
+  )
+  .refine((data) => data.provider !== "", {
+    message: "Provider is required",
+    path: ["provider"],
+  });
 
 export const editPaymentSchema = editPaymentInputSchema
   .refine(

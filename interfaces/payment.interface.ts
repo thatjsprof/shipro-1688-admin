@@ -10,7 +10,7 @@ export interface IPayment {
   code: PaymentCodes;
   currency: string;
   status: PaymentStatus;
-  provider: PaymentProviders
+  provider: PaymentProviders | null;
   datePaid: Date;
   link: string;
   providerFees: number;
