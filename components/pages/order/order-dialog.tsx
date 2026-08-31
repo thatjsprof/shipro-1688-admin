@@ -117,7 +117,7 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
   }, [availableOrders]);
 
   const { watch } = form;
-  const { errors } = form.formState;
+  const { errors, dirtyFields } = form.formState;
 
   const handleSubmit = async (values: z.infer<typeof orderSchema>) => {
     try {
@@ -131,7 +131,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         data: {
           status: values["status"] || undefined,
           timeArrivedInWarehouse: values["arrivedWarehouse"] || undefined,
-          dateOrdered: values["dateOrdered"] || undefined,
+          dateOrdered: dirtyFields.dateOrdered
+            ? values["dateOrdered"] || undefined
+            : undefined,
           trackingNumber: values["trackingNumber"] || undefined,
           ...(orders.length === 1 && {
             images: images.length > 0 ? images : [],

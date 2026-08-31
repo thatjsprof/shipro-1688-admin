@@ -626,10 +626,19 @@ const Orders = () => {
     setRowSelect({});
   };
 
+  const resetToFirstPage = () => {
+    setPagination((prev) =>
+      prev.pageIndex === 1 ? prev : { ...prev, pageIndex: 1 }
+    );
+  };
+
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
       setDebouncedValue(value);
       setRowSelect({});
+      setPagination((prev) =>
+        prev.pageIndex === 1 ? prev : { ...prev, pageIndex: 1 }
+      );
     }, 300),
     []
   );
@@ -643,17 +652,16 @@ const Orders = () => {
   const toggleMode = () => {
     setMultiKeywordMode((prev) => !prev);
     setSearchValue("");
+    setDebouncedValue("");
     setKeywords([]);
     setSearchKeywords([]);
+    resetToFirstPage();
   };
 
   const handleSearch = () => {
     setSearchKeywords(keywords);
     clearState();
-    setPagination({
-      pageIndex: 1,
-      pageSize: 10,
-    });
+    resetToFirstPage();
   };
 
   useEffect(() => {
@@ -664,6 +672,7 @@ const Orders = () => {
     ) {
       setSearchKeywords(keywords);
       clearState();
+      resetToFirstPage();
     }
   }, [keywords, multiKeywordMode, searchKeywords.length]);
 
