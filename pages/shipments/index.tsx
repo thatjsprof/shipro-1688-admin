@@ -169,7 +169,7 @@ const Shipments = () => {
         <Input
           value={searchValue}
           onChange={handleChange}
-          placeholder="Search Shipment(s)"
+          placeholder="Search by shipment #, tracking #, or customer"
           className="h-11 pl-[3rem] !text-[1rem] placeholder:text-[.95rem]"
           StartIcon={<Search className="ml-2 text-gray-400 h-4 w-4" />}
           EndIcon={
