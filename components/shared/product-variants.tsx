@@ -1,4 +1,5 @@
 import RichTextContent from "@/components/ui/rich-text-content";
+import { stripRichHtml } from "@/lib/rich-text";
 import { cn } from "@/lib/utils";
 
 export type ProductVariantValue = {
@@ -7,6 +8,14 @@ export type ProductVariantValue = {
 };
 
 export type ProductVariantsMap = Record<string, ProductVariantValue>;
+
+function hasVariantValue(value: ProductVariantValue | undefined) {
+  if (!value) return false;
+
+  return Boolean(
+    stripRichHtml(value.original).trim() || value.normalized?.trim()
+  );
+}
 
 interface ProductVariantsProps {
   variants?: ProductVariantsMap | null;
@@ -21,7 +30,9 @@ const ProductVariants = ({
   itemClassName,
   showLabels = true,
 }: ProductVariantsProps) => {
-  const entries = Object.entries(variants ?? {});
+  const entries = Object.entries(variants ?? {}).filter(([, value]) =>
+    hasVariantValue(value)
+  );
   if (!entries.length) return null;
 
   return (
