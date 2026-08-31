@@ -96,7 +96,7 @@ export const EditPaymentDialog = ({
           description: data.description,
           baseAmount: amount,
           status: data.status,
-          provider: data.provider,
+          provider: data.provider || null,
           datePaid: data.datePaid ?? undefined,
         },
       }).unwrap();
