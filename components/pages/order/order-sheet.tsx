@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { IOrderItem } from "@/interfaces/order.interface";
 import { orderStatusInfo } from "@/lib/constants";
+import ProductVariants from "@/components/shared/product-variants";
 import RichTextContent from "@/components/ui/rich-text-content";
 import { formatNum } from "@/lib/utils";
 import * as LucideIcons from "lucide-react";
@@ -175,19 +176,11 @@ const OrderSheet = ({ open, onOpenChange, item }: ISheetProps) => {
                 </a>
               )}
               <p className="text-sm text-gray-600 mt-2">Quantity: {quantity}</p>
-              {item.variants && (
-                <div className="text-sm text-slate-600 flex items-center gap-3 mt-2">
-                  {Object.entries(item?.variants ?? {}).map(([key, value]) => {
-                    return (
-                      <RichTextContent
-                        key={key}
-                        html={value.original}
-                        as="span"
-                      />
-                    );
-                  })}
-                </div>
-              )}
+              <ProductVariants
+                variants={item.variants}
+                className="mt-2"
+                itemClassName="text-sm text-slate-600"
+              />
               {item.note && (
                 <div className="text-sm text-gray-600 mt-1">
                   <span className="font-medium">Note:</span> {item.note}

@@ -19,6 +19,7 @@ import {
 } from "@/interfaces/payment.interface";
 import { orderStatusInfo } from "@/lib/constants";
 import RichTextContent from "@/components/ui/rich-text-content";
+import ProductVariants from "@/components/shared/product-variants";
 import { useGetOrdersQuery } from "@/services/order.service";
 import { useAppSelector } from "@/store/hooks";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
@@ -514,25 +515,11 @@ const AllOrders = () => {
                                       }
                                       className="font-semibold text-gray-900 max-w-md"
                                     />
-                                    <div className="text-sm text-gray-600 mt-1 flex flex-wrap gap-x-2 gap-y-1">
-                                      {Object.entries<{
-                                        normalized: string;
-                                        original: string;
-                                      }>(item.variants ?? {}).map(
-                                        ([key, val]) => (
-                                          <span
-                                            key={key}
-                                            className="inline-flex items-start gap-1"
-                                          >
-                                            <span>{key}:</span>
-                                            <RichTextContent
-                                              html={val.original}
-                                              as="span"
-                                            />
-                                          </span>
-                                        )
-                                      )}
-                                    </div>
+                                    <ProductVariants
+                                      variants={item.variants}
+                                      className="mt-1"
+                                      itemClassName="text-sm text-gray-600"
+                                    />
                                     <div className="flex gap-4 mt-2 text-sm">
                                       <span className="text-gray-600">
                                         Qty: {item?.quantity}

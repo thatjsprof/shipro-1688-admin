@@ -2,6 +2,7 @@ import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { resolveProductSku } from "@/lib/variant-sku";
+import ProductVariants from "@/components/shared/product-variants";
 import RichTextContent from "@/components/ui/rich-text-content";
 import { stripRichHtml } from "@/lib/rich-text";
 import { useGetCartQuery } from "@/services/cart.service";
@@ -64,10 +65,6 @@ const Cart = () => {
           <div className="flex flex-col gap-5">
             {items.map((i) => {
               const product = i.product;
-              const variantsToUse = Object.entries<{
-                normalized: string;
-                original: string;
-              }>(i.variants ?? {});
               const resolved = resolveProductSku(product, i.variants ?? {});
               const weight = resolved?.sku?.weight ?? 0;
 
@@ -90,22 +87,10 @@ const Cart = () => {
                     <div className="flex justify-between gap-5">
                       <div className="flex flex-col gap-1 -mt-1">
                         <RichTextContent html={product.description} />
-                        {variantsToUse.length > 0 && (
-                          <div className="text-zinc-600 flex flex-wrap gap-x-2 gap-y-1">
-                            {variantsToUse.map(([key, val]) => (
-                              <span
-                                key={key}
-                                className="inline-flex items-start gap-1"
-                              >
-                                <span>{key}:</span>
-                                <RichTextContent
-                                  html={val.original}
-                                  as="span"
-                                />
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        <ProductVariants
+                          variants={i.variants}
+                          itemClassName="text-zinc-600"
+                        />
                         <p className="text-zinc-600">
                           Qty: {i.quantity}
                           {`${weight ? `, Weight: ${weight}kg` : ""}`}
