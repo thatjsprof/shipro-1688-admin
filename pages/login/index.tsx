@@ -19,6 +19,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Login = () => {
   const [show, setShow] = useState<boolean>(false);
@@ -32,6 +33,7 @@ const Login = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -41,7 +43,11 @@ const Login = () => {
 
   const handleSubmit = async (data: z.infer<typeof signinSchema>) => {
     try {
-      const response = await login(data).unwrap();
+      const response = await login({
+        email: data.email,
+        password: data.password,
+        rememberMe: data.rememberMe ?? false,
+      }).unwrap();
       if (response.token) {
         notify("Logged in successfully", "success");
         router.push("/dashboard");
@@ -125,6 +131,27 @@ const Login = () => {
                       </FormItem>
                     );
                   }}
+                />
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={(checked) =>
+                              field.onChange(checked === true)
+                            }
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal text-zinc-600">
+                          Stay signed in for 7 days
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
                 />
               </div>
               <Button

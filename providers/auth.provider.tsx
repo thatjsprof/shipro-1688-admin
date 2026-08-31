@@ -1,5 +1,6 @@
 import { Spinner } from "@/components/ui/spinner";
 import { IUserRole } from "@/interfaces/user.interface";
+import { clearAdminSession } from "@/lib/clear-admin-session";
 import { useLazyGetSettingsQuery } from "@/services/management.service";
 import { useLazyGetRatesQuery } from "@/services/rate.service";
 import { useLazyGetProfileQuery } from "@/services/user.service";
@@ -19,6 +20,9 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const id = useAppSelector((state) => state.user.user?.id);
 
   async function fetchUser() {
+    const isPublicRoute =
+      router.pathname === "/login" || router.pathname === "/";
+
     try {
       const res = await getUser().unwrap();
 
@@ -33,13 +37,19 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           );
         } else {
           dispatch(setAuthenticationState(null));
-          router.push("/login");
+          await clearAdminSession(dispatch, { redirect: !isPublicRoute });
         }
       } else {
         dispatch(setAuthenticationState(null));
+        if (!isPublicRoute) {
+          await clearAdminSession(dispatch, { redirect: true });
+        }
       }
     } catch {
       dispatch(setAuthenticationState(null));
+      if (!isPublicRoute) {
+        await clearAdminSession(dispatch, { redirect: true });
+      }
     } finally {
       setLoading(false);
     }

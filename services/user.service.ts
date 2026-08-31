@@ -148,6 +148,7 @@ export const authApi = createApi({
         {
           email: string;
           password: string;
+          rememberMe?: boolean;
         }
       >({
         query: (data) => {

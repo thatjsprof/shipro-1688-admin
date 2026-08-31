@@ -8,6 +8,7 @@ export const signinSchema = z.object({
   password: z.string().min(1, {
     message: "Enter a password",
   }),
+  rememberMe: z.boolean().optional(),
 });
 export const signupSchema = z.object({
   email: z

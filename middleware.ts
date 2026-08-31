@@ -19,6 +19,9 @@ export async function middleware(req: NextRequest) {
   }
   try {
     const payload = jwtDecode<JwtPayload & { role: IUserRole }>(role);
+    if (payload.exp && payload.exp * 1000 <= Date.now()) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
     if (payload.role !== IUserRole.admin)
       return NextResponse.redirect(new URL("/login", req.url));
   } catch (err) {
