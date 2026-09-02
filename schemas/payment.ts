@@ -33,10 +33,6 @@ export const paymentInputSchema = z
   .refine((data) => data.code !== "", {
     message: "Code is required",
     path: ["code"],
-  })
-  .refine((data) => data.provider !== "", {
-    message: "Provider is required",
-    path: ["provider"],
   });
 
 export const paymentSchema = paymentInputSchema
@@ -128,11 +124,7 @@ export const editPaymentInputSchema = z
       return !isNaN(num) && num > 0;
     },
     { message: "Amount must be greater than 0", path: ["amount"] }
-  )
-  .refine((data) => data.provider !== "", {
-    message: "Provider is required",
-    path: ["provider"],
-  });
+  );
 
 export const editPaymentSchema = editPaymentInputSchema
   .refine(
@@ -145,6 +137,7 @@ export const editPaymentSchema = editPaymentInputSchema
   .transform((data) => ({
     ...data,
     amount: parseFloat(data.amount),
+    provider: data.provider || null,
     datePaid: data.datePaid ?? undefined,
   }));
 
