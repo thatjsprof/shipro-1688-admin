@@ -780,8 +780,8 @@ const Orders = () => {
           onChange={handleChange}
           placeholder={
             multiKeywordMode
-              ? "Type keyword and press Enter..."
-              : "Search order item(s)"
+              ? "Type keyword and press Enter (order #, tracking #, item name, customer)..."
+              : "Search by order #, tracking #, item name, or customer"
           }
           keywords={keywords}
           isSearched={searchKeywords.length === keywords.length}
