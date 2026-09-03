@@ -36,13 +36,14 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Search, X } from "lucide-react";
+import { Search, X, RefreshCcw } from "lucide-react";
 import { debounce } from "lodash";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MultiSelect } from "@/components/ui/multi-select";
 import FadeScrollArea from "@/components/ui/fade-scrollarea";
 import UpdateDialog from "@/components/pages/order/order-payment";
+import { Icons } from "@/components/shared/icons";
 type LucideIconName = keyof typeof LucideIcons;
 
 const paymentProviderLabels: Record<PaymentProviders, string> = {
@@ -326,7 +327,7 @@ const AllOrders = () => {
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
   const userId = useAppSelector((state) => state.user.user?.id);
-  const { data, isLoading, isFetching } = useGetOrdersQuery(
+  const { data, isLoading, isFetching, refetch } = useGetOrdersQuery(
     {
       search: debouncedValue as string,
       statuses: statuses.map((status) => status.value),
@@ -340,6 +341,11 @@ const AllOrders = () => {
   );
   const orders = data?.data.data ?? [];
   const totalPages = data?.data.totalPages ?? 0;
+
+  const handleRefresh = async () => {
+    setPage(1);
+    await refetch();
+  };
 
   const debouncedChangeHandler = useCallback(
     debounce((value) => {
@@ -400,6 +406,19 @@ const AllOrders = () => {
         <Link href="/all-orders/new">
           <Button className="h-11 shadow-none font-semibold">Create New</Button>
         </Link>
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
+          className="shadow-none h-11 w-12"
+          disabled={isFetching || !userId}
+          aria-label="Refresh orders"
+        >
+          {isFetching ? (
+            <Icons.spinner className="h-5 w-5 animate-spin" />
+          ) : (
+            <RefreshCcw className="size-5" />
+          )}
+        </Button>
       </div>
       <div className="flex flex-col gap-7">
         {isLoading ? (

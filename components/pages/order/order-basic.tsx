@@ -73,7 +73,6 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
       } else {
         notify(response.message, "error");
       }
-      setOpen(false);
     } catch {
       notify("Could not save order", "error");
     }
