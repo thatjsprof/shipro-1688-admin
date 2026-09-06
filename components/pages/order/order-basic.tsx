@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { IOrder, OrderStatus } from "@/interfaces/order.interface";
-import { orderStatusInfo } from "@/lib/constants";
+import { orderStatusInfo, getStatusEmailDefaultNote } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { orderStatusOnlySchema } from "@/schemas/order";
 import { useUpdateOrderMutation } from "@/services/order.service";
@@ -180,6 +180,14 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
                       field.onChange(checked);
                       if (!checked) {
                         form.setValue("emailNote", "");
+                        return;
+                      }
+                      const note = form.getValues("emailNote")?.trim() ?? "";
+                      if (!note) {
+                        form.setValue(
+                          "emailNote",
+                          getStatusEmailDefaultNote(form.getValues("itemsStatus"))
+                        );
                       }
                     }}
                     className="shadow-none"

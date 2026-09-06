@@ -41,7 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { orderStatusInfo } from "@/lib/constants";
+import { orderStatusInfo, getStatusEmailDefaultNote } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -731,6 +731,17 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                   field.onChange(checked);
                                   if (!checked) {
                                     form.setValue("emailNote", "");
+                                    return;
+                                  }
+                                  const note =
+                                    form.getValues("emailNote")?.trim() ?? "";
+                                  if (!note) {
+                                    form.setValue(
+                                      "emailNote",
+                                      getStatusEmailDefaultNote(
+                                        form.getValues("status")
+                                      )
+                                    );
                                   }
                                 }}
                                 className="shadow-none"

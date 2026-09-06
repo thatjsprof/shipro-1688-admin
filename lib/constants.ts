@@ -229,6 +229,18 @@ export const orderStatusInfo: Partial<
   },
 };
 
+export const statusEmailDefaultNotes: Partial<Record<OrderStatus, string>> = {
+  [OrderStatus.AT_WAREHOUSE]:
+    "PLEASE NOTE: Head to your dashboard to consolidate your items for shipping. The minimum shipping requirement is 1KG for air freight and 0.1CBM for sea freight.",
+};
+
+export const getStatusEmailDefaultNote = (
+  status?: OrderStatus | string | null
+) => {
+  if (!status) return "";
+  return statusEmailDefaultNotes[status as OrderStatus] ?? "";
+};
+
 // type Step = {
 //   id: ISteps;
 //   label: string;
