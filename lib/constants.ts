@@ -241,6 +241,25 @@ export const getStatusEmailDefaultNote = (
   return statusEmailDefaultNotes[status as OrderStatus] ?? "";
 };
 
+/** When send-email is on, keep the note in sync with status defaults. */
+export const nextStatusEmailNote = ({
+  previousStatus,
+  nextStatus,
+  currentNote,
+}: {
+  previousStatus?: OrderStatus | string | null;
+  nextStatus?: OrderStatus | string | null;
+  currentNote?: string | null;
+}) => {
+  const note = currentNote?.trim() ?? "";
+  const previousDefault = getStatusEmailDefaultNote(previousStatus);
+  const nextDefault = getStatusEmailDefaultNote(nextStatus);
+  if (!note || note === previousDefault) {
+    return nextDefault;
+  }
+  return note;
+};
+
 // type Step = {
 //   id: ISteps;
 //   label: string;

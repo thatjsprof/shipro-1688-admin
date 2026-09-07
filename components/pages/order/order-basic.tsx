@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { IOrder, OrderStatus } from "@/interfaces/order.interface";
-import { orderStatusInfo, getStatusEmailDefaultNote } from "@/lib/constants";
+import { orderStatusInfo, getStatusEmailDefaultNote, nextStatusEmailNote } from "@/lib/constants";
 import { notify } from "@/lib/toast";
 import { orderStatusOnlySchema } from "@/schemas/order";
 import { useUpdateOrderMutation } from "@/services/order.service";
@@ -137,10 +137,22 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
                     {...field}
                     onValueChange={(value) => {
                       if (!value) return;
+                      const previousStatus = form.getValues("itemsStatus");
                       field.onChange(value);
                       if (value === "none") {
                         form.setValue("sendEmail", false);
                         form.setValue("emailNote", "");
+                        return;
+                      }
+                      if (form.getValues("sendEmail")) {
+                        form.setValue(
+                          "emailNote",
+                          nextStatusEmailNote({
+                            previousStatus,
+                            nextStatus: value,
+                            currentNote: form.getValues("emailNote"),
+                          })
+                        );
                       }
                     }}
                   >

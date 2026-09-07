@@ -41,7 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { orderStatusInfo, getStatusEmailDefaultNote } from "@/lib/constants";
+import { orderStatusInfo, getStatusEmailDefaultNote, nextStatusEmailNote } from "@/lib/constants";
 import * as LucideIcons from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -688,7 +688,21 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
                                 <Select
                                   {...field}
                                   onValueChange={(value) => {
+                                    if (!value) return;
+                                    const previousStatus =
+                                      form.getValues("status");
                                     field.onChange(value);
+                                    if (form.getValues("sendEmail")) {
+                                      form.setValue(
+                                        "emailNote",
+                                        nextStatusEmailNote({
+                                          previousStatus,
+                                          nextStatus: value,
+                                          currentNote:
+                                            form.getValues("emailNote"),
+                                        })
+                                      );
+                                    }
                                   }}
                                 >
                                   <SelectTrigger className="h-11">
