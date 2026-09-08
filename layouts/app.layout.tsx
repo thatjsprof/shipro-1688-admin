@@ -18,6 +18,7 @@ export const routes: Record<string, string> = {
   "/settings": "Settings",
   "/shipments": "Shipments",
   "/discounts": "Discounts",
+  "/collections": "Collections",
 };
 
 const getBasePath = (path: string): string => {

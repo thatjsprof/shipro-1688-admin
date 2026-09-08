@@ -25,6 +25,7 @@ import { walletApi } from "@/services/wallet.service";
 import { cartApi } from "@/services/cart.service";
 import { paymentApi } from "@/services/payment.service";
 import { rmbApi } from "@/services/rmb.service";
+import { collectionApi } from "@/services/collection.service";
 
 const rootPersistConfig = {
   key: "admin:root",
@@ -49,6 +50,7 @@ const allReducers = combineReducers({
   [productApi.reducerPath]: productApi.reducer,
   [orderApi.reducerPath]: orderApi.reducer,
   [settingApi.reducerPath]: settingApi.reducer,
+  [collectionApi.reducerPath]: collectionApi.reducer,
   [userSlice.name]: userSlice.reducer,
   [appSlice.name]: persistReducer(appPersistConfig, appSlice.reducer),
 });
@@ -82,6 +84,7 @@ const store = () =>
         .concat(rateApi.middleware)
         .concat(productApi.middleware)
         .concat(settingApi.middleware)
+        .concat(collectionApi.middleware)
         .concat(orderApi.middleware),
     devTools: process.env.ENVIRONMENT !== "production",
   });

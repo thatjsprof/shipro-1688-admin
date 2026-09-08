@@ -40,6 +40,7 @@ const APP_ROUTES = [
   "/rmb-purchase",
   "/shipments",
   "/discounts",
+  "/collections",
 ];
 
 export default function App({ Component, pageProps }: AppProps) {

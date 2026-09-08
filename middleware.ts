@@ -42,5 +42,6 @@ export const config = {
     "/all-orders/:path*",
     "/shipments/:path*",
     "/discounts/:path*",
+    "/collections/:path*",
   ],
 };

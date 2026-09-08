@@ -3,6 +3,7 @@ import {
   CalendarArrowUp,
   ChevronRight,
   Coins,
+  FolderOpen,
   Home,
   Package,
   PackageSearch,
@@ -59,6 +60,11 @@ const data: {
       title: "Products",
       url: "/products",
       Icon: <PackageSearch className="!size-5" strokeWidth={2.5} />,
+    },
+    {
+      title: "Collections",
+      url: "/collections",
+      Icon: <FolderOpen className="!size-5" strokeWidth={2.5} />,
     },
     {
       title: "Orders",
