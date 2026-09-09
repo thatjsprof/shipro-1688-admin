@@ -20,6 +20,7 @@ import {
   collectionFormSchema,
   CollectionFormValues,
 } from "@/schemas/collection";
+import { productImageSrc } from "@/lib/product-image";
 import { notify } from "@/lib/toast";
 import {
   useAddCollectionProductsMutation,
@@ -336,7 +337,7 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
                   <div className="relative overflow-hidden rounded-md border">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={coverImage}
+                      src={productImageSrc(coverImage)}
                       alt="Cover"
                       className="aspect-[4/3] w-full object-cover"
                     />
@@ -449,17 +450,26 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
                   />
                 ))}
               </div>
-              {totalPages > 1 && (
-                <AdvancedPagination
-                  totalPages={totalPages}
-                  initialPage={pagination.pageIndex}
-                  isLoading={loadingProducts || fetchingProducts}
-                  pageSize={pagination.pageSize}
-                  onPageChange={(page) =>
-                    setPagination((prev) => ({ ...prev, pageIndex: page }))
-                  }
-                />
-              )}
+              <AdvancedPagination
+                totalPages={Math.max(totalPages, 1)}
+                totalItems={productCount}
+                initialPage={pagination.pageIndex}
+                isLoading={loadingProducts || fetchingProducts}
+                pageSize={pagination.pageSize}
+                pageSizeOptions={[24, 48, 72, 100]}
+                showPageSizeSelector
+                showItemRange
+                onPageSizeChange={(size) =>
+                  setPagination((prev) => ({
+                    ...prev,
+                    pageSize: size,
+                    pageIndex: 1,
+                  }))
+                }
+                onPageChange={(page) =>
+                  setPagination((prev) => ({ ...prev, pageIndex: page }))
+                }
+              />
             </>
           )}
         </section>

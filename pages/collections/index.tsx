@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-header";
 import { ICollection } from "@/interfaces/collection.interface";
+import { productImageSrc } from "@/lib/product-image";
 import { notify } from "@/lib/toast";
 import {
   useDeleteCollectionMutation,
@@ -105,7 +106,7 @@ const CollectionsPage = () => {
           return cover ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={cover}
+              src={productImageSrc(cover)}
               alt=""
               className="h-12 w-16 rounded object-cover"
             />

@@ -162,17 +162,26 @@ const TopProductsPage = () => {
                 />
               ))}
             </div>
-            {totalPages > 1 && (
-              <AdvancedPagination
-                totalPages={totalPages}
-                initialPage={pagination.pageIndex}
-                isLoading={isLoading || isFetching}
-                pageSize={pagination.pageSize}
-                onPageChange={(page) =>
-                  setPagination((prev) => ({ ...prev, pageIndex: page }))
-                }
-              />
-            )}
+            <AdvancedPagination
+              totalPages={Math.max(totalPages, 1)}
+              totalItems={totalCount}
+              initialPage={pagination.pageIndex}
+              isLoading={isLoading || isFetching}
+              pageSize={pagination.pageSize}
+              pageSizeOptions={[24, 48, 72, 100]}
+              showPageSizeSelector
+              showItemRange
+              onPageSizeChange={(size) =>
+                setPagination((prev) => ({
+                  ...prev,
+                  pageSize: size,
+                  pageIndex: 1,
+                }))
+              }
+              onPageChange={(page) =>
+                setPagination((prev) => ({ ...prev, pageIndex: page }))
+              }
+            />
           </>
         )}
       </section>

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ICollectionProductCard } from "@/interfaces/collection.interface";
+import { productImageSrc } from "@/lib/product-image";
 import { cn, formatNum } from "@/lib/utils";
 import { ExternalLink, Trash2 } from "lucide-react";
 import Link from "next/link";
@@ -34,7 +35,7 @@ const CollectionProductCard = ({
         {product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.image}
+            src={productImageSrc(product.image)}
             alt={product.description}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
