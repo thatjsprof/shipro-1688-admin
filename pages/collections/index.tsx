@@ -251,6 +251,7 @@ const CollectionsPage = () => {
         loading={isLoading || isFetching}
         pagination={{ pageIndex, pageSize }}
         setPagination={setPagination}
+        manualPagination
         showSelected={false}
         showPagination={false}
         customEmpty="No collections yet"
