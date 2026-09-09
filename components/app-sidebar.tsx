@@ -6,6 +6,7 @@ import {
   FolderOpen,
   Home,
   Package,
+  Flame,
   PackageSearch,
   Percent,
   Settings,
@@ -60,6 +61,18 @@ const data: {
       title: "Products",
       url: "/products",
       Icon: <PackageSearch className="!size-5" strokeWidth={2.5} />,
+      items: [
+        {
+          title: "All Products",
+          url: "/products",
+          Icon: <PackageSearch className="!size-4" strokeWidth={2.5} />,
+        },
+        {
+          title: "Top Products",
+          url: "/products/top",
+          Icon: <Flame className="!size-4" strokeWidth={2.5} />,
+        },
+      ],
     },
     {
       title: "Collections",
@@ -211,10 +224,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarGroupContent>
                     <SidebarMenu className="pt-4 flex flex-col gap-3">
                       {items.map((item) => {
-                        const isItemActive = isRouteMatch(
-                          currentPath,
-                          item.url
-                        );
+                        const isItemActive =
+                          item.url === "/products"
+                            ? currentPath === "/products" ||
+                              currentPath.startsWith("/products/new") ||
+                              /^\/products\/(?!top(?:\/|$))[^/]+/.test(
+                                currentPath
+                              )
+                            : isRouteMatch(currentPath, item.url);
                         return (
                           <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton

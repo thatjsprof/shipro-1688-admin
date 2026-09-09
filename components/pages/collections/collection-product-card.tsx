@@ -47,7 +47,7 @@ const CollectionProductCard = ({
           variant="secondary"
           className="absolute left-2 top-2 bg-white/90 text-[0.65rem] font-medium"
         >
-          {product.source === "shipro" ? "Shipro" : "1688"}
+          {product.source === "shipro" ? "Shipro" : "External"}
         </Badge>
         {onRemove && (
           <Button
