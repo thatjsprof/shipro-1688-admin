@@ -1,4 +1,7 @@
 import CollectionProductCard from "@/components/pages/collections/collection-product-card";
+import ProductIngestBanner, {
+  productIngestIsActive,
+} from "@/components/pages/collections/product-ingest-banner";
 import { Icons } from "@/components/shared/icons";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Button } from "@/components/ui/button";
@@ -16,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import FileUpload from "@/hooks/use-file";
 import { IFile } from "@/interfaces/file.interface";
+import { IProductIngest } from "@/interfaces/collection.interface";
 import {
   collectionFormSchema,
   CollectionFormValues,
@@ -35,7 +39,7 @@ import { PaginationState } from "@tanstack/react-table";
 import { ArrowLeft, Link2, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 type Props = {
@@ -47,8 +51,16 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
   const router = useRouter();
   const isEdit = mode === "edit" && !!collectionId;
 
+  const [pollIngest, setPollIngest] = useState(false);
+  const [notice, setNotice] = useState<IProductIngest | null>(null);
+  const watchedIngest = useRef(false);
   const { data: collectionRes, isLoading: loadingCollection } =
-    useGetCollectionQuery(collectionId!, { skip: !isEdit });
+    useGetCollectionQuery(collectionId!, {
+      skip: !isEdit,
+      pollingInterval: pollIngest ? 3000 : 0,
+    });
+  const ingest = collectionRes?.data?.ingest;
+  const ingestActive = productIngestIsActive(ingest?.status);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 1,
     pageSize: 24,
@@ -57,13 +69,14 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
     data: productsRes,
     isLoading: loadingProducts,
     isFetching: fetchingProducts,
+    refetch: refetchProducts,
   } = useGetCollectionProductsQuery(
     {
       id: collectionId!,
       page: pagination.pageIndex - 1,
       limit: pagination.pageSize,
     },
-    { skip: !isEdit }
+    { skip: !isEdit, pollingInterval: ingestActive ? 3000 : 0 }
   );
 
   const [createCollection, { isLoading: creating }] =
@@ -87,6 +100,24 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
       productLinks: "",
     },
   });
+
+  useEffect(() => {
+    const current = collectionRes?.data?.ingest;
+    const status = current?.status;
+    const active = productIngestIsActive(status);
+    setPollIngest(active);
+    if (active) {
+      watchedIngest.current = true;
+      setNotice(null);
+      return;
+    }
+    if (!watchedIngest.current || !current) return;
+    watchedIngest.current = false;
+    refetchProducts();
+    if (status === "failed" || current.failed?.length) {
+      setNotice(current);
+    }
+  }, [collectionRes?.data?.ingest, refetchProducts]);
 
   useEffect(() => {
     const collection = collectionRes?.data;
@@ -137,32 +168,11 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
           productLinks: values.productLinks,
         }).unwrap();
 
-        const resolve = res.data.resolve;
-        if (resolve) {
-          const parts = [
-            `${resolve.added} added`,
-            resolve.skipped ? `${resolve.skipped} skipped` : null,
-            resolve.failed.length
-              ? `${resolve.failed.length} failed`
-              : null,
-          ].filter(Boolean);
-          notify(
-            parts.length
-              ? `Collection created (${parts.join(", ")})`
-              : "Collection created"
-          );
-          if (resolve.failed.length) {
-            notify(
-              resolve.failed
-                .slice(0, 3)
-                .map((f) => `${f.input}: ${f.error}`)
-                .join(" · "),
-              "error"
-            );
-          }
-        } else {
-          notify(res.message || "Collection created");
-        }
+        notify(
+          res.data.ingest
+            ? "Collection created. Products are fetching in the background."
+            : res.message || "Collection created"
+        );
         router.push(`/collections/${res.data.id}`);
       }
     } catch (err: any) {
@@ -176,30 +186,13 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
       return;
     }
     try {
-      const res = await addProducts({
+      await addProducts({
         id: collectionId,
         links: addLinks,
       }).unwrap();
-      const { added, skipped, failed } = res.data;
-      notify(
-        [
-          `${added} added`,
-          skipped ? `${skipped} already in collection` : null,
-          failed.length ? `${failed.length} failed` : null,
-        ]
-          .filter(Boolean)
-          .join(" · ")
-      );
-      if (failed.length) {
-        notify(
-          failed
-            .slice(0, 3)
-            .map((f) => `${f.input}: ${f.error}`)
-            .join(" · "),
-          "error"
-        );
-      }
+      notify("Fetching products in the background");
       setAddLinks("");
+      setPollIngest(true);
     } catch (err: any) {
       notify(err?.data?.message || "Failed to add products");
     }
@@ -241,8 +234,8 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
           </h1>
           <p className="text-sm text-zinc-500">
             {isEdit
-              ? "Update details, then paste links to fetch and add more products."
-              : "Add a title and cover, paste product links, then create — we fetch and save card data once."}
+              ? "Update details, then paste links. Products fetch in the background."
+              : "Add a title and cover, paste product links, then create. Products fetch in the background."}
           </p>
         </div>
       </div>
@@ -403,6 +396,11 @@ const CollectionForm = ({ mode, collectionId }: Props) => {
               </p>
             </div>
           </div>
+
+          <ProductIngestBanner
+            ingest={ingestActive ? ingest : notice}
+            onDismiss={() => setNotice(null)}
+          />
 
           <div className="space-y-3 rounded-md border border-dashed bg-zinc-50/80 p-4">
             <label className="text-sm font-medium">Add more products</label>

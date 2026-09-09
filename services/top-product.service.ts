@@ -1,6 +1,6 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
-import { IResolveProductResult } from "@/interfaces/collection.interface";
+import { IProductIngest } from "@/interfaces/collection.interface";
 
 export interface ITopProduct {
   id: string | number;
@@ -28,7 +28,7 @@ export const topProductApi = createApi({
   tagTypes: ["TopProducts"],
   endpoints: (builder) => ({
     getTopProducts: builder.query<
-      ApiResponse<PaginatedResult<ITopProduct[]>>,
+      ApiResponse<PaginatedResult<ITopProduct[]> & { ingest?: IProductIngest | null }>,
       { page?: number; limit?: number } | void
     >({
       query: (params) => ({
@@ -42,11 +42,7 @@ export const topProductApi = createApi({
       providesTags: ["TopProducts"],
     }),
     addTopProducts: builder.mutation<
-      ApiResponse<{
-        added: number;
-        skipped: number;
-        failed: IResolveProductResult[];
-      }>,
+      ApiResponse<IProductIngest>,
       { links: string }
     >({
       query: (body) => ({

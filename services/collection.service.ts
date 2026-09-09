@@ -5,6 +5,7 @@ import {
   CreateCollectionPayload,
   ICollection,
   ICollectionProductCard,
+  IProductIngest,
   IResolveProductResult,
   ListCollectionsParams,
   UpdateCollectionPayload,
@@ -52,15 +53,7 @@ export const collectionApi = createApi({
       providesTags: (_r, _e, { id }) => [{ type: "CollectionProducts", id }],
     }),
     createCollection: builder.mutation<
-      ApiResponse<
-        ICollection & {
-          resolve: {
-            added: number;
-            skipped: number;
-            failed: IResolveProductResult[];
-          } | null;
-        }
-      >,
+      ApiResponse<ICollection>,
       CreateCollectionPayload
     >({
       query: (body) => ({
@@ -106,12 +99,7 @@ export const collectionApi = createApi({
       }),
     }),
     addCollectionProducts: builder.mutation<
-      ApiResponse<{
-        added: number;
-        skipped: number;
-        failed: IResolveProductResult[];
-        collection: ICollection;
-      }>,
+      ApiResponse<IProductIngest>,
       { id: string; links: string }
     >({
       query: ({ id, links }) => ({

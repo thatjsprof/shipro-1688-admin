@@ -1,5 +1,25 @@
 export type CollectionProductSource = "shipro" | "1688";
 
+export type ProductIngestStatus =
+  | "queued"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export interface IProductIngest {
+  id: string;
+  target: "collection" | "top_products";
+  targetId: string | null;
+  status: ProductIngestStatus;
+  total: number;
+  added: number;
+  skipped: number;
+  failed: { input: string; error?: string }[];
+  error: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ICollection {
   id: string;
   title: string;
@@ -8,6 +28,7 @@ export interface ICollection {
   coverImage: string | null;
   active: boolean;
   productCount: number;
+  ingest?: IProductIngest | null;
   createdAt: string;
   updatedAt: string;
 }

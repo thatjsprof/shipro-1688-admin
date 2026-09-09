@@ -1,9 +1,15 @@
 import CollectionProductCard from "@/components/pages/collections/collection-product-card";
+import ProductIngestBanner, {
+  productIngestIsActive,
+} from "@/components/pages/collections/product-ingest-banner";
 import { Icons } from "@/components/shared/icons";
 import AdvancedPagination from "@/components/ui/advanced-pagination";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ICollectionProductCard } from "@/interfaces/collection.interface";
+import {
+  ICollectionProductCard,
+  IProductIngest,
+} from "@/interfaces/collection.interface";
 import { notify } from "@/lib/toast";
 import {
   useAddTopProductsMutation,
@@ -12,20 +18,27 @@ import {
 } from "@/services/top-product.service";
 import { PaginationState } from "@tanstack/react-table";
 import { Link2, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const TopProductsPage = () => {
   const [links, setLinks] = useState("");
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [pollIngest, setPollIngest] = useState(false);
+  const [notice, setNotice] = useState<IProductIngest | null>(null);
+  const watchedIngest = useRef(false);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 1,
     pageSize: 24,
   });
 
-  const { data, isLoading, isFetching } = useGetTopProductsQuery({
-    page: pagination.pageIndex - 1,
-    limit: pagination.pageSize,
-  });
+  const { data, isLoading, isFetching } = useGetTopProductsQuery(
+    {
+      page: pagination.pageIndex - 1,
+      limit: pagination.pageSize,
+    },
+    { pollingInterval: pollIngest ? 3000 : 0 }
+  );
+  const ingest = data?.data?.ingest;
   const [addProducts, { isLoading: adding }] = useAddTopProductsMutation();
   const [removeProduct, { isLoading: removing }] =
     useRemoveTopProductMutation();
@@ -59,33 +72,32 @@ const TopProductsPage = () => {
     document.title = "Top Products | Shipro Africa";
   }, []);
 
+  useEffect(() => {
+    const current = data?.data?.ingest;
+    const active = productIngestIsActive(current?.status);
+    setPollIngest(active);
+    if (active) {
+      watchedIngest.current = true;
+      setNotice(null);
+      return;
+    }
+    if (!watchedIngest.current || !current) return;
+    watchedIngest.current = false;
+    if (current.status === "failed" || current.failed?.length) {
+      setNotice(current);
+    }
+  }, [data?.data?.ingest]);
+
   const handleAdd = async () => {
     if (!links.trim()) {
       notify("Paste at least one product link");
       return;
     }
     try {
-      const res = await addProducts({ links }).unwrap();
-      const { added, skipped, failed } = res.data;
-      notify(
-        [
-          `${added} added`,
-          skipped ? `${skipped} already listed` : null,
-          failed.length ? `${failed.length} failed` : null,
-        ]
-          .filter(Boolean)
-          .join(" · ")
-      );
-      if (failed.length) {
-        notify(
-          failed
-            .slice(0, 3)
-            .map((f) => `${f.input}: ${f.error}`)
-            .join(" · "),
-          "error"
-        );
-      }
+      await addProducts({ links }).unwrap();
+      notify("Fetching products in the background");
       setLinks("");
+      setPollIngest(true);
     } catch (err: any) {
       notify(err?.data?.message || "Failed to add products");
     }
@@ -138,6 +150,10 @@ const TopProductsPage = () => {
         <p className="text-sm text-zinc-500">
           {totalCount} product{totalCount === 1 ? "" : "s"}
         </p>
+        <ProductIngestBanner
+          ingest={productIngestIsActive(ingest?.status) ? ingest : notice}
+          onDismiss={() => setNotice(null)}
+        />
         {isLoading && !products.length ? (
           <p className="py-8 text-center text-sm text-zinc-500">
             Loading top products…
