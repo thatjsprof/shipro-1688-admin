@@ -9,18 +9,38 @@ import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-h
 import { ICollection } from "@/interfaces/collection.interface";
 import { productImageSrc } from "@/lib/product-image";
 import { notify } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import {
   useDeleteCollectionMutation,
   useGetCollectionsQuery,
+  useMoveCollectionMutation,
+  useReorderCollectionsMutation,
   useUpdateCollectionMutation,
 } from "@/services/collection.service";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { format } from "date-fns";
 import debounce from "lodash.debounce";
-import { Pencil, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  GripVertical,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ChangeEvent,
+  DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 const CollectionsPage = () => {
   const router = useRouter();
@@ -32,6 +52,11 @@ const CollectionsPage = () => {
   });
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ICollection | null>(null);
+  const [rows, setRows] = useState<ICollection[]>([]);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [movingId, setMovingId] = useState<string | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const rowsRef = useRef<ICollection[]>([]);
 
   const { data, isLoading, isFetching } = useGetCollectionsQuery({
     page: pageIndex - 1,
@@ -41,13 +66,21 @@ const CollectionsPage = () => {
   const [updateCollection] = useUpdateCollectionMutation();
   const [deleteCollection, { isLoading: isDeleting }] =
     useDeleteCollectionMutation();
+  const [moveCollection] = useMoveCollectionMutation();
+  const [reorderCollections] = useReorderCollectionsMutation();
 
   const collections = data?.data?.data ?? [];
   const totalPages = data?.data?.totalPages ?? 0;
+  const canReorder = !debouncedSearch.trim();
 
   useEffect(() => {
     document.title = "Collections | Shipro Africa";
   }, []);
+
+  useEffect(() => {
+    setRows(collections);
+    rowsRef.current = collections;
+  }, [collections]);
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -101,6 +134,21 @@ const CollectionsPage = () => {
     [updateCollection]
   );
 
+  const handleMove = useCallback(
+    async (collection: ICollection, direction: "up" | "down") => {
+      if (!canReorder) return;
+      try {
+        setMovingId(collection.id);
+        await moveCollection({ id: collection.id, direction }).unwrap();
+      } catch (err: any) {
+        notify(err?.data?.message || "Failed to reorder collection");
+      } finally {
+        setMovingId(null);
+      }
+    },
+    [canReorder, moveCollection]
+  );
+
   const handleConfirmDelete = useCallback(async () => {
     if (!toDelete) return;
     try {
@@ -113,8 +161,126 @@ const CollectionsPage = () => {
     }
   }, [deleteCollection, toDelete]);
 
+  const onDragStart = useCallback(
+    (index: number, id: string) => {
+      if (!canReorder) return;
+      dragIndexRef.current = index;
+      setDraggingId(id);
+    },
+    [canReorder]
+  );
+
+  const onDragEnter = useCallback(
+    (index: number) => {
+      if (!canReorder || dragIndexRef.current === null) return;
+      if (dragIndexRef.current === index) return;
+      setRows((prev) => {
+        const next = [...prev];
+        const from = dragIndexRef.current!;
+        const [moved] = next.splice(from, 1);
+        next.splice(index, 0, moved);
+        dragIndexRef.current = index;
+        rowsRef.current = next;
+        return next;
+      });
+    },
+    [canReorder]
+  );
+
+  const onDragEnd = useCallback(async () => {
+    const previous = collections;
+    const nextIds = rowsRef.current.map((row) => row.id);
+    const unchanged =
+      previous.length === nextIds.length &&
+      previous.every((row, index) => row.id === nextIds[index]);
+
+    setDraggingId(null);
+    dragIndexRef.current = null;
+    if (!canReorder || unchanged) {
+      setRows(previous);
+      rowsRef.current = previous;
+      return;
+    }
+
+    try {
+      await reorderCollections({
+        ids: nextIds,
+        page: pageIndex - 1,
+        limit: pageSize,
+      }).unwrap();
+      notify("Collection order updated");
+    } catch (err: any) {
+      setRows(previous);
+      rowsRef.current = previous;
+      notify(err?.data?.message || "Failed to reorder collections");
+    }
+  }, [canReorder, collections, pageIndex, pageSize, reorderCollections]);
+
   const columns = useMemo<ColumnDef<ICollection>[]>(
     () => [
+      {
+        id: "reorder",
+        header: () => <span className="sr-only">Reorder</span>,
+        cell: ({ row }) => {
+          const index = row.index;
+          const isFirst = pageIndex === 1 && index === 0;
+          const isLast =
+            (totalPages <= 1 || pageIndex === totalPages) &&
+            index === rows.length - 1;
+          const busy = movingId === row.original.id || !!draggingId;
+
+          return (
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                draggable={canReorder}
+                onDragStart={() => onDragStart(index, row.original.id)}
+                onDragEnter={() => onDragEnter(index)}
+                onDragOver={(e: DragEvent) => e.preventDefault()}
+                onDragEnd={onDragEnd}
+                disabled={!canReorder}
+                className={cn(
+                  "flex size-8 items-center justify-center rounded text-zinc-400",
+                  canReorder
+                    ? "cursor-grab active:cursor-grabbing hover:bg-zinc-100 hover:text-zinc-700"
+                    : "cursor-not-allowed opacity-40"
+                )}
+                title={
+                  canReorder
+                    ? "Drag to reorder"
+                    : "Clear search to reorder collections"
+                }
+                aria-label="Drag to reorder"
+              >
+                <GripVertical className="size-4" />
+              </button>
+              <div className="flex flex-col">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  disabled={!canReorder || isFirst || busy}
+                  onClick={() => handleMove(row.original, "up")}
+                >
+                  <ChevronUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-7"
+                  disabled={!canReorder || isLast || busy}
+                  onClick={() => handleMove(row.original, "down")}
+                >
+                  <ChevronDown className="size-4" />
+                </Button>
+              </div>
+            </div>
+          );
+        },
+        enableSorting: false,
+      },
       {
         accessorKey: "coverImage",
         header: ({ column }) => (
@@ -127,7 +293,10 @@ const CollectionsPage = () => {
             <img
               src={productImageSrc(cover)}
               alt=""
-              className="h-12 w-16 rounded object-cover"
+              className={cn(
+                "h-12 w-16 rounded object-cover",
+                draggingId === row.original.id && "opacity-50"
+              )}
             />
           ) : (
             <div className="flex h-12 w-16 items-center justify-center rounded bg-zinc-100 text-[0.65rem] text-zinc-400">
@@ -234,7 +403,21 @@ const CollectionsPage = () => {
         enableSorting: false,
       },
     ],
-    [handleToggleActive, handleToggleFeatured, router]
+    [
+      canReorder,
+      draggingId,
+      handleMove,
+      handleToggleActive,
+      handleToggleFeatured,
+      movingId,
+      onDragEnd,
+      onDragEnter,
+      onDragStart,
+      pageIndex,
+      router,
+      rows.length,
+      totalPages,
+    ]
   );
 
   return (
@@ -243,7 +426,8 @@ const CollectionsPage = () => {
         <div>
           <h1 className="text-xl font-semibold">Collections</h1>
           <p className="text-sm text-zinc-500">
-            Curate Shipro and 1688 products into shareable collections
+            Curate Shipro and 1688 products into shareable collections. Drag or
+            use arrows to set homepage and listing order.
           </p>
         </div>
         <Button asChild>
@@ -278,9 +462,15 @@ const CollectionsPage = () => {
         </div>
       </div>
 
+      {!canReorder && (
+        <p className="mb-3 text-sm text-amber-700">
+          Clear search to reorder collections.
+        </p>
+      )}
+
       <DataTable
         columns={columns}
-        data={collections}
+        data={rows}
         pageCount={totalPages || 1}
         loading={isLoading || isFetching}
         pagination={{ pageIndex, pageSize }}

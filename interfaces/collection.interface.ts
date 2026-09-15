@@ -28,6 +28,7 @@ export interface ICollection {
   coverImage: string | null;
   active: boolean;
   featured: boolean;
+  sortOrder: number;
   productCount: number;
   ingest?: IProductIngest | null;
   createdAt: string;

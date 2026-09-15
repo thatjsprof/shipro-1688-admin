@@ -84,6 +84,28 @@ export const collectionApi = createApi({
       }),
       invalidatesTags: ["Collections"],
     }),
+    moveCollection: builder.mutation<
+      ApiResponse<ICollection>,
+      { id: string; direction: "up" | "down" }
+    >({
+      query: ({ id, direction }) => ({
+        url: `/admin/collections/${id}/move`,
+        method: "POST",
+        body: { direction },
+      }),
+      invalidatesTags: ["Collections"],
+    }),
+    reorderCollections: builder.mutation<
+      ApiResponse<ICollection[]>,
+      { ids: string[]; page?: number; limit?: number }
+    >({
+      query: (body) => ({
+        url: `/admin/collections/reorder`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Collections"],
+    }),
     resolveCollectionProducts: builder.mutation<
       ApiResponse<{
         results: IResolveProductResult[];
@@ -141,6 +163,8 @@ export const {
   useCreateCollectionMutation,
   useUpdateCollectionMutation,
   useDeleteCollectionMutation,
+  useMoveCollectionMutation,
+  useReorderCollectionsMutation,
   useResolveCollectionProductsMutation,
   useAddCollectionProductsMutation,
   useRemoveCollectionProductMutation,
