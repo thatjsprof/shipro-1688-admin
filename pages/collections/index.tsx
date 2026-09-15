@@ -82,6 +82,25 @@ const CollectionsPage = () => {
     [updateCollection]
   );
 
+  const handleToggleFeatured = useCallback(
+    async (collection: ICollection, featured: boolean) => {
+      try {
+        await updateCollection({
+          id: collection.id,
+          body: { featured },
+        }).unwrap();
+        notify(
+          featured
+            ? "Collection marked as featured"
+            : "Collection removed from featured"
+        );
+      } catch (err: any) {
+        notify(err?.data?.message || "Failed to update collection");
+      }
+    },
+    [updateCollection]
+  );
+
   const handleConfirmDelete = useCallback(async () => {
     if (!toDelete) return;
     try {
@@ -159,6 +178,21 @@ const CollectionsPage = () => {
         enableSorting: false,
       },
       {
+        accessorKey: "featured",
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Featured" />
+        ),
+        cell: ({ row }) => (
+          <Switch
+            checked={row.original.featured}
+            onCheckedChange={(checked) =>
+              handleToggleFeatured(row.original, checked)
+            }
+          />
+        ),
+        enableSorting: false,
+      },
+      {
         accessorKey: "createdAt",
         header: ({ column }) => (
           <DataTableColumnHeader column={column} title="Created" />
@@ -200,7 +234,7 @@ const CollectionsPage = () => {
         enableSorting: false,
       },
     ],
-    [handleToggleActive, router]
+    [handleToggleActive, handleToggleFeatured, router]
   );
 
   return (

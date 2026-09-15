@@ -27,6 +27,7 @@ export interface ICollection {
   description: string;
   coverImage: string | null;
   active: boolean;
+  featured: boolean;
   productCount: number;
   ingest?: IProductIngest | null;
   createdAt: string;
@@ -86,6 +87,7 @@ export interface CreateCollectionPayload {
   description?: string;
   coverImage?: string | null;
   active?: boolean;
+  featured?: boolean;
   productLinks?: string;
 }
 
@@ -94,6 +96,7 @@ export interface UpdateCollectionPayload {
   description?: string;
   coverImage?: string | null;
   active?: boolean;
+  featured?: boolean;
 }
 
 export interface ListCollectionsParams {
@@ -101,6 +104,7 @@ export interface ListCollectionsParams {
   limit?: number;
   search?: string;
   active?: "true" | "false" | "all";
+  featured?: "true" | "false" | "all";
 }
 
 export interface CollectionProductsParams {
