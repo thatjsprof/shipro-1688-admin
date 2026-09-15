@@ -236,27 +236,41 @@ export const CreatePaymentFormFields = <T extends FieldValues>({
             <FormItem>
               <FormLabel>Provider</FormLabel>
               <div className="flex flex-col space-y-1">
-                <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value as string}
-                  >
-                    <SelectTrigger className="h-11">
-                      <SelectValue
-                        placeholder={
-                          <span className="text-gray-400">Select provider</span>
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(PaymentProviders).map((provider) => (
-                        <SelectItem key={provider} value={provider}>
-                          {paymentProviders[provider]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
+                <div className="flex items-center gap-3">
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ? String(field.value) : undefined}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue
+                          placeholder={
+                            <span className="text-gray-400">
+                              Select provider
+                            </span>
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(PaymentProviders).map((provider) => (
+                          <SelectItem key={provider} value={provider}>
+                            {paymentProviders[provider]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  {!!field.value && (
+                    <Button
+                      type="button"
+                      className="h-11 shadow-none"
+                      variant="outline"
+                      onClick={() => field.onChange("")}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
                 <FormMessage />
               </div>
             </FormItem>

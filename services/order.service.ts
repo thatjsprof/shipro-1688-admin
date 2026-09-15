@@ -81,7 +81,7 @@ export const orderApi = createApi({
         },
         invalidatesTags: (r) => {
           if (!r) return [];
-          return ["GetOrderItems"];
+          return ["GetOrderItems", "GetOrders"];
         },
       }),
       getOrderItems: builder.query<
@@ -164,6 +164,8 @@ export const orderApi = createApi({
             packageWeight?: number;
             packageWeightUnit?: PackageWeightUnit;
             orderAmount?: number;
+            name?: string;
+            quantity?: number;
             sendEmail?: boolean;
             emailNote?: string;
           };
@@ -178,7 +180,7 @@ export const orderApi = createApi({
         },
         invalidatesTags: (r) => {
           if (!r) return [];
-          return ["GetOrderItems"];
+          return ["GetOrderItems", "GetOrders"];
         },
       }),
       addTrackingUpdate: builder.mutation<

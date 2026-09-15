@@ -187,7 +187,7 @@ const NewOrder = () => {
             baseAmount: +p.amount || 0,
             code: p.code,
             status: p.status,
-            provider: p.provider,
+            ...(p.provider ? { provider: p.provider } : {}),
             module: PaymentModules.ORDER,
             description: p.description,
             sendEmail: p.sendEmail,
