@@ -1,6 +1,17 @@
 import { Icons } from "@/components/shared/icons";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Combobox } from "@/components/ui/combobox";
 import DatePicker from "@/components/ui/date";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -35,6 +46,7 @@ import {
 } from "@/lib/constants";
 import { stripRichHtml } from "@/lib/rich-text";
 import { notify } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { orderStatusOnlySchema } from "@/schemas/order";
 import {
   useCreateOrderItemsMutation,
@@ -42,7 +54,7 @@ import {
   useUpdateOrderMutation,
 } from "@/services/order.service";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
@@ -110,6 +122,7 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     useCreateOrderItemsMutation();
   const [items, setItems] = useState<EditableOrderItem[]>([]);
   const [itemsError, setItemsError] = useState<string | null>(null);
+  const [openItemKey, setOpenItemKey] = useState<string>("");
 
   const isLoading = updatingOrder || updatingItems || creatingItems;
 
@@ -136,12 +149,15 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
   };
 
   const addItem = () => {
-    setItems((prev) => [...prev, emptyNewItem(order)]);
+    const next = emptyNewItem(order);
+    setItems((prev) => [...prev, next]);
+    setOpenItemKey(next.key);
     setItemsError(null);
   };
 
   const removeNewItem = (key: string) => {
     setItems((prev) => prev.filter((item) => item.key !== key));
+    setOpenItemKey((current) => (current === key ? "" : current));
     setItemsError(null);
   };
 
@@ -149,15 +165,18 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     for (const item of items) {
       if (!item.name.trim()) {
         setItemsError("Each order item needs a name");
+        setOpenItemKey(item.key);
         return false;
       }
       const qty = Number(item.quantity);
       if (!Number.isFinite(qty) || qty <= 0) {
         setItemsError("Quantity must be a positive number");
+        setOpenItemKey(item.key);
         return false;
       }
       if (!item.id && !item.status) {
         setItemsError("Each new order item needs a status");
+        setOpenItemKey(item.key);
         return false;
       }
     }
@@ -251,14 +270,19 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
       sendEmail: false,
       emailNote: "",
     });
-    setItems(toEditableItems(order));
+    const nextItems = toEditableItems(order);
+    setItems(nextItems);
+    setOpenItemKey("");
     setItemsError(null);
   }, [order, form]);
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="flex flex-col gap-4">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="flex min-h-full flex-col"
+      >
+        <div className="flex flex-col gap-4 pb-4">
           <FormField
             control={form.control}
             name="status"
@@ -409,7 +433,7 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
               <div>
                 <p className="text-sm font-medium">Order items</p>
                 <p className="text-xs text-zinc-500">
-                  Edit existing name/quantity, or add a full new item
+                  Expand an item to edit. Only one open at a time.
                 </p>
               </div>
               <Button
@@ -426,277 +450,328 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
             {items.length === 0 ? (
               <p className="text-sm text-zinc-500">No items on this order yet.</p>
             ) : (
-              <div className="flex flex-col gap-3">
-                {items.map((item, index) =>
-                  item.id ? (
-                    <div
-                      key={item.key}
-                      className="space-y-3 rounded-lg border border-zinc-200 p-3"
-                    >
-                      <p className="text-xs font-medium text-zinc-500">
-                        Item {index + 1}
-                      </p>
-                      <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Name</label>
-                          <Input
-                            value={item.name}
-                            onChange={(e) =>
-                              patchItem(item.key, { name: e.target.value })
-                            }
-                            placeholder="Item name"
-                            className="h-10 bg-transparent"
-                          />
+              <Accordion
+                type="single"
+                collapsible
+                value={openItemKey}
+                onValueChange={setOpenItemKey}
+                className="rounded-lg border border-zinc-200"
+              >
+                {items.map((item, index) => (
+                  <AccordionItem
+                    key={item.key}
+                    value={item.key}
+                    className="px-3"
+                  >
+                    <div className="flex items-center gap-1">
+                      <AccordionTrigger className="py-3 hover:no-underline">
+                        <div className="min-w-0 flex-1 text-left">
+                          <p className="truncate text-sm font-medium">
+                            {item.name.trim() ||
+                              (item.id
+                                ? `Item ${index + 1}`
+                                : `New item ${index + 1}`)}
+                          </p>
+                          <p className="mt-0.5 text-xs text-zinc-500">
+                            {item.id ? "Existing" : "New"} · Qty{" "}
+                            {item.quantity || "—"}
+                          </p>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Quantity</label>
-                          <NumericFormat
-                            type="text"
-                            allowNegative={false}
-                            decimalScale={0}
-                            value={item.quantity}
-                            onValueChange={(values) =>
-                              patchItem(item.key, {
-                                quantity: values.value ?? "",
-                              })
-                            }
-                            customInput={Input}
-                            className="h-10 bg-transparent"
-                            placeholder="Qty"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div
-                      key={item.key}
-                      className="relative space-y-4 rounded-lg border border-zinc-200 p-4 pt-5"
-                    >
-                      <div className="flex items-center justify-between gap-2 pr-8">
-                        <p className="text-sm font-semibold">
-                          {item.name || `New item ${index + 1}`}
-                        </p>
+                      </AccordionTrigger>
+                      {!item.id && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-2 top-2 size-8 text-destructive hover:text-destructive"
-                          onClick={() => removeNewItem(item.key)}
+                          className="size-8 shrink-0 text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removeNewItem(item.key);
+                          }}
                         >
                           <Trash2 className="size-4" />
                         </Button>
-                      </div>
-
-                      <p className="text-sm font-semibold">Required Fields</p>
-                      <div className="flex flex-col gap-4">
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Name</label>
-                          <Input
-                            value={item.name}
-                            onChange={(e) =>
-                              patchItem(item.key, { name: e.target.value })
-                            }
-                            placeholder="Name"
-                            className="h-11 bg-transparent"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Category</label>
-                          <Combobox
-                            isModal={true}
-                            items={categories}
-                            externalValue={item.category ?? ""}
-                            lowercaseVal={false}
-                            handleReceiveValue={(value) =>
-                              patchItem(item.key, {
-                                category: String(value ?? ""),
-                              })
-                            }
-                            buttonProps={{
-                              className:
-                                "h-11 px-3 w-full justify-between !bg-transparent !pointer-events-auto",
-                            }}
-                            searchPlaceholder="Search Category"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Status</label>
-                          <Select
-                            value={item.status}
-                            onValueChange={(value) => {
-                              if (!value) return;
-                              patchItem(item.key, {
-                                status: value as OrderStatus,
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="h-11">
-                              <SelectValue
-                                placeholder={
-                                  <span className="text-gray-400">Status</span>
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(OrderStatus).map(
-                                ([key, value]) => (
-                                  <SelectItem key={key} value={value}>
-                                    {orderStatusInfo[value]?.text}
-                                  </SelectItem>
-                                )
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Quantity</label>
-                          <NumericFormat
-                            type="text"
-                            allowNegative={false}
-                            decimalSeparator="."
-                            thousandSeparator=","
-                            value={item.quantity}
-                            onValueChange={(values) => {
-                              if (!values.floatValue) {
-                                patchItem(item.key, { quantity: "" });
-                                return;
+                      )}
+                    </div>
+                    <AccordionContent className="pb-4">
+                      {item.id ? (
+                        <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">Name</label>
+                            <Input
+                              value={item.name}
+                              onChange={(e) =>
+                                patchItem(item.key, { name: e.target.value })
                               }
-                              patchItem(item.key, {
-                                quantity: values.value ?? "",
-                              });
-                            }}
-                            customInput={Input}
-                            className="h-11 w-full bg-transparent"
-                            placeholder="Quantity"
-                          />
+                              placeholder="Item name"
+                              className="h-10 bg-transparent"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-sm font-medium">
+                              Quantity
+                            </label>
+                            <NumericFormat
+                              type="text"
+                              allowNegative={false}
+                              decimalScale={0}
+                              value={item.quantity}
+                              onValueChange={(values) =>
+                                patchItem(item.key, {
+                                  quantity: values.value ?? "",
+                                })
+                              }
+                              customInput={Input}
+                              className="h-10 bg-transparent"
+                              placeholder="Qty"
+                            />
+                          </div>
                         </div>
-                      </div>
-
-                      <p className="text-sm font-semibold">Optional Fields</p>
-                      <div className="flex flex-col gap-4">
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">
-                            Date Ordered
-                          </label>
-                          <DatePicker
-                            enableTime
-                            value={item.dateOrdered}
-                            onChange={(date) =>
-                              patchItem(item.key, {
-                                dateOrdered: date || undefined,
-                              })
-                            }
-                            buttonClassName="w-full"
-                            placeholder="Date Ordered"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">
-                            Order Amount
-                          </label>
-                          <NumericFormat
-                            type="text"
-                            prefix="₦"
-                            allowNegative={false}
-                            decimalSeparator="."
-                            thousandSeparator=","
-                            value={item.orderAmount ?? ""}
-                            onValueChange={(values) =>
-                              patchItem(item.key, {
-                                orderAmount: values.value ?? "",
-                              })
-                            }
-                            customInput={Input}
-                            className="h-11 w-full bg-transparent"
-                            placeholder="Order Amount"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">
-                            Package Weight
-                          </label>
-                          <NumericFormat
-                            type="text"
-                            allowNegative={false}
-                            decimalSeparator="."
-                            thousandSeparator=","
-                            value={item.packageWeight ?? ""}
-                            onValueChange={(values) =>
-                              patchItem(item.key, {
-                                packageWeight: values.value ?? "",
-                              })
-                            }
-                            customInput={Input}
-                            className="h-11 w-full bg-transparent pr-[6rem]"
-                            endClassname="top-0 right-1 h-full translate-x-0 translate-y-0 flex items-center"
-                            placeholder="Package Weight"
-                            EndIcon={
-                              <Select
-                                value={
-                                  item.packageWeightUnit ?? PackageWeightUnit.KG
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-sm font-semibold">
+                            Required Fields
+                          </p>
+                          <div className="flex flex-col gap-4">
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">Name</label>
+                              <Input
+                                value={item.name}
+                                onChange={(e) =>
+                                  patchItem(item.key, { name: e.target.value })
                                 }
+                                placeholder="Name"
+                                className="h-11 bg-transparent"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">
+                                Category
+                              </label>
+                              <Combobox
+                                isModal={true}
+                                items={categories}
+                                externalValue={item.category ?? ""}
+                                lowercaseVal={false}
+                                handleReceiveValue={(value) =>
+                                  patchItem(item.key, {
+                                    category: String(value ?? ""),
+                                  })
+                                }
+                                buttonProps={{
+                                  className:
+                                    "h-11 px-3 w-full justify-between !bg-transparent !pointer-events-auto",
+                                }}
+                                searchPlaceholder="Search Category"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">
+                                Status
+                              </label>
+                              <Select
+                                value={item.status}
                                 onValueChange={(value) => {
                                   if (!value) return;
                                   patchItem(item.key, {
-                                    packageWeightUnit:
-                                      value as PackageWeightUnit,
+                                    status: value as OrderStatus,
                                   });
                                 }}
                               >
-                                <SelectTrigger className="h-9 w-18 border-none bg-transparent px-2 shadow-none rounded-l-none">
-                                  <SelectValue />
+                                <SelectTrigger className="h-11">
+                                  <SelectValue
+                                    placeholder={
+                                      <span className="text-gray-400">
+                                        Status
+                                      </span>
+                                    }
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value={PackageWeightUnit.KG}>
-                                    KG
-                                  </SelectItem>
-                                  <SelectItem value={PackageWeightUnit.CBM}>
-                                    CBM
-                                  </SelectItem>
+                                  {Object.entries(OrderStatus).map(
+                                    ([key, value]) => (
+                                      <SelectItem key={key} value={value}>
+                                        {orderStatusInfo[value]?.text}
+                                      </SelectItem>
+                                    )
+                                  )}
                                 </SelectContent>
                               </Select>
-                            }
-                          />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-sm font-medium">
+                                Quantity
+                              </label>
+                              <NumericFormat
+                                type="text"
+                                allowNegative={false}
+                                decimalSeparator="."
+                                thousandSeparator=","
+                                value={item.quantity}
+                                onValueChange={(values) => {
+                                  if (!values.floatValue) {
+                                    patchItem(item.key, { quantity: "" });
+                                    return;
+                                  }
+                                  patchItem(item.key, {
+                                    quantity: values.value ?? "",
+                                  });
+                                }}
+                                customInput={Input}
+                                className="h-11 w-full bg-transparent"
+                                placeholder="Quantity"
+                              />
+                            </div>
+                          </div>
+
+                          <Collapsible className="rounded-md border border-zinc-200">
+                            <CollapsibleTrigger className="flex w-full items-center justify-between px-3 py-2.5 text-sm font-medium hover:bg-zinc-50 [&[data-state=open]>svg]:rotate-180">
+                              Optional Fields
+                              <ChevronDown className="size-4 text-zinc-500 transition-transform" />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <div
+                                className={cn(
+                                  "flex flex-col gap-4 border-t border-zinc-200 px-3 py-3"
+                                )}
+                              >
+                                <div className="space-y-1">
+                                  <label className="text-sm font-medium">
+                                    Date Ordered
+                                  </label>
+                                  <DatePicker
+                                    enableTime
+                                    value={item.dateOrdered}
+                                    onChange={(date) =>
+                                      patchItem(item.key, {
+                                        dateOrdered: date || undefined,
+                                      })
+                                    }
+                                    buttonClassName="w-full"
+                                    placeholder="Date Ordered"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-sm font-medium">
+                                    Order Amount
+                                  </label>
+                                  <NumericFormat
+                                    type="text"
+                                    prefix="₦"
+                                    allowNegative={false}
+                                    decimalSeparator="."
+                                    thousandSeparator=","
+                                    value={item.orderAmount ?? ""}
+                                    onValueChange={(values) =>
+                                      patchItem(item.key, {
+                                        orderAmount: values.value ?? "",
+                                      })
+                                    }
+                                    customInput={Input}
+                                    className="h-11 w-full bg-transparent"
+                                    placeholder="Order Amount"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-sm font-medium">
+                                    Package Weight
+                                  </label>
+                                  <NumericFormat
+                                    type="text"
+                                    allowNegative={false}
+                                    decimalSeparator="."
+                                    thousandSeparator=","
+                                    value={item.packageWeight ?? ""}
+                                    onValueChange={(values) =>
+                                      patchItem(item.key, {
+                                        packageWeight: values.value ?? "",
+                                      })
+                                    }
+                                    customInput={Input}
+                                    className="h-11 w-full bg-transparent pr-[6rem]"
+                                    endClassname="top-0 right-1 h-full translate-x-0 translate-y-0 flex items-center"
+                                    placeholder="Package Weight"
+                                    EndIcon={
+                                      <Select
+                                        value={
+                                          item.packageWeightUnit ??
+                                          PackageWeightUnit.KG
+                                        }
+                                        onValueChange={(value) => {
+                                          if (!value) return;
+                                          patchItem(item.key, {
+                                            packageWeightUnit:
+                                              value as PackageWeightUnit,
+                                          });
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-9 w-18 border-none bg-transparent px-2 shadow-none rounded-l-none">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem
+                                            value={PackageWeightUnit.KG}
+                                          >
+                                            KG
+                                          </SelectItem>
+                                          <SelectItem
+                                            value={PackageWeightUnit.CBM}
+                                          >
+                                            CBM
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    }
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-sm font-medium">
+                                    Tracking Number
+                                  </label>
+                                  <Input
+                                    value={item.trackingNumber ?? ""}
+                                    onChange={(e) =>
+                                      patchItem(item.key, {
+                                        trackingNumber: e.target.value,
+                                      })
+                                    }
+                                    placeholder="Tracking Number"
+                                    className="h-11 bg-transparent"
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-sm font-medium">
+                                    Note
+                                  </label>
+                                  <Textarea
+                                    value={item.note ?? ""}
+                                    onChange={(e) =>
+                                      patchItem(item.key, {
+                                        note: e.target.value,
+                                      })
+                                    }
+                                    rows={4}
+                                    className="!bg-transparent shadow-none placeholder:text-gray-400 hover:border-zinc-400"
+                                    placeholder="e.g Additional notes about this order"
+                                  />
+                                </div>
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">
-                            Tracking Number
-                          </label>
-                          <Input
-                            value={item.trackingNumber ?? ""}
-                            onChange={(e) =>
-                              patchItem(item.key, {
-                                trackingNumber: e.target.value,
-                              })
-                            }
-                            placeholder="Tracking Number"
-                            className="h-11 bg-transparent"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-sm font-medium">Note</label>
-                          <Textarea
-                            value={item.note ?? ""}
-                            onChange={(e) =>
-                              patchItem(item.key, { note: e.target.value })
-                            }
-                            rows={5}
-                            className="!bg-transparent shadow-none placeholder:text-gray-400 hover:border-zinc-400"
-                            placeholder="e.g Additional notes about this order"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             )}
             {itemsError && (
               <p className="text-sm text-destructive">{itemsError}</p>
             )}
           </div>
         </div>
-        <DialogFooter className="mt-6">
+
+        <DialogFooter className="sticky bottom-0 z-10 -mx-7 mt-auto border-t bg-background px-7 py-4">
           <Button
             type="button"
             variant="outline"
