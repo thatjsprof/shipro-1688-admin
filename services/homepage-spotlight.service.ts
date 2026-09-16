@@ -21,6 +21,7 @@ export interface IHomepageSpotlightItem {
   visible: boolean;
   sortOrder: number;
   image: string;
+  gallery: IHomepageSpotlightImage[];
   images: IHomepageSpotlightImage[];
   description: string;
   url: string | null;
@@ -45,6 +46,12 @@ export const SPOTLIGHT_DISPLAY_LIMITS: Record<
   hot_selling: null,
   featured: 6,
   top_deals: 12,
+};
+
+export const SPOTLIGHT_IMAGE_LIMITS: Record<HomepageSpotlightSection, number> = {
+  hot_selling: 4,
+  featured: 1,
+  top_deals: 1,
 };
 
 export const homepageSpotlightApi = createApi({
@@ -83,7 +90,6 @@ export const homepageSpotlightApi = createApi({
         id: string;
         description?: string;
         url?: string | null;
-        image?: string;
         images?: IHomepageSpotlightImage[];
         visible?: boolean;
         sortOrder?: number;

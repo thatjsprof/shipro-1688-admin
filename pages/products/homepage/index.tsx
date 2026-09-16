@@ -11,24 +11,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import FileUpload from "@/hooks/use-file";
 import {
   ICollectionProductCard,
   IProductIngest,
 } from "@/interfaces/collection.interface";
-import { IFile } from "@/interfaces/file.interface";
 import { productImageSrc } from "@/lib/product-image";
+import { cn } from "@/lib/utils";
 import { notify } from "@/lib/toast";
 import {
   HomepageSpotlightSection,
   IHomepageSpotlightImage,
   IHomepageSpotlightItem,
   SPOTLIGHT_DISPLAY_LIMITS,
+  SPOTLIGHT_IMAGE_LIMITS,
   useAddHomepageSpotlightMutation,
   useGetHomepageSpotlightQuery,
   useRemoveHomepageSpotlightMutation,
@@ -38,10 +37,10 @@ import {
 import {
   ArrowDown,
   ArrowUp,
+  Check,
   ImageIcon,
   Link2,
   Plus,
-  Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -49,25 +48,21 @@ const SECTIONS: Array<{
   value: HomepageSpotlightSection;
   label: string;
   hint: string;
-  maxImages: number;
 }> = [
   {
     value: "hot_selling",
     label: "Hot Selling",
-    hint: "Paste product links to build the pool. Toggle Show for homepage; each selected product uses up to 4 images.",
-    maxImages: 4,
+    hint: "Paste product links, toggle Show, then pick up to 4 thumbnails from each product’s gallery.",
   },
   {
     value: "featured",
     label: "Featured",
-    hint: "Paste product links, then toggle Show. Only the first 6 shown products appear on the homepage.",
-    maxImages: 1,
+    hint: "Paste product links, toggle Show, then pick 1 thumbnail per product. First 6 shown products appear on the homepage.",
   },
   {
     value: "top_deals",
     label: "Top Deals",
-    hint: "Paste product links, then toggle Show. Only the first 12 shown products appear on the homepage.",
-    maxImages: 1,
+    hint: "Paste product links, toggle Show, then pick 1 thumbnail per product. First 12 shown products appear on the homepage.",
   },
 ];
 
@@ -94,11 +89,9 @@ const toCard = (item: IHomepageSpotlightItem): ICollectionProductCard => ({
 
 const SectionPanel = ({
   section,
-  maxImages,
   hint,
 }: {
   section: HomepageSpotlightSection;
-  maxImages: number;
   hint: string;
 }) => {
   const [links, setLinks] = useState("");
@@ -107,9 +100,10 @@ const SectionPanel = ({
   const watchedIngest = useRef(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [editing, setEditing] = useState<IHomepageSpotlightItem | null>(null);
-  const [editImages, setEditImages] = useState<IHomepageSpotlightImage[]>([]);
+  const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
 
   const displayLimit = SPOTLIGHT_DISPLAY_LIMITS[section];
+  const imageLimit = SPOTLIGHT_IMAGE_LIMITS[section];
 
   const { data, isLoading, isFetching } = useGetHomepageSpotlightQuery(section, {
     pollingInterval: pollIngest ? 3000 : 0,
@@ -121,9 +115,7 @@ const SectionPanel = ({
     [items]
   );
   const showingCount =
-    displayLimit == null
-      ? visibleCount
-      : Math.min(visibleCount, displayLimit);
+    displayLimit == null ? visibleCount : Math.min(visibleCount, displayLimit);
 
   const [addProducts, { isLoading: adding }] =
     useAddHomepageSpotlightMutation();
@@ -204,54 +196,64 @@ const SectionPanel = ({
 
   const openEdit = (item: IHomepageSpotlightItem) => {
     setEditing(item);
-    const images = [...(item.images?.length ? item.images : [{ url: item.image }])];
-    while (images.length < maxImages) {
-      images.push({ url: "" });
-    }
-    setEditImages(images.slice(0, maxImages));
+    const selected = (item.images?.length ? item.images : [{ url: item.image }])
+      .map((image) => image.url)
+      .filter(Boolean);
+    // Deduplicate padded hot-selling repeats for the picker UI
+    setSelectedUrls([...new Set(selected)].slice(0, imageLimit));
+  };
+
+  const toggleThumbnail = (url: string) => {
+    setSelectedUrls((prev) => {
+      if (prev.includes(url)) {
+        return prev.filter((item) => item !== url);
+      }
+      if (imageLimit === 1) return [url];
+      if (prev.length >= imageLimit) {
+        return [...prev.slice(1), url];
+      }
+      return [...prev, url];
+    });
   };
 
   const handleSaveEdit = async () => {
     if (!editing) return;
-    const images = editImages
-      .map((image) => ({
-        url: image.url.trim(),
-        key: image.key,
-        filename: image.filename,
-      }))
-      .filter((image) => !!image.url);
-
-    if (!images.length) {
-      notify("Add at least one image");
+    if (!selectedUrls.length) {
+      notify("Select at least one thumbnail");
       return;
     }
+
+    const galleryByUrl = new Map(
+      (editing.gallery?.length
+        ? editing.gallery
+        : editing.images?.length
+          ? editing.images
+          : [{ url: editing.image }]
+      ).map((image) => [image.url, image])
+    );
+
+    const images: IHomepageSpotlightImage[] = selectedUrls
+      .map((url) => galleryByUrl.get(url) || { url })
+      .slice(0, imageLimit);
 
     try {
       await updateItem({
         id: editing.id,
         images,
-        image: images[0].url,
       }).unwrap();
-      notify("Images updated");
+      notify("Thumbnails updated");
       setEditing(null);
     } catch (err: any) {
-      notify(err?.data?.message || "Failed to update images");
+      notify(err?.data?.message || "Failed to update thumbnails");
     }
   };
 
-  const onImageUploaded = (slot: number, files: IFile[]) => {
-    const file = files[0];
-    if (!file?.url) return;
-    setEditImages((prev) => {
-      const next = [...prev];
-      next[slot] = {
-        url: file.url,
-        key: file.key,
-        filename: file.fileName,
-      };
-      return next;
-    });
-  };
+  const editingGallery = useMemo(() => {
+    if (!editing) return [];
+    if (editing.gallery?.length) return editing.gallery;
+    if (editing.images?.length) return editing.images;
+    return editing.image ? [{ url: editing.image }] : [];
+  }, [editing]);
 
   return (
     <div className="space-y-6">
@@ -343,7 +345,7 @@ const SectionPanel = ({
                     onClick={() => openEdit(item)}
                   >
                     <ImageIcon className="mr-1.5 size-3.5" />
-                    Images
+                    Thumbnails
                   </Button>
                   <Button
                     type="button"
@@ -378,9 +380,9 @@ const SectionPanel = ({
           if (!open) setEditing(null);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit images</DialogTitle>
+            <DialogTitle>Select thumbnails</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {editing && (
@@ -388,57 +390,53 @@ const SectionPanel = ({
                 {editing.description}
               </p>
             )}
-            {editImages.map((image, slot) => (
-              <div key={slot} className="space-y-2 rounded-md border p-3">
-                <Label>
-                  Image {slot + 1}
-                  {maxImages === 1 ? "" : slot === 0 ? " (main)" : " (thumb)"}
-                </Label>
-                {image.url ? (
-                  <div className="relative overflow-hidden rounded-md bg-zinc-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={productImageSrc(image.url)}
-                      alt={`Slot ${slot + 1}`}
-                      className="h-40 w-full object-cover"
-                    />
-                    <Button
+            <p className="text-xs text-zinc-500">
+              Pick from this product’s gallery. Select up to {imageLimit}.
+              {selectedUrls.length
+                ? ` ${selectedUrls.length} selected.`
+                : " None selected yet."}
+            </p>
+            {editingGallery.length === 0 ? (
+              <p className="py-6 text-center text-sm text-zinc-500">
+                No thumbnails found for this product.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {editingGallery.map((image) => {
+                  const selectedIndex = selectedUrls.indexOf(image.url);
+                  const selected = selectedIndex >= 0;
+                  return (
+                    <button
+                      key={image.url}
                       type="button"
-                      size="icon"
-                      variant="secondary"
-                      className="absolute right-2 top-2 h-8 w-8"
-                      onClick={() =>
-                        setEditImages((prev) => {
-                          const next = [...prev];
-                          next[slot] = { url: "" };
-                          return next;
-                        })
-                      }
+                      onClick={() => toggleThumbnail(image.url)}
+                      className={cn(
+                        "relative aspect-square overflow-hidden rounded-md border-2 bg-zinc-50 transition",
+                        selected
+                          ? "border-primary ring-2 ring-primary/20"
+                          : "border-transparent hover:border-zinc-300"
+                      )}
                     >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <FileUpload
-                    label="Upload image"
-                    isMultiple={false}
-                    noOfFiles={1}
-                    setUploadedFiles={(files) => onImageUploaded(slot, files)}
-                  />
-                )}
-                <Input
-                  placeholder="Or paste image URL"
-                  value={image.url}
-                  onChange={(e) =>
-                    setEditImages((prev) => {
-                      const next = [...prev];
-                      next[slot] = { ...next[slot], url: e.target.value };
-                      return next;
-                    })
-                  }
-                />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={productImageSrc(image.url)}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                      {selected && (
+                        <span className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">
+                          {imageLimit === 1 ? (
+                            <Check className="size-3.5" />
+                          ) : (
+                            selectedIndex + 1
+                          )}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            ))}
+            )}
           </div>
           <DialogFooter>
             <Button
@@ -448,7 +446,11 @@ const SectionPanel = ({
             >
               Cancel
             </Button>
-            <Button type="button" onClick={handleSaveEdit} disabled={updating}>
+            <Button
+              type="button"
+              onClick={handleSaveEdit}
+              disabled={updating || !selectedUrls.length}
+            >
               {updating && (
                 <Icons.spinner className="mr-2 size-4 animate-spin" />
               )}
@@ -474,8 +476,9 @@ const SpotlightPage = () => {
       <div>
         <h1 className="text-xl font-semibold">Spotlight</h1>
         <p className="text-sm text-zinc-500">
-          Manage Hot Selling, Featured, and Top Deals on the homepage. Add
-          products from links like Top Products, then choose which ones to show.
+          Manage Hot Selling, Featured, and Top Deals. Add existing products from
+          links, choose which show, and pick thumbnails from each product’s
+          gallery.
         </p>
       </div>
 
@@ -494,11 +497,7 @@ const SpotlightPage = () => {
         </TabsList>
         {SECTIONS.map((item) => (
           <TabsContent key={item.value} value={item.value} className="mt-6">
-            <SectionPanel
-              section={item.value}
-              maxImages={item.maxImages}
-              hint={item.hint}
-            />
+            <SectionPanel section={item.value} hint={item.hint} />
           </TabsContent>
         ))}
       </Tabs>
