@@ -4,6 +4,7 @@ import ProductIngestBanner, {
 } from "@/components/pages/collections/product-ingest-banner";
 import { Icons } from "@/components/shared/icons";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +30,8 @@ import {
   SPOTLIGHT_DISPLAY_LIMITS,
   SPOTLIGHT_IMAGE_LIMITS,
   useAddHomepageSpotlightMutation,
+  useBulkRemoveHomepageSpotlightMutation,
+  useBulkSetHomepageSpotlightVisibilityMutation,
   useGetHomepageSpotlightQuery,
   useRemoveHomepageSpotlightMutation,
   useReorderHomepageSpotlightMutation,
@@ -38,9 +41,12 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  Eye,
+  EyeOff,
   ImageIcon,
   Link2,
   Plus,
+  Trash2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -96,6 +102,8 @@ const SectionPanel = ({
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [editing, setEditing] = useState<IHomepageSpotlightItem | null>(null);
   const [selectedUrls, setSelectedUrls] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkWorking, setBulkWorking] = useState(false);
 
   const displayLimit = SPOTLIGHT_DISPLAY_LIMITS[section];
   const imageLimit = SPOTLIGHT_IMAGE_LIMITS[section];
@@ -111,6 +119,10 @@ const SectionPanel = ({
   );
   const showingCount =
     displayLimit == null ? visibleCount : Math.min(visibleCount, displayLimit);
+  const allSelected =
+    items.length > 0 && selectedIds.length === items.length;
+  const someSelected =
+    selectedIds.length > 0 && selectedIds.length < items.length;
 
   const [addProducts, { isLoading: adding }] =
     useAddHomepageSpotlightMutation();
@@ -120,6 +132,17 @@ const SectionPanel = ({
     useRemoveHomepageSpotlightMutation();
   const [reorderItems, { isLoading: reordering }] =
     useReorderHomepageSpotlightMutation();
+  const [bulkSetVisible] = useBulkSetHomepageSpotlightVisibilityMutation();
+  const [bulkRemove] = useBulkRemoveHomepageSpotlightMutation();
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [section]);
+
+  useEffect(() => {
+    const ids = new Set(items.map((item) => item.id));
+    setSelectedIds((prev) => prev.filter((id) => ids.has(id)));
+  }, [items]);
 
   useEffect(() => {
     const current = data?.data?.ingest;
@@ -136,6 +159,16 @@ const SectionPanel = ({
       setNotice(current);
     }
   }, [data?.data?.ingest]);
+
+  const toggleSelected = (id: string, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? [...new Set([...prev, id])] : prev.filter((item) => item !== id)
+    );
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? items.map((item) => item.id) : []);
+  };
 
   const handleAdd = async () => {
     if (!links.trim()) {
@@ -168,11 +201,52 @@ const SectionPanel = ({
     setRemovingId(id);
     try {
       await removeItem(id).unwrap();
+      setSelectedIds((prev) => prev.filter((item) => item !== id));
       notify("Product removed");
     } catch (err: any) {
       notify(err?.data?.message || "Failed to remove product");
     } finally {
       setRemovingId(null);
+    }
+  };
+
+  const handleBulkVisibility = async (visible: boolean) => {
+    if (!selectedIds.length) return;
+    setBulkWorking(true);
+    try {
+      await bulkSetVisible({ ids: selectedIds, visible }).unwrap();
+      notify(
+        visible
+          ? `Showing ${selectedIds.length} product${selectedIds.length === 1 ? "" : "s"}`
+          : `Hidden ${selectedIds.length} product${selectedIds.length === 1 ? "" : "s"}`
+      );
+      setSelectedIds([]);
+    } catch (err: any) {
+      notify(err?.data?.message || "Failed to update selected products");
+    } finally {
+      setBulkWorking(false);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    const count = selectedIds.length;
+    if (
+      !window.confirm(
+        `Remove ${count} product${count === 1 ? "" : "s"} from this pool?`
+      )
+    ) {
+      return;
+    }
+    setBulkWorking(true);
+    try {
+      await bulkRemove({ ids: selectedIds }).unwrap();
+      notify(`Removed ${count} product${count === 1 ? "" : "s"}`);
+      setSelectedIds([]);
+    } catch (err: any) {
+      notify(err?.data?.message || "Failed to remove selected products");
+    } finally {
+      setBulkWorking(false);
     }
   };
 
@@ -194,7 +268,6 @@ const SectionPanel = ({
     const selected = (item.images?.length ? item.images : [{ url: item.image }])
       .map((image) => image.url)
       .filter(Boolean);
-    // Deduplicate padded hot-selling repeats for the picker UI
     setSelectedUrls([...new Set(selected)].slice(0, imageLimit));
   };
 
@@ -285,10 +358,83 @@ const SectionPanel = ({
       </section>
 
       <section className="space-y-4">
-        <p className="text-sm text-zinc-500">
-          {items.length} in pool · {visibleCount} selected · {showingCount} will
-          show on homepage
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-zinc-500">
+            {items.length} in pool · {visibleCount} visible · {showingCount}{" "}
+            will show on homepage
+            {selectedIds.length > 0
+              ? ` · ${selectedIds.length} selected`
+              : ""}
+          </p>
+          {items.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`select-all-${section}`}
+                checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                onCheckedChange={(checked) =>
+                  toggleSelectAll(checked === true)
+                }
+              />
+              <Label
+                htmlFor={`select-all-${section}`}
+                className="text-sm text-zinc-600"
+              >
+                Select all
+              </Label>
+            </div>
+          )}
+        </div>
+
+        {selectedIds.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-white p-3">
+            <p className="mr-2 text-sm font-medium">
+              {selectedIds.length} selected
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={bulkWorking}
+              onClick={() => handleBulkVisibility(true)}
+            >
+              {bulkWorking ? (
+                <Icons.spinner className="mr-1.5 size-3.5 animate-spin" />
+              ) : (
+                <Eye className="mr-1.5 size-3.5" />
+              )}
+              Show
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={bulkWorking}
+              onClick={() => handleBulkVisibility(false)}
+            >
+              <EyeOff className="mr-1.5 size-3.5" />
+              Hide
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={bulkWorking}
+              onClick={handleBulkDelete}
+            >
+              <Trash2 className="mr-1.5 size-3.5" />
+              Delete
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={bulkWorking}
+              onClick={() => setSelectedIds([])}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
 
         <ProductIngestBanner
           ingest={productIngestIsActive(ingest?.status) ? ingest : notice}
@@ -306,66 +452,86 @@ const SectionPanel = ({
         ) : (
           <div
             className={`grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ${
-              isFetching || reordering ? "opacity-60" : ""
+              isFetching || reordering || bulkWorking ? "opacity-60" : ""
             }`}
           >
-            {items.map((item, index) => (
-              <div key={item.id} className="flex h-full flex-col gap-2">
-                <CollectionProductCard
-                  product={toCard(item)}
-                  removing={removing && removingId === item.id}
-                  onRemove={() => handleRemove(item.id)}
-                  className="flex-1"
-                />
-                <div className="flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id={`visible-${item.id}`}
-                      checked={item.visible}
-                      onCheckedChange={(checked) =>
-                        handleToggleVisible(item, checked)
-                      }
+            {items.map((item, index) => {
+              const isChecked = selectedIds.includes(item.id);
+              return (
+                <div key={item.id} className="flex h-full flex-col gap-2">
+                  <div
+                    className={cn(
+                      "relative flex-1 rounded-md",
+                      isChecked && "ring-2 ring-primary ring-offset-2"
+                    )}
+                  >
+                    <div className="absolute left-2 top-2 z-10">
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={(checked) =>
+                          toggleSelected(item.id, checked === true)
+                        }
+                        className="size-5 border-white bg-white/90 shadow"
+                        aria-label={`Select ${item.description || item.productId}`}
+                      />
+                    </div>
+                    <CollectionProductCard
+                      product={toCard(item)}
+                      removing={removing && removingId === item.id}
+                      onRemove={() => handleRemove(item.id)}
+                      className="h-full"
                     />
-                    <Label
-                      htmlFor={`visible-${item.id}`}
-                      className="text-xs text-zinc-600"
-                    >
-                      Show
-                    </Label>
                   </div>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="h-8 w-8"
-                    onClick={() => openEdit(item)}
-                    aria-label="Select images"
-                  >
-                    <ImageIcon className="size-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="ml-auto h-8 w-8"
-                    disabled={index === 0 || reordering}
-                    onClick={() => moveItem(index, -1)}
-                  >
-                    <ArrowUp className="size-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="h-8 w-8"
-                    disabled={index === items.length - 1 || reordering}
-                    onClick={() => moveItem(index, 1)}
-                  >
-                    <ArrowDown className="size-3.5" />
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id={`visible-${item.id}`}
+                        checked={item.visible}
+                        onCheckedChange={(checked) =>
+                          handleToggleVisible(item, checked)
+                        }
+                      />
+                      <Label
+                        htmlFor={`visible-${item.id}`}
+                        className="text-xs text-zinc-600"
+                      >
+                        Show
+                      </Label>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      onClick={() => openEdit(item)}
+                      aria-label="Select images"
+                    >
+                      <ImageIcon className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="ml-auto h-8 w-8"
+                      disabled={index === 0 || reordering}
+                      onClick={() => moveItem(index, -1)}
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      disabled={index === items.length - 1 || reordering}
+                      onClick={() => moveItem(index, 1)}
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

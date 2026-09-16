@@ -118,6 +118,28 @@ export const homepageSpotlightApi = createApi({
       }),
       invalidatesTags: ["HomepageSpotlight"],
     }),
+    bulkSetHomepageSpotlightVisibility: builder.mutation<
+      ApiResponse<{ updated: number; visible: boolean }>,
+      { ids: string[]; visible: boolean }
+    >({
+      query: (body) => ({
+        url: `/admin/homepage-spotlight/bulk-visibility`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["HomepageSpotlight"],
+    }),
+    bulkRemoveHomepageSpotlight: builder.mutation<
+      ApiResponse<{ removed: number }>,
+      { ids: string[] }
+    >({
+      query: (body) => ({
+        url: `/admin/homepage-spotlight/bulk-delete`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["HomepageSpotlight"],
+    }),
   }),
 });
 
@@ -127,4 +149,6 @@ export const {
   useUpdateHomepageSpotlightMutation,
   useReorderHomepageSpotlightMutation,
   useRemoveHomepageSpotlightMutation,
+  useBulkSetHomepageSpotlightVisibilityMutation,
+  useBulkRemoveHomepageSpotlightMutation,
 } = homepageSpotlightApi;
