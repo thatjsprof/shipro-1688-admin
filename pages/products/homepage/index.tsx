@@ -472,9 +472,8 @@ const SpotlightPage = () => {
       <div>
         <h1 className="text-xl font-semibold">Spotlight</h1>
         <p className="text-sm text-zinc-500">
-          Manage Featured and Top Deals on the homepage. Hot Selling stays
-          automatic (random in-stock Shipro products). Add products from links,
-          choose which show, and pick thumbnails from each product’s gallery.
+          Add products from links, choose which ones to show, and pick
+          thumbnails for Featured and Top Deals.
         </p>
       </div>
 
