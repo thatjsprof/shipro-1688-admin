@@ -455,24 +455,24 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
                 collapsible
                 value={openItemKey}
                 onValueChange={setOpenItemKey}
-                className="rounded-lg border border-zinc-200"
+                className="min-w-0 overflow-hidden rounded-lg border border-zinc-200"
               >
                 {items.map((item, index) => (
                   <AccordionItem
                     key={item.key}
                     value={item.key}
-                    className="px-3"
+                    className="border-b border-zinc-200 px-3 last:border-b-0"
                   >
-                    <div className="flex items-center gap-1">
-                      <AccordionTrigger className="py-3 hover:no-underline">
-                        <div className="min-w-0 flex-1 text-left">
-                          <p className="truncate text-sm font-medium">
+                    <div className="flex min-w-0 items-center gap-1">
+                      <AccordionTrigger className="min-w-0 flex-1 gap-2 overflow-hidden py-3 hover:no-underline [&>svg]:size-4 [&>svg]:shrink-0">
+                        <div className="min-w-0 flex-1 overflow-hidden text-left">
+                          <p className="truncate text-sm font-medium leading-snug">
                             {item.name.trim() ||
                               (item.id
                                 ? `Item ${index + 1}`
                                 : `New item ${index + 1}`)}
                           </p>
-                          <p className="mt-0.5 text-xs text-zinc-500">
+                          <p className="mt-0.5 truncate text-xs text-zinc-500">
                             {item.id ? "Existing" : "New"} · Qty{" "}
                             {item.quantity || "—"}
                           </p>
