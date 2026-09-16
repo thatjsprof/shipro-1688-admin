@@ -253,7 +253,6 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
 
       if (response.status === 200) {
         notify(response.message, "success");
-        setOpen(false);
       } else {
         notify(response.message, "error");
       }
@@ -280,12 +279,13 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex min-h-full flex-col"
+        className="flex min-h-0 flex-1 flex-col"
       >
-        <div className="flex flex-col gap-4 pb-4">
-          <FormField
-            control={form.control}
-            name="status"
+        <div className="min-h-0 flex-1 overflow-y-auto px-7 py-5">
+          <div className="flex flex-col gap-4 pb-2">
+            <FormField
+              control={form.control}
+              name="status"
             render={({ field }) => (
               <FormItem>
                 <FormLabel htmlFor="status">Order status</FormLabel>
@@ -769,9 +769,10 @@ const OrderBasic = ({ order, setOpen }: IOrderBasic) => {
               <p className="text-sm text-destructive">{itemsError}</p>
             )}
           </div>
+          </div>
         </div>
 
-        <DialogFooter className="sticky bottom-0 z-10 -mx-7 mt-auto border-t bg-background px-7 py-4">
+        <DialogFooter className="shrink-0 border-t bg-background px-7 py-4">
           <Button
             type="button"
             variant="outline"

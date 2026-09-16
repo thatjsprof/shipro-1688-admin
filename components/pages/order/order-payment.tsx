@@ -33,7 +33,7 @@ const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
         <Tabs
           value={tab}
           onValueChange={setTab}
-          className="flex min-h-0 flex-1 flex-col"
+          className="flex min-h-0 flex-1 flex-col gap-0"
         >
           <div className="shrink-0 px-7 pt-4">
             <TabsList>
@@ -43,7 +43,7 @@ const UpdateDialog = ({ order, open, setOpen }: IupdateDialog) => {
           </div>
           <TabsContent
             value={ITabs.Basic}
-            className="mt-0 min-h-0 flex-1 overflow-y-auto px-7 py-5 data-[state=inactive]:hidden"
+            className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden data-[state=inactive]:hidden"
           >
             <OrderBasic order={order} setOpen={setOpen} open={open} />
           </TabsContent>
