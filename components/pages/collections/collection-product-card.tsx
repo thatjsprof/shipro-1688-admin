@@ -27,7 +27,7 @@ const CollectionProductCard = ({
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-md border bg-white shadow-sm",
+        "group relative flex h-full flex-col overflow-hidden rounded-md border bg-white shadow-sm",
         className
       )}
     >
@@ -63,11 +63,11 @@ const CollectionProductCard = ({
           </Button>
         )}
       </div>
-      <div className="space-y-1.5 p-3">
-        <p className="line-clamp-2 text-sm font-medium leading-snug">
+      <div className="flex flex-1 flex-col space-y-1.5 p-3">
+        <p className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">
           {product.description || "Untitled product"}
         </p>
-        <div className="flex items-baseline justify-between gap-2">
+        <div className="mt-auto flex items-baseline justify-between gap-2">
           <p className="text-sm font-semibold">
             ₦{formatNum(product.amountNaira ?? 0)}
           </p>

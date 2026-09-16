@@ -234,7 +234,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           item.url === "/products"
                             ? currentPath === "/products" ||
                               currentPath.startsWith("/products/new") ||
-                              /^\/products\/(?!top(?:\/|$))[^/]+/.test(
+                              /^\/products\/(?!(?:top|homepage)(?:\/|$))[^/]+/.test(
                                 currentPath
                               )
                             : isRouteMatch(currentPath, item.url);

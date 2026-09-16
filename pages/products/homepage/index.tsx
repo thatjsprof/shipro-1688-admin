@@ -50,11 +50,6 @@ const SECTIONS: Array<{
   hint: string;
 }> = [
   {
-    value: "hot_selling",
-    label: "Hot Selling",
-    hint: "Paste product links, toggle Show, then pick up to 4 thumbnails from each product’s gallery.",
-  },
-  {
     value: "featured",
     label: "Featured",
     hint: "Paste product links, toggle Show, then pick 1 thumbnail per product. First 6 shown products appear on the homepage.",
@@ -315,11 +310,12 @@ const SectionPanel = ({
             }`}
           >
             {items.map((item, index) => (
-              <div key={item.id} className="space-y-2">
+              <div key={item.id} className="flex h-full flex-col gap-2">
                 <CollectionProductCard
                   product={toCard(item)}
                   removing={removing && removingId === item.id}
                   onRemove={() => handleRemove(item.id)}
+                  className="flex-1"
                 />
                 <div className="flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2">
                   <div className="flex items-center gap-2">
@@ -339,13 +335,13 @@ const SectionPanel = ({
                   </div>
                   <Button
                     type="button"
-                    size="sm"
+                    size="icon"
                     variant="outline"
-                    className="h-8"
+                    className="h-8 w-8"
                     onClick={() => openEdit(item)}
+                    aria-label="Select images"
                   >
-                    <ImageIcon className="mr-1.5 size-3.5" />
-                    Thumbnails
+                    <ImageIcon className="size-3.5" />
                   </Button>
                   <Button
                     type="button"
@@ -465,7 +461,7 @@ const SectionPanel = ({
 
 const SpotlightPage = () => {
   const [section, setSection] =
-    useState<HomepageSpotlightSection>("hot_selling");
+    useState<HomepageSpotlightSection>("featured");
 
   useEffect(() => {
     document.title = "Spotlight | Shipro Africa";
@@ -476,9 +472,9 @@ const SpotlightPage = () => {
       <div>
         <h1 className="text-xl font-semibold">Spotlight</h1>
         <p className="text-sm text-zinc-500">
-          Manage Hot Selling, Featured, and Top Deals. Add existing products from
-          links, choose which show, and pick thumbnails from each product’s
-          gallery.
+          Manage Featured and Top Deals on the homepage. Hot Selling stays
+          automatic (random in-stock Shipro products). Add products from links,
+          choose which show, and pick thumbnails from each product’s gallery.
         </p>
       </div>
 

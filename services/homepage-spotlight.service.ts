@@ -2,10 +2,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
 import { IProductIngest } from "@/interfaces/collection.interface";
 
-export type HomepageSpotlightSection =
-  | "hot_selling"
-  | "featured"
-  | "top_deals";
+export type HomepageSpotlightSection = "featured" | "top_deals";
 
 export interface IHomepageSpotlightImage {
   url: string;
@@ -43,13 +40,11 @@ export const SPOTLIGHT_DISPLAY_LIMITS: Record<
   HomepageSpotlightSection,
   number | null
 > = {
-  hot_selling: null,
   featured: 6,
   top_deals: 12,
 };
 
 export const SPOTLIGHT_IMAGE_LIMITS: Record<HomepageSpotlightSection, number> = {
-  hot_selling: 4,
   featured: 1,
   top_deals: 1,
 };
