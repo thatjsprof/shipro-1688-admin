@@ -15,17 +15,37 @@ export interface IHomepageSpotlightImage {
 
 export interface IHomepageSpotlightItem {
   id: string;
-  section: HomepageSpotlightSection;
   productId: string;
+  section: HomepageSpotlightSection;
   source: "shipro" | "1688";
-  title: string;
-  url: string | null;
-  images: IHomepageSpotlightImage[];
   visible: boolean;
   sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
+  image: string;
+  images: IHomepageSpotlightImage[];
+  description: string;
+  url: string | null;
+  moq: number | null;
+  amountYen: number | null;
+  amountNaira: number | null;
+  company: string | null;
+  stock?: number | null;
+  soldOut?: boolean;
+  rating?: number | null;
+  totalSold?: number | null;
+  totalSoldDuration: Record<string, number> | null;
+  location?: string | null;
+  internalProduct?: boolean;
+  category?: string | null;
 }
+
+export const SPOTLIGHT_DISPLAY_LIMITS: Record<
+  HomepageSpotlightSection,
+  number | null
+> = {
+  hot_selling: null,
+  featured: 6,
+  top_deals: 12,
+};
 
 export const homepageSpotlightApi = createApi({
   reducerPath: "rtk:homepageSpotlight",
@@ -61,8 +81,9 @@ export const homepageSpotlightApi = createApi({
       ApiResponse<IHomepageSpotlightItem>,
       {
         id: string;
-        title?: string;
+        description?: string;
         url?: string | null;
+        image?: string;
         images?: IHomepageSpotlightImage[];
         visible?: boolean;
         sortOrder?: number;

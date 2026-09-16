@@ -74,7 +74,7 @@ const data: {
           Icon: <Flame className="!size-4" strokeWidth={2.5} />,
         },
         {
-          title: "Homepage Spotlight",
+          title: "Spotlight",
           url: "/products/homepage",
           Icon: <LayoutGrid className="!size-4" strokeWidth={2.5} />,
         },

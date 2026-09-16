@@ -1,8 +1,8 @@
+import CollectionProductCard from "@/components/pages/collections/collection-product-card";
 import ProductIngestBanner, {
   productIngestIsActive,
 } from "@/components/pages/collections/product-ingest-banner";
 import { Icons } from "@/components/shared/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,7 +17,10 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import FileUpload from "@/hooks/use-file";
-import { IProductIngest } from "@/interfaces/collection.interface";
+import {
+  ICollectionProductCard,
+  IProductIngest,
+} from "@/interfaces/collection.interface";
 import { IFile } from "@/interfaces/file.interface";
 import { productImageSrc } from "@/lib/product-image";
 import { notify } from "@/lib/toast";
@@ -25,6 +28,7 @@ import {
   HomepageSpotlightSection,
   IHomepageSpotlightImage,
   IHomepageSpotlightItem,
+  SPOTLIGHT_DISPLAY_LIMITS,
   useAddHomepageSpotlightMutation,
   useGetHomepageSpotlightQuery,
   useRemoveHomepageSpotlightMutation,
@@ -34,8 +38,6 @@ import {
 import {
   ArrowDown,
   ArrowUp,
-  Eye,
-  EyeOff,
   ImageIcon,
   Link2,
   Plus,
@@ -52,22 +54,43 @@ const SECTIONS: Array<{
   {
     value: "hot_selling",
     label: "Hot Selling",
-    hint: "Carousel on the left. Each visible product shows up to 4 images.",
+    hint: "Paste product links to build the pool. Toggle Show for homepage; each selected product uses up to 4 images.",
     maxImages: 4,
   },
   {
     value: "featured",
     label: "Featured",
-    hint: "Middle grid. Toggle which products show; first 6 visible items appear on the homepage.",
+    hint: "Paste product links, then toggle Show. Only the first 6 shown products appear on the homepage.",
     maxImages: 1,
   },
   {
     value: "top_deals",
     label: "Top Deals",
-    hint: "Right carousel. Visible products are paired into slides of 2.",
+    hint: "Paste product links, then toggle Show. Only the first 12 shown products appear on the homepage.",
     maxImages: 1,
   },
 ];
+
+const toCard = (item: IHomepageSpotlightItem): ICollectionProductCard => ({
+  id: item.productId,
+  image: item.image,
+  description: item.description,
+  url: item.url,
+  moq: item.moq,
+  amountYen: item.amountYen,
+  amountNaira: item.amountNaira,
+  company: item.company,
+  stock: item.stock ?? null,
+  soldOut: item.soldOut ?? false,
+  rating: item.rating ?? null,
+  totalSold: item.totalSold ?? null,
+  totalSoldDuration: item.totalSoldDuration,
+  location: item.location ?? null,
+  internalProduct: item.internalProduct ?? false,
+  category: item.category ?? null,
+  source: item.source ?? (item.internalProduct ? "shipro" : "1688"),
+  sortOrder: item.sortOrder,
+});
 
 const SectionPanel = ({
   section,
@@ -84,8 +107,9 @@ const SectionPanel = ({
   const watchedIngest = useRef(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [editing, setEditing] = useState<IHomepageSpotlightItem | null>(null);
-  const [editTitle, setEditTitle] = useState("");
   const [editImages, setEditImages] = useState<IHomepageSpotlightImage[]>([]);
+
+  const displayLimit = SPOTLIGHT_DISPLAY_LIMITS[section];
 
   const { data, isLoading, isFetching } = useGetHomepageSpotlightQuery(section, {
     pollingInterval: pollIngest ? 3000 : 0,
@@ -96,6 +120,10 @@ const SectionPanel = ({
     () => items.filter((item) => item.visible).length,
     [items]
   );
+  const showingCount =
+    displayLimit == null
+      ? visibleCount
+      : Math.min(visibleCount, displayLimit);
 
   const [addProducts, { isLoading: adding }] =
     useAddHomepageSpotlightMutation();
@@ -143,7 +171,7 @@ const SectionPanel = ({
   ) => {
     try {
       await updateItem({ id: item.id, visible }).unwrap();
-      notify(visible ? "Showing on homepage" : "Hidden from homepage");
+      notify(visible ? "Marked to show" : "Hidden from homepage");
     } catch (err: any) {
       notify(err?.data?.message || "Failed to update visibility");
     }
@@ -176,8 +204,7 @@ const SectionPanel = ({
 
   const openEdit = (item: IHomepageSpotlightItem) => {
     setEditing(item);
-    setEditTitle(item.title);
-    const images = [...(item.images ?? [])];
+    const images = [...(item.images?.length ? item.images : [{ url: item.image }])];
     while (images.length < maxImages) {
       images.push({ url: "" });
     }
@@ -202,13 +229,13 @@ const SectionPanel = ({
     try {
       await updateItem({
         id: editing.id,
-        title: editTitle.trim() || editing.title,
         images,
+        image: images[0].url,
       }).unwrap();
-      notify("Spotlight item updated");
+      notify("Images updated");
       setEditing(null);
     } catch (err: any) {
-      notify(err?.data?.message || "Failed to update item");
+      notify(err?.data?.message || "Failed to update images");
     }
   };
 
@@ -232,7 +259,7 @@ const SectionPanel = ({
 
       <section className="space-y-3 rounded-lg border bg-white p-5">
         <label className="flex items-center gap-2 text-sm font-medium">
-          <Link2 className="size-4" /> Add products to pool
+          <Link2 className="size-4" /> Add products
         </label>
         <Textarea
           value={links}
@@ -253,17 +280,18 @@ const SectionPanel = ({
           Fetch & add
         </Button>
         <p className="text-xs text-zinc-500">
-          New products are added as hidden. Turn on Show to put them on the
-          homepage.
+          New products are added hidden. Turn on Show to include them
+          {displayLimit != null
+            ? `. If more than ${displayLimit} are shown, only the first ${displayLimit} (by order) are used on the homepage.`
+            : "."}
         </p>
       </section>
 
       <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm text-zinc-500">
-            {items.length} in pool · {visibleCount} showing
-          </p>
-        </div>
+        <p className="text-sm text-zinc-500">
+          {items.length} in pool · {visibleCount} selected · {showingCount} will
+          show on homepage
+        </p>
 
         <ProductIngestBanner
           ingest={productIngestIsActive(ingest?.status) ? ingest : notice}
@@ -276,115 +304,70 @@ const SectionPanel = ({
           </p>
         ) : items.length === 0 ? (
           <p className="py-8 text-center text-sm text-zinc-500">
-            No products yet. Paste links above to build the pool.
+            No products yet. Paste links above to add some.
           </p>
         ) : (
           <div
-            className={`grid gap-4 sm:grid-cols-2 lg:grid-cols-3 ${
+            className={`grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ${
               isFetching || reordering ? "opacity-60" : ""
             }`}
           >
-            {items.map((item, index) => {
-              const preview = item.images?.[0]?.url;
-              return (
-                <div
-                  key={item.id}
-                  className="overflow-hidden rounded-md border bg-white shadow-sm"
-                >
-                  <div className="relative aspect-square bg-zinc-50">
-                    {preview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={productImageSrc(preview)}
-                        alt={item.title}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-zinc-400">
-                        No image
-                      </div>
-                    )}
-                    <Badge
-                      variant="secondary"
-                      className="absolute left-2 top-2 bg-white/90 text-[0.65rem]"
+            {items.map((item, index) => (
+              <div key={item.id} className="space-y-2">
+                <CollectionProductCard
+                  product={toCard(item)}
+                  removing={removing && removingId === item.id}
+                  onRemove={() => handleRemove(item.id)}
+                />
+                <div className="flex flex-wrap items-center gap-2 rounded-md border bg-white px-3 py-2">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id={`visible-${item.id}`}
+                      checked={item.visible}
+                      onCheckedChange={(checked) =>
+                        handleToggleVisible(item, checked)
+                      }
+                    />
+                    <Label
+                      htmlFor={`visible-${item.id}`}
+                      className="text-xs text-zinc-600"
                     >
-                      {item.source === "shipro" ? "Shipro" : "External"}
-                    </Badge>
-                    {item.images?.length > 1 && (
-                      <Badge className="absolute bottom-2 left-2 bg-black/70 text-[0.65rem]">
-                        {item.images.length} images
-                      </Badge>
-                    )}
+                      Show
+                    </Label>
                   </div>
-                  <div className="space-y-3 p-3">
-                    <p className="line-clamp-2 text-sm font-medium leading-snug">
-                      {item.title}
-                    </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <Label
-                        htmlFor={`visible-${item.id}`}
-                        className="flex items-center gap-2 text-xs text-zinc-600"
-                      >
-                        {item.visible ? (
-                          <Eye className="size-3.5" />
-                        ) : (
-                          <EyeOff className="size-3.5" />
-                        )}
-                        Show
-                      </Label>
-                      <Switch
-                        id={`visible-${item.id}`}
-                        checked={item.visible}
-                        onCheckedChange={(checked) =>
-                          handleToggleVisible(item, checked)
-                        }
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openEdit(item)}
-                      >
-                        <ImageIcon className="mr-1.5 size-3.5" />
-                        Images
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
-                        disabled={index === 0 || reordering}
-                        onClick={() => moveItem(index, -1)}
-                      >
-                        <ArrowUp className="size-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="outline"
-                        className="h-8 w-8"
-                        disabled={index === items.length - 1 || reordering}
-                        onClick={() => moveItem(index, 1)}
-                      >
-                        <ArrowDown className="size-3.5" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="ml-auto h-8 w-8"
-                        disabled={removing && removingId === item.id}
-                        onClick={() => handleRemove(item.id)}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    </div>
-                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    onClick={() => openEdit(item)}
+                  >
+                    <ImageIcon className="mr-1.5 size-3.5" />
+                    Images
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="ml-auto h-8 w-8"
+                    disabled={index === 0 || reordering}
+                    onClick={() => moveItem(index, -1)}
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-8 w-8"
+                    disabled={index === items.length - 1 || reordering}
+                    onClick={() => moveItem(index, 1)}
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </Button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </section>
@@ -397,17 +380,14 @@ const SectionPanel = ({
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Edit spotlight images</DialogTitle>
+            <DialogTitle>Edit images</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="spotlight-title">Title</Label>
-              <Input
-                id="spotlight-title"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-              />
-            </div>
+            {editing && (
+              <p className="line-clamp-2 text-sm text-zinc-600">
+                {editing.description}
+              </p>
+            )}
             {editImages.map((image, slot) => (
               <div key={slot} className="space-y-2 rounded-md border p-3">
                 <Label>
@@ -481,22 +461,21 @@ const SectionPanel = ({
   );
 };
 
-const HomepageSpotlightPage = () => {
+const SpotlightPage = () => {
   const [section, setSection] =
     useState<HomepageSpotlightSection>("hot_selling");
 
   useEffect(() => {
-    document.title = "Homepage Spotlight | Shipro Africa";
+    document.title = "Spotlight | Shipro Africa";
   }, []);
 
   return (
     <div className="space-y-6 pb-16">
       <div>
-        <h1 className="text-xl font-semibold">Homepage spotlight</h1>
+        <h1 className="text-xl font-semibold">Spotlight</h1>
         <p className="text-sm text-zinc-500">
-          Manage the Hot Selling, Featured, and Top Deals cards on the storefront
-          homepage. Add products to each pool, choose which ones show, and change
-          their images.
+          Manage Hot Selling, Featured, and Top Deals on the homepage. Add
+          products from links like Top Products, then choose which ones to show.
         </p>
       </div>
 
@@ -527,4 +506,4 @@ const HomepageSpotlightPage = () => {
   );
 };
 
-export default HomepageSpotlightPage;
+export default SpotlightPage;
