@@ -27,6 +27,7 @@ import { paymentApi } from "@/services/payment.service";
 import { rmbApi } from "@/services/rmb.service";
 import { collectionApi } from "@/services/collection.service";
 import { topProductApi } from "@/services/top-product.service";
+import { homepageSpotlightApi } from "@/services/homepage-spotlight.service";
 
 const rootPersistConfig = {
   key: "admin:root",
@@ -53,6 +54,7 @@ const allReducers = combineReducers({
   [settingApi.reducerPath]: settingApi.reducer,
   [collectionApi.reducerPath]: collectionApi.reducer,
   [topProductApi.reducerPath]: topProductApi.reducer,
+  [homepageSpotlightApi.reducerPath]: homepageSpotlightApi.reducer,
   [userSlice.name]: userSlice.reducer,
   [appSlice.name]: persistReducer(appPersistConfig, appSlice.reducer),
 });
@@ -88,6 +90,7 @@ const store = () =>
         .concat(settingApi.middleware)
         .concat(collectionApi.middleware)
         .concat(topProductApi.middleware)
+        .concat(homepageSpotlightApi.middleware)
         .concat(orderApi.middleware),
     devTools: process.env.ENVIRONMENT !== "production",
   });
