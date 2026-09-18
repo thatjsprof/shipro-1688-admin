@@ -1,5 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
-
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: [
     "p",
@@ -18,6 +16,42 @@ const SANITIZE_CONFIG = {
   ],
   ALLOWED_ATTR: ["href", "target", "rel", "class"],
 };
+
+function asHtmlString(value: unknown): string {
+  if (typeof value !== "string") return "";
+  return value;
+}
+
+function decodeBasicEntities(text: string): string {
+  return text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+/** SSR-safe plain-text extraction — no jsdom/DOMPurify. */
+export function stripRichHtml(html: unknown): string {
+  const value = asHtmlString(html);
+  if (!value) return "";
+  return decodeBasicEntities(value.replace(/<[^>]*>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function sanitizeRichHtmlFallback(html: string): string {
+  return normalizeFormattingHtml(html)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/\s(on\w+)=(".*?"|'.*?'|[^\s>]+)/gi, "")
+    .replace(/javascript:/gi, "")
+    .replace(
+      /<\/?(?!p\b|br\b|div\b|strong\b|b\b|em\b|i\b|u\b|ul\b|ol\b|li\b|a\b|span\b)[^>]+>/gi,
+      ""
+    );
+}
 
 function isBoldStyle(style: string): boolean {
   return /font-weight:\s*(bold|[6-9]00)/i.test(style);
@@ -78,38 +112,32 @@ export function normalizeFormattingHtml(html: string): string {
   return template.innerHTML;
 }
 
-export function sanitizeRichHtml(html: string): string {
-  if (!html) return "";
-  const normalized = normalizeFormattingHtml(html);
-  const clean = DOMPurify.sanitize(normalized, SANITIZE_CONFIG);
+function getDOMPurify():
+  | { sanitize: (html: string, config?: Record<string, unknown>) => string }
+  | null {
+  if (typeof window === "undefined") return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("isomorphic-dompurify").default;
+  } catch {
+    return null;
+  }
+}
+
+export function sanitizeRichHtml(html: unknown): string {
+  const value = asHtmlString(html);
+  if (!value) return "";
+
+  const DOMPurify = getDOMPurify();
+  const normalized = normalizeFormattingHtml(value);
+  const clean = DOMPurify
+    ? DOMPurify.sanitize(normalized, SANITIZE_CONFIG)
+    : sanitizeRichHtmlFallback(normalized);
+
   return clean.replace(
     /<a\s+/gi,
     '<a target="_blank" rel="noopener noreferrer" '
   );
-}
-
-function asHtmlString(value: unknown): string {
-  if (typeof value !== "string") return "";
-  return value;
-}
-
-function decodeBasicEntities(text: string): string {
-  return text
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'");
-}
-
-/** Plain-text extraction that does not depend on jsdom (avoids broken isomorphic-dompurify). */
-export function stripRichHtml(html: unknown): string {
-  const value = asHtmlString(html);
-  if (!value) return "";
-  return decodeBasicEntities(value.replace(/<[^>]*>/g, " "))
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 export function richTextPlainLength(html: unknown): number {

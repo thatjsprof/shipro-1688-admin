@@ -30,9 +30,32 @@ export const rateApi = createApi({
         },
         invalidatesTags: ["GetRates"],
       }),
+      createRate: builder.mutation<
+        ApiResponse<IRate>,
+        {
+          baseCurrency: string;
+          convertedCurrency: string;
+          baseToConverted: number;
+          convertedToBase?: number;
+          description?: string;
+        }
+      >({
+        query: (body) => {
+          return {
+            url: `${baseUrl}`,
+            method: "POST",
+            body,
+          };
+        },
+        invalidatesTags: ["GetRates"],
+      }),
     };
   },
 });
 
-export const { useGetRatesQuery, useLazyGetRatesQuery, useUpdateRateMutation } =
-  rateApi;
+export const {
+  useGetRatesQuery,
+  useLazyGetRatesQuery,
+  useUpdateRateMutation,
+  useCreateRateMutation,
+} = rateApi;
