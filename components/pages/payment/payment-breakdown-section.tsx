@@ -7,7 +7,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import InputDropdown from "@/components/ui/input-dropdown";
+import useRate from "@/hooks/use-rate";
 import { PackageWeightUnit } from "@/interfaces/order.interface";
+import { formatNum } from "@/lib/utils";
 import { paymentInputSchema } from "@/schemas/payment";
 import { X } from "lucide-react";
 import {
@@ -44,6 +46,10 @@ interface PaymentBreakdownSectionProps {
   freightUnitPrice: number;
 }
 
+const isUsdBreakdown = (value?: string) =>
+  value === PaymentBreakdownType.freight ||
+  value === PaymentBreakdownType.packing_fee;
+
 export const calculatePaymentBreakdownValues = (
   freightUnitPrice: number,
   packageWeight = 0
@@ -74,6 +80,18 @@ export const calculatePaymentBreakdownValues = (
     };
   });
 
+export const sumPaymentBreakdownNgn = (
+  breakdown: { value?: string; calculatedValue?: string }[],
+  usdToNgn: number
+) =>
+  breakdown.reduce((sum, item) => {
+    const value = Number(item.calculatedValue) || 0;
+    if (isUsdBreakdown(item.value)) {
+      return sum + value * usdToNgn;
+    }
+    return sum + value;
+  }, 0);
+
 export const PaymentBreakdownSection = ({
   form,
   fields,
@@ -85,6 +103,7 @@ export const PaymentBreakdownSection = ({
   freightUnitPrice,
 }: PaymentBreakdownSectionProps) => {
   const { control, watch, setValue, getValues } = form;
+  const { usdRates, hasUsdRate } = useRate();
   const watchedBreakdowns = useWatch({ control, name: "paymentBreakdown" });
 
   const getUnits = useCallback(
@@ -138,6 +157,34 @@ export const PaymentBreakdownSection = ({
       }
     }
   }, [watchedBreakdowns, packageWeight, fields.length, setValue, getValues]);
+
+  useEffect(() => {
+    if (!hasUsdRate || fields.length === 0) return;
+
+    const totalNgn = sumPaymentBreakdownNgn(
+      getValues("paymentBreakdown") ?? [],
+      usdRates
+    );
+    const nextAmount = Math.ceil(totalNgn).toString();
+    if (getValues("amount") !== nextAmount) {
+      setValue("amount", nextAmount, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [
+    watchedBreakdowns,
+    packageWeight,
+    fields.length,
+    hasUsdRate,
+    usdRates,
+    getValues,
+    setValue,
+  ]);
+
+  const breakdownNgnTotal = hasUsdRate
+    ? sumPaymentBreakdownNgn(watchedBreakdowns ?? [], usdRates)
+    : 0;
 
   return (
     <div className="mt-6">
@@ -203,88 +250,114 @@ export const PaymentBreakdownSection = ({
               `paymentBreakdown.${index}.value`
             ) as string;
             const units = getUnits(breakdownValue);
+            const calculated = Number(
+              watch(`paymentBreakdown.${index}.calculatedValue`)
+            );
+            const ngnEquivalent =
+              hasUsdRate && isUsdBreakdown(breakdownValue) && calculated
+                ? calculated * usdRates
+                : null;
 
             return (
-              <div key={field.id} className="flex gap-2 items-start">
-                <FormField
-                  control={control}
-                  name={`paymentBreakdown.${index}.label`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <InputDropdown
-                          {...field}
-                          items={defaultPaymentBreakdown}
-                          disabled
-                          initialValue={watch(
-                            `paymentBreakdown.${index}.label`
-                          )}
-                          placeholder="Label"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name={`paymentBreakdown.${index}.unit`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <NumericFormat
-                          prefix={units.prefix}
-                          suffix={units.suffix}
-                          thousandSeparator=","
-                          decimalSeparator="."
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          onValueChange={(v) =>
-                            setValue(
-                              `paymentBreakdown.${index}.unit`,
-                              v.floatValue?.toString() || ""
-                            )
-                          }
-                          customInput={Input}
-                          className="h-11"
-                          placeholder="Unit"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name={`paymentBreakdown.${index}.calculatedValue`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <NumericFormat
-                          prefix={units.prefix}
-                          thousandSeparator=","
-                          decimalSeparator="."
-                          allowNegative={false}
-                          value={field.value ?? ""}
-                          disabled
-                          customInput={Input}
-                          className="h-11"
-                          placeholder="Calculated"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  className="h-11"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+              <div key={field.id} className="flex flex-col gap-1">
+                <div className="flex gap-2 items-start">
+                  <FormField
+                    control={control}
+                    name={`paymentBreakdown.${index}.label`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <InputDropdown
+                            {...field}
+                            items={defaultPaymentBreakdown}
+                            disabled
+                            initialValue={watch(
+                              `paymentBreakdown.${index}.label`
+                            )}
+                            placeholder="Label"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name={`paymentBreakdown.${index}.unit`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <NumericFormat
+                            prefix={units.prefix}
+                            suffix={units.suffix}
+                            thousandSeparator=","
+                            decimalSeparator="."
+                            allowNegative={false}
+                            value={field.value ?? ""}
+                            onValueChange={(v) =>
+                              setValue(
+                                `paymentBreakdown.${index}.unit`,
+                                v.floatValue?.toString() || ""
+                              )
+                            }
+                            customInput={Input}
+                            className="h-11"
+                            placeholder="Unit"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name={`paymentBreakdown.${index}.calculatedValue`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <NumericFormat
+                            prefix={units.prefix}
+                            thousandSeparator=","
+                            decimalSeparator="."
+                            allowNegative={false}
+                            value={field.value ?? ""}
+                            disabled
+                            customInput={Input}
+                            className="h-11"
+                            placeholder="Calculated"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => remove(index)}
+                    className="h-11"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                {ngnEquivalent != null && (
+                  <p className="text-xs text-zinc-500 pl-1">
+                    ≈ ₦{formatNum(ngnEquivalent)}
+                  </p>
+                )}
               </div>
             );
           })}
+          <div className="rounded-md border bg-zinc-50 px-3 py-2 text-xs text-zinc-600 flex flex-wrap items-center justify-between gap-2">
+            {hasUsdRate ? (
+              <>
+                <span>USD/NGN {formatNum(usdRates)}</span>
+                <span className="font-medium text-zinc-900">
+                  Amount ₦{formatNum(Math.ceil(breakdownNgnTotal))}
+                </span>
+              </>
+            ) : (
+              <span>Set USD/NGN in Settings → Rates to auto-fill amount</span>
+            )}
+          </div>
         </div>
       )}
     </div>
