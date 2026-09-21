@@ -231,7 +231,7 @@ export const orderStatusInfo: Partial<
 
 export const statusEmailDefaultNotes: Partial<Record<OrderStatus, string>> = {
   [OrderStatus.AT_WAREHOUSE]:
-    "PLEASE NOTE: Head to your dashboard to consolidate your items for shipping. The minimum shipping requirement is 1KG for air freight and 0.1CBM for sea freight.",
+    "PLEASE NOTE: Head to your dashboard to consolidate your items for shipping. The minimum shipping requirement is 1KG for air freight and 0.1CBM for sea freight. Check youtube video below on how to consolidate your items.",
 };
 
 export const getStatusEmailDefaultNote = (
