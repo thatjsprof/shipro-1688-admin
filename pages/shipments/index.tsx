@@ -255,7 +255,10 @@ const Shipments = () => {
               ] as LucideIcons.LucideIcon;
               const totalShippingPayments = [
                 ...shipment.payments.filter(
-                  (p) => p.code === PaymentCodes.SHIPPING_FEE
+                  (p) =>
+                    p.code === PaymentCodes.SHIPPING_FEE &&
+                    p.status !== PaymentStatus.CANCELLED &&
+                    p.status !== PaymentStatus.FAILED
                 ),
               ];
               const shippingFee = totalShippingPayments.reduce((acc, cur) => {

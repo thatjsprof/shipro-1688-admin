@@ -52,7 +52,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       packageWeightUnit: PackageWeightUnit.KG,
       trackingNumber: "",
       sendEmail: false,
-      addTracking: false,
+      addTracking: true,
       status: "",
       deliveredAt: "",
     },
@@ -73,8 +73,8 @@ const Basic = ({ order, setOpen }: IBasic) => {
             ? +values.packageWeight
             : undefined,
           packageWeightUnit: values?.packageWeightUnit ?? PackageWeightUnit.KG,
-          sendEmail: values.sendEmail,
-          addTracking: values.addTracking,
+          sendEmail: !!values.sendEmail,
+          addTracking: !!values.addTracking,
         },
       }).unwrap();
       if (response.status === 200) {
@@ -103,6 +103,7 @@ const Basic = ({ order, setOpen }: IBasic) => {
       trackingNumber,
       deliveredAt,
       sendEmail,
+      addTracking: true,
     });
   }, [order, form]);
 
@@ -301,8 +302,8 @@ const Basic = ({ order, setOpen }: IBasic) => {
                   <FormControl>
                     <Checkbox
                       id="addTracking"
-                      checked={form.watch("addTracking")}
-                      onCheckedChange={field.onChange}
+                      checked={!!field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                       className="shadow-none"
                       disabled={!watch("status")}
                     />
