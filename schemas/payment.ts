@@ -22,6 +22,7 @@ export const paymentInputSchema = z
           calculatedValue: z.string(),
           label: z.string(),
           unit: z.string(),
+          weightUnit: z.string().optional(),
         })
       )
       .optional(),

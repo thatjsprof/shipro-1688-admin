@@ -11,11 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  AirLocation,
-  IOrderItem,
-  PackageWeightUnit,
-} from "@/interfaces/order.interface";
+import { IOrderItem, PackageWeightUnit } from "@/interfaces/order.interface";
 import { PaymentCodes, PaymentStatus } from "@/interfaces/payment.interface";
 import { notify } from "@/lib/toast";
 import { formatNum } from "@/lib/utils";
@@ -24,7 +20,7 @@ import { useCreatePaymentMutation } from "@/services/payment.service";
 import { useAppSelector } from "@/store/hooks";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { buildCreatePaymentPayload } from "@/components/pages/payment/build-create-payment-payload";
@@ -34,7 +30,10 @@ import {
   emptyPaymentBreakdown,
   PaymentBreakdownSection,
 } from "@/components/pages/payment/payment-breakdown-section";
-import { defaultPaymentBreakdown } from "@/components/pages/payment/payment-form.constants";
+import {
+  defaultPaymentBreakdown,
+  getShippingRates,
+} from "@/components/pages/payment/payment-form.constants";
 
 interface PaymentDialogProps {
   open: boolean;
@@ -53,12 +52,16 @@ export const PaymentDialog = ({
     orderItem?.packageWeight
   );
 
-  const packageWeightUnit =
-    orderItem?.packageWeightUnit ?? PackageWeightUnit.KG;
-  const freightUnitPrice =
-    orderItem?.order?.airLocation === AirLocation.HK
-      ? settings?.hkPrice ?? 0
-      : settings?.gzPrice ?? 0;
+  const shippingRates = useMemo(
+    () =>
+      getShippingRates(
+        orderItem?.order,
+        settings,
+        orderItem?.packageWeightUnit ?? PackageWeightUnit.KG
+      ),
+    [orderItem?.order, orderItem?.packageWeightUnit, settings]
+  );
+  const packageWeightUnit = shippingRates.weightUnit;
 
   const form = useForm<z.infer<typeof paymentInputSchema>>({
     resolver: zodResolver(paymentInputSchema),
@@ -107,11 +110,11 @@ export const PaymentDialog = ({
     setPackageWeight(orderItem?.packageWeight);
     replace(
       calculatePaymentBreakdownValues(
-        freightUnitPrice,
+        shippingRates,
         orderItem?.packageWeight
       )
     );
-  }, [open, orderItem, freightUnitPrice, replace, reset]);
+  }, [open, orderItem, shippingRates, replace, reset]);
 
   const handleSubmit = async (values: z.infer<typeof paymentInputSchema>) => {
     if (!orderItem) return;
@@ -158,7 +161,7 @@ export const PaymentDialog = ({
                   packageWeight={packageWeight}
                   setPackageWeight={setPackageWeight}
                   packageWeightUnit={packageWeightUnit}
-                  freightUnitPrice={freightUnitPrice}
+                  shippingRates={shippingRates}
                 />
               )}
               {existingPayments.length > 0 && (

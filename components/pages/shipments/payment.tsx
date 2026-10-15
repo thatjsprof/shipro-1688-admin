@@ -7,12 +7,11 @@ import {
   emptyPaymentBreakdown,
   PaymentBreakdownSection,
 } from "@/components/pages/payment/payment-breakdown-section";
-import { defaultPaymentBreakdown, ordersRedirectLink, shipmentsRedirectLink } from "@/components/pages/payment/payment-form.constants";
+import { defaultPaymentBreakdown, getShippingRates, ordersRedirectLink, shipmentsRedirectLink } from "@/components/pages/payment/payment-form.constants";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import {
-  AirLocation,
   IOrder,
   OrderType,
   PackageWeightUnit,
@@ -61,7 +60,16 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     order?.packageWeight
   );
   const hasInitializedRef = useRef(false);
-  const packageWeightUnit = order?.packageWeightUnit ?? PackageWeightUnit.KG;
+  const shippingRates = useMemo(
+    () =>
+      getShippingRates(
+        order,
+        settings,
+        order?.packageWeightUnit ?? PackageWeightUnit.KG
+      ),
+    [order, settings]
+  );
+  const packageWeightUnit = shippingRates.weightUnit;
 
   const { data } = useGetPaymentsQuery(
     { noLimit: true, orderId: order?.id ?? "" },
@@ -104,11 +112,6 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     name: "paymentBreakdown",
   });
 
-  const freightUnitPrice =
-    order?.airLocation === AirLocation.HK
-      ? settings?.hkPrice ?? 0
-      : settings?.gzPrice ?? 0;
-
   const descriptionPresets = useMemo(() => {
     const orderNumber = order?.orderNumber ?? "order";
     return [
@@ -130,10 +133,10 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
   const getBreakdownValues = useCallback(
     (weightOverride?: number) =>
       calculatePaymentBreakdownValues(
-        freightUnitPrice,
+        shippingRates,
         weightOverride ?? packageWeight ?? order?.packageWeight ?? 0
       ),
-    [freightUnitPrice, packageWeight, order?.packageWeight]
+    [shippingRates, packageWeight, order?.packageWeight]
   );
 
   // Initialize form only once when order changes
@@ -240,7 +243,7 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
               packageWeight={packageWeight}
               setPackageWeight={setPackageWeight}
               packageWeightUnit={packageWeightUnit}
-              freightUnitPrice={freightUnitPrice}
+              shippingRates={shippingRates}
             />
           )}
           <DialogFooter className="mt-10">

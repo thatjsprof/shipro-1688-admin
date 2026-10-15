@@ -1,4 +1,47 @@
-import { PackageWeightUnit } from "@/interfaces/order.interface";
+import { ISetting } from "@/interfaces/app.interface";
+import {
+  AirLocation,
+  IOrder,
+  PackageWeightUnit,
+  ShippingType,
+} from "@/interfaces/order.interface";
+
+export const AIR_CLEARANCE_PER_KG_NGN = 1000;
+export const AIR_PACKING_FEE_USD = 1;
+
+export interface ShippingRates {
+  freight: number;
+  clearance: number;
+  packingFee: number | null;
+  weightUnit: PackageWeightUnit;
+}
+
+export const getShippingRates = (
+  order: Pick<IOrder, "shippingType" | "airLocation"> | undefined | null,
+  settings: ISetting | null | undefined,
+  fallbackUnit: PackageWeightUnit = PackageWeightUnit.KG
+): ShippingRates => {
+  if (order?.shippingType === ShippingType.SEA) {
+    return {
+      freight: Number(settings?.cbmPrice) || 0,
+      clearance: Number(settings?.clearanceFee) || 0,
+      packingFee: null,
+      weightUnit: PackageWeightUnit.CBM,
+    };
+  }
+
+  return {
+    freight:
+      Number(
+        order?.airLocation === AirLocation.HK
+          ? settings?.hkPrice
+          : settings?.gzPrice
+      ) || 0,
+    clearance: AIR_CLEARANCE_PER_KG_NGN,
+    packingFee: AIR_PACKING_FEE_USD,
+    weightUnit: fallbackUnit,
+  };
+};
 
 export enum PaymentBreakdownType {
   freight = "freight",

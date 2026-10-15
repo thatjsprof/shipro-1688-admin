@@ -31,6 +31,7 @@ import {
   defaultPaymentBreakdown,
   getBreakdownUnitsMap,
   PaymentBreakdownType,
+  ShippingRates,
 } from "./payment-form.constants";
 
 type PaymentFormValues = z.infer<typeof paymentInputSchema>;
@@ -43,7 +44,7 @@ interface PaymentBreakdownSectionProps {
   packageWeight?: number;
   setPackageWeight: Dispatch<SetStateAction<number | undefined>>;
   packageWeightUnit: PackageWeightUnit;
-  freightUnitPrice: number;
+  shippingRates: ShippingRates;
 }
 
 const isUsdBreakdown = (value?: string) =>
@@ -51,34 +52,44 @@ const isUsdBreakdown = (value?: string) =>
   value === PaymentBreakdownType.packing_fee;
 
 export const calculatePaymentBreakdownValues = (
-  freightUnitPrice: number,
+  rates: ShippingRates,
   packageWeight = 0
 ) =>
-  defaultPaymentBreakdown.map((item) => {
-    let unit = "0";
-    let calculatedValue = "0";
+  defaultPaymentBreakdown
+    .filter(
+      (item) =>
+        item.value !== PaymentBreakdownType.packing_fee ||
+        rates.packingFee != null
+    )
+    .map((item) => {
+      let unit = "0";
+      let calculatedValue = "0";
+      let weightUnit: string | undefined;
 
-    switch (item.value) {
-      case PaymentBreakdownType.freight:
-        unit = freightUnitPrice.toString();
-        calculatedValue = (freightUnitPrice * packageWeight).toString();
-        break;
-      case PaymentBreakdownType.clearance:
-        unit = "1000";
-        calculatedValue = (1000 * packageWeight).toString();
-        break;
-      case PaymentBreakdownType.packing_fee:
-        unit = "1";
-        calculatedValue = "1";
-        break;
-    }
+      switch (item.value) {
+        case PaymentBreakdownType.freight:
+          unit = rates.freight.toString();
+          calculatedValue = (rates.freight * packageWeight).toString();
+          weightUnit = rates.weightUnit;
+          break;
+        case PaymentBreakdownType.clearance:
+          unit = rates.clearance.toString();
+          calculatedValue = (rates.clearance * packageWeight).toString();
+          weightUnit = rates.weightUnit;
+          break;
+        case PaymentBreakdownType.packing_fee:
+          unit = String(rates.packingFee ?? 0);
+          calculatedValue = String(rates.packingFee ?? 0);
+          break;
+      }
 
-    return {
-      ...item,
-      unit,
-      calculatedValue,
-    };
-  });
+      return {
+        ...item,
+        unit,
+        calculatedValue,
+        ...(weightUnit ? { weightUnit } : {}),
+      };
+    });
 
 export const sumPaymentBreakdownNgn = (
   breakdown: { value?: string; calculatedValue?: string }[],
@@ -100,7 +111,7 @@ export const PaymentBreakdownSection = ({
   packageWeight,
   setPackageWeight,
   packageWeightUnit,
-  freightUnitPrice,
+  shippingRates,
 }: PaymentBreakdownSectionProps) => {
   const { control, watch, setValue, getValues } = form;
   const { usdRates, hasUsdRate } = useRate();
@@ -116,16 +127,16 @@ export const PaymentBreakdownSection = ({
   );
 
   const recalculateWithCurrentSettings = useCallback(() => {
-    replace(calculatePaymentBreakdownValues(freightUnitPrice, packageWeight));
-  }, [freightUnitPrice, packageWeight, replace]);
+    replace(calculatePaymentBreakdownValues(shippingRates, packageWeight));
+  }, [shippingRates, packageWeight, replace]);
 
   const clearAllBreakdown = useCallback(() => {
     replace([]);
   }, [replace]);
 
   const restoreDefaultBreakdown = useCallback(() => {
-    replace(calculatePaymentBreakdownValues(freightUnitPrice, packageWeight));
-  }, [freightUnitPrice, packageWeight, replace]);
+    replace(calculatePaymentBreakdownValues(shippingRates, packageWeight));
+  }, [shippingRates, packageWeight, replace]);
 
   useEffect(() => {
     if (fields.length === 0) return;
