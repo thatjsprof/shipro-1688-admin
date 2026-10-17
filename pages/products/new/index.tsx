@@ -120,7 +120,7 @@ const Product = () => {
       pinTrending: false,
       outOfStock: false,
       archived: false,
-      showReviews: false,
+      showReviews: true,
       showPackaging: false,
     },
   });
@@ -202,7 +202,7 @@ const Product = () => {
       const pinTrending = form.getValues("pinTrending") ?? false;
       const outOfStock = form.getValues("outOfStock") ?? false;
       const archived = form.getValues("archived") ?? false;
-      const showReviews = form.getValues("showReviews") ?? false;
+      const showReviews = form.getValues("showReviews") ?? true;
       const showPackaging = form.getValues("showPackaging") ?? false;
       form.reset({
         ...validated.data,

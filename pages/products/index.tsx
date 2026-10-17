@@ -6,6 +6,7 @@ import { DataTableColumnHeader } from "@/components/ui/table/data-table-column-h
 import { Tooltip } from "@/components/ui/tooltip";
 import {
   buildListingPatch,
+  ListingField,
   ProductListingSwitchCell,
 } from "@/components/pages/products/product-listing-switch-cell";
 import { IProduct } from "@/interfaces/product.interface";
@@ -30,7 +31,7 @@ import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 const getColumns = (
   onListingChange: (
     product: IProduct,
-    field: "isMoment" | "pinTrending" | "archived",
+    field: ListingField,
     checked: boolean
   ) => void,
   onRequestDelete: (product: IProduct) => void,
@@ -235,6 +236,30 @@ const getColumns = (
       enableHiding: false,
     },
     {
+      accessorKey: "showReviews",
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          column={column}
+          title="Show reviews"
+          className="-mb-[1.8px] px-2"
+        />
+      ),
+      cell: ({ row }) => {
+        const product = row.original;
+        return (
+          <ProductListingSwitchCell
+            checked={product.showReviews ?? true}
+            disabled={updatingId === product.id}
+            onCheckedChange={(checked) =>
+              onListingChange(product, "showReviews", checked)
+            }
+          />
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
       accessorKey: "soldOut",
       header: ({ column }) => (
         <DataTableColumnHeader
@@ -411,7 +436,7 @@ const Products = () => {
   const handleListingChange = useCallback(
     async (
       product: IProduct,
-      field: "isMoment" | "pinTrending" | "archived",
+      field: ListingField,
       checked: boolean
     ) => {
       setUpdatingId(product.id);

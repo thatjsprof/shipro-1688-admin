@@ -27,11 +27,21 @@ export function ProductListingSwitchCell({
   );
 }
 
+export type ListingField =
+  | "isMoment"
+  | "pinTrending"
+  | "archived"
+  | "showReviews";
+
 export function buildListingPatch(
   product: IProduct,
-  field: "isMoment" | "pinTrending" | "archived",
+  field: ListingField,
   checked: boolean
 ): Partial<IProduct> {
+  if (field === "showReviews") {
+    return { showReviews: checked };
+  }
+
   if (field === "archived") {
     return checked
       ? { archived: true, isMoment: false, pinTrending: false }

@@ -111,7 +111,7 @@ export function formToApi(form: ProductFormInput): Partial<IProduct> {
     moq: parseInt(formData.moq, 10),
     soldOut: outOfStock ?? false,
     archived: archived ?? false,
-    showReviews: showReviews ?? false,
+    showReviews: showReviews ?? true,
     showPackaging: showPackaging ?? false,
     isMoment: archived ? false : (isMoment ?? true),
     pinTrending: archived ? false : (isMoment ?? true) && (pinTrending ?? false),
@@ -244,7 +244,7 @@ export function apiToForm(
     pinTrending: product.pinTrending ?? false,
     outOfStock: product.soldOut ?? false,
     archived: product.archived ?? false,
-    showReviews: product.showReviews ?? false,
+    showReviews: product.showReviews ?? true,
     showPackaging: product.showPackaging ?? false,
   };
 }

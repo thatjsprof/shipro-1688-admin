@@ -1,13 +1,17 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithReauth } from "@/lib/rtk";
-import { IProduct } from "@/interfaces/product.interface";
+import {
+  IProduct,
+  IReview,
+  ReviewStatus,
+} from "@/interfaces/product.interface";
 
 const baseUrl = "/shipro-product";
 
 export const productApi = createApi({
   reducerPath: "rtk:product",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["GetProducts", "GetProduct"],
+  tagTypes: ["GetProducts", "GetProduct", "GetReviews"],
   endpoints: (builder) => {
     return {
       getProducts: builder.query<
@@ -75,6 +79,42 @@ export const productApi = createApi({
           { type: "GetProduct", id },
         ],
       }),
+      getReviews: builder.query<
+        ApiResponse<PaginatedResult<IReview[]>>,
+        { page: number; limit: number; status?: ReviewStatus; search?: string }
+      >({
+        query: ({ page, limit, status, search }) => {
+          const params = new URLSearchParams({
+            page: String(page),
+            limit: String(limit),
+          });
+          if (status) params.set("status", status);
+          if (search) params.set("search", search);
+          return {
+            url: `${baseUrl}/rating/admin?${params.toString()}`,
+            method: "GET",
+          };
+        },
+        providesTags: ["GetReviews"],
+      }),
+      updateReviewStatus: builder.mutation<
+        ApiResponse<IReview>,
+        { id: string; status: ReviewStatus }
+      >({
+        query: ({ id, status }) => ({
+          url: `${baseUrl}/rating/${id}/status`,
+          method: "PATCH",
+          body: { status },
+        }),
+        invalidatesTags: ["GetReviews"],
+      }),
+      deleteReview: builder.mutation<ApiResponse<{ id: string }>, string>({
+        query: (id) => ({
+          url: `${baseUrl}/rating/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["GetReviews"],
+      }),
       deleteProduct: builder.mutation<ApiResponse<{ id: string }>, string>({
         query: (id) => ({
           url: `${baseUrl}/${id}`,
@@ -95,4 +135,7 @@ export const {
   useUpdateProductMutation,
   useDeleteProductMutation,
   useGetProductQuery,
+  useGetReviewsQuery,
+  useUpdateReviewStatusMutation,
+  useDeleteReviewMutation,
 } = productApi;

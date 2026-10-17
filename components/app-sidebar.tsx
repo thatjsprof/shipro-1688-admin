@@ -7,6 +7,7 @@ import {
   Home,
   Package,
   Flame,
+  MessageSquareText,
   LayoutGrid,
   PackageSearch,
   Percent,
@@ -77,6 +78,11 @@ const data: {
           title: "Spotlight",
           url: "/products/homepage",
           Icon: <LayoutGrid className="!size-4" strokeWidth={2.5} />,
+        },
+        {
+          title: "Reviews",
+          url: "/products/reviews",
+          Icon: <MessageSquareText className="!size-4" strokeWidth={2.5} />,
         },
       ],
     },
@@ -234,7 +240,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           item.url === "/products"
                             ? currentPath === "/products" ||
                               currentPath.startsWith("/products/new") ||
-                              /^\/products\/(?!(?:top|homepage)(?:\/|$))[^/]+/.test(
+                              /^\/products\/(?!(?:top|homepage|reviews)(?:\/|$))[^/]+/.test(
                                 currentPath
                               )
                             : isRouteMatch(currentPath, item.url);

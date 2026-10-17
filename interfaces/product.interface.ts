@@ -89,3 +89,20 @@ export interface IProduct {
   propsInfoTable: (string | number)[][];
   skus: Partial<ISku>;
 }
+
+export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface IReview {
+  id: string;
+  feedback: string;
+  feedback_date: string;
+  rate_star: number;
+  sku_map: string;
+  user_nick: string;
+  status: ReviewStatus;
+  images: { url: string; key: string; fileName: string }[];
+  productId: string;
+  orderItemId: string | null;
+  product?: Pick<IProduct, "id" | "description" | "image">;
+  user?: { id: string; name: string; email: string } | null;
+}
