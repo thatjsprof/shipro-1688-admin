@@ -144,9 +144,10 @@ const Payment = ({ order, setOpen }: IPaymentComp) => {
     if (!order?.id) return;
 
     if (payment) {
-      const breakdown = payment.paymentBreakdown?.length
-        ? payment.paymentBreakdown
-        : getBreakdownValues();
+      // Keep the saved breakdown as-is; a payment without one stays without one
+      // (admins can still add it via "Restore defaults"). Filling in calculated
+      // rows here would also overwrite the saved amount with their total.
+      const breakdown = payment.paymentBreakdown ?? [];
 
       form.reset({
         description: payment.description || "",
