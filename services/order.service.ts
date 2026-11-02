@@ -149,6 +149,7 @@ export const orderApi = createApi({
         ApiResponse<IOrderItem[]>,
         Partial<{
           orders?: string[];
+          detachMissingOrders?: boolean;
           items: string[];
           data: {
             status?: OrderStatus;

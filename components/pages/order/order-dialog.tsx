@@ -127,6 +127,10 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
       const tags = (values["tags"] ?? []).map((t) => t.value);
       const updated = await updateItem({
         orders: values["orders"],
+        // A single item's list is prefilled with its current links, so an
+        // order removed from it should be unlinked. Bulk edits start empty and
+        // only ever add links.
+        detachMissingOrders: orders.length === 1 && !!dirtyFields.orders,
         items: orders.map((order) => order.id),
         data: {
           status: values["status"] || undefined,
@@ -152,9 +156,9 @@ const OrderDialog = ({ open, orders, onOpenChange }: IDialogProps) => {
         onOpenChange(false);
         notify(updated.message, "success");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      notify("Failed to update this order(s)", "error");
+      notify(err?.data?.message || "Failed to update this order(s)", "error");
     }
   };
 
